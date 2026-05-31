@@ -73,10 +73,10 @@ npm run dev
 
 ```
 prisma/
-  schema.prisma        # model User & Task
+  schema.prisma        # model User, Task, ChecklistItem, Comment, Activity
   seed.js              # data awal (admin + personel + contoh tugas)
 src/
-  middleware.js        # proteksi route (redirect ke /login bila belum masuk)
+  middleware.js        # proteksi route ("/" & "/login" publik, sisanya butuh login)
   lib/
     auth.js            # hash password, JWT, sesi cookie
     prisma.js          # singleton Prisma Client
@@ -84,11 +84,13 @@ src/
     tasks.js           # sinkronisasi status<->progress & progress dari checklist
     activity.js        # pencatat audit log
     format.js          # helper format (tanggal, waktu relatif, inisial)
+    hospitalProfile.js # KONTEN PROFIL RS (visi/misi/falsafah/milestone) - edit di sini
   app/
+    page.js            # halaman awal publik (profil RS)
     login/             # halaman login
     dashboard/         # papan tugas utama
     admin/             # kelola personel (khusus admin)
-    laporan/           # statistik & audit log
+    laporan/           # statistik, audit log, ekspor CSV/PDF
     api/
       auth/            # login, logout, me
       tasks/           # CRUD tugas + /[id]/checklist + /[id]/comments

@@ -22,16 +22,19 @@ async function isAuthenticated(request) {
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
   const authed = await isAuthenticated(request);
-  const isLoginPage = pathname === "/login";
 
-  // Belum login & bukan halaman login -> arahkan ke /login
-  if (!authed && !isLoginPage) {
+  // Halaman publik (boleh diakses tanpa login): landing & login.
+  const isPublic = pathname === "/" || pathname === "/login";
+
+  // Belum login & halaman butuh proteksi -> arahkan ke /login
+  if (!authed && !isPublic) {
     const url = new URL("/login", request.url);
     return NextResponse.redirect(url);
   }
 
   // Sudah login tapi membuka /login -> arahkan ke dashboard
-  if (authed && isLoginPage) {
+  // (halaman "/" tetap boleh dibuka meski sudah login)
+  if (authed && pathname === "/login") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

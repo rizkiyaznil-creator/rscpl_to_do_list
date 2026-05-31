@@ -3,7 +3,17 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import TopBar from "@/components/TopBar";
-import { initials, timeAgo } from "@/lib/format";
+import { initials, timeAgo, formatDate } from "@/lib/format";
+import { hospital } from "@/lib/hospitalProfile";
+
+// Bungkus nilai agar aman sebagai field CSV.
+function csvCell(value) {
+  const s = String(value ?? "");
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+function csvRow(cells) {
+  return cells.map(csvCell).join(",");
+}
 
 // Bar mini untuk visualisasi komposisi status (todo/progress/done).
 function MiniBar({ todo, inProgress, done, total }) {
@@ -43,15 +53,85 @@ export default function Reports({ currentUser }) {
     };
   }, []);
 
+  // ---- Ekspor CSV (unduhan file .csv) ----
+  function exportCSV() {
+    if (!stats) return;
+    const tgl = formatDate(new Date());
+    const lines = [];
+    lines.push(csvRow([`Laporan & Statistik - ${hospital.fullName}`]));
+    lines.push(csvRow([`Tanggal cetak: ${tgl}`]));
+    lines.push("");
+
+    lines.push(csvRow(["Ringkasan"]));
+    lines.push(csvRow(["Metrik", "Nilai"]));
+    lines.push(csvRow(["Total tugas", stats.totals.total]));
+    lines.push(csvRow(["Belum dikerjakan", stats.totals.todo]));
+    lines.push(csvRow(["Sedang dikerjakan", stats.totals.inProgress]));
+    lines.push(csvRow(["Selesai", stats.totals.done]));
+    lines.push(csvRow(["Lewat tenggat", stats.totals.overdue]));
+    lines.push(csvRow(["Tingkat penyelesaian (%)", stats.totals.completionRate]));
+    lines.push("");
+
+    lines.push(csvRow(["Per Departemen"]));
+    lines.push(csvRow(["Departemen", "Total", "Belum", "Sedang", "Selesai", "Lewat tenggat"]));
+    for (const d of stats.byDepartment) {
+      lines.push(csvRow([d.department, d.total, d.todo, d.inProgress, d.done, d.overdue]));
+    }
+    lines.push("");
+
+    lines.push(csvRow(["Beban Kerja Personel"]));
+    lines.push(csvRow(["Personel", "Departemen", "Peran", "Total", "Belum", "Sedang", "Selesai", "Lewat tenggat"]));
+    for (const p of stats.byPerson) {
+      lines.push(csvRow([p.name, p.department, p.role, p.total, p.todo, p.inProgress, p.done, p.overdue]));
+    }
+
+    // BOM agar Excel membaca karakter Indonesia dengan benar.
+    const blob = new Blob(["﻿" + lines.join("\r\n")], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `laporan-${hospital.name.toLowerCase()}-${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ---- Ekspor PDF via cetak bawaan browser ("Simpan sebagai PDF") ----
+  function exportPDF() {
+    window.print();
+  }
+
   return (
     <>
       <TopBar user={currentUser} />
       <main className="container">
-        <div className="section-head" style={{ marginTop: 0 }}>
+        {/* Header cetak (hanya tampil saat dicetak/PDF) */}
+        <div className="print-only print-header">
+          <h1>{hospital.fullName}</h1>
+          <p>Laporan &amp; Statistik Tugas — dicetak {formatDate(new Date())}</p>
+        </div>
+
+        <div className="section-head no-print" style={{ marginTop: 0 }}>
           <Link href="/dashboard" className="btn btn-sm btn-ghost">
             ← Kembali
           </Link>
           <h2 style={{ fontSize: 20 }}>Laporan &amp; Statistik</h2>
+          <div className="spacer" />
+          <button className="btn btn-sm" onClick={exportCSV} disabled={!stats}>
+            ⬇ Ekspor CSV
+          </button>
+          <button
+            className="btn btn-sm btn-primary"
+            onClick={exportPDF}
+            disabled={!stats}
+          >
+            🖨 Cetak / PDF
+          </button>
         </div>
 
         {error && <div className="alert alert-error">{error}</div>}

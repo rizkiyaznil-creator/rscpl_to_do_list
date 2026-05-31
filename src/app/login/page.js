@@ -1,3 +1,4 @@
+import Link from "next/link";
 import LoginForm from "@/components/LoginForm";
 
 export const metadata = {
@@ -23,6 +24,11 @@ export default function LoginPage() {
           <br />
           Personel → <code>dr.andi</code> / <code>password123</code>
         </div>
+        <p style={{ textAlign: "center", marginTop: 16, marginBottom: 0 }}>
+          <Link href="/" style={{ fontSize: 13 }}>
+            ← Kembali ke profil RS
+          </Link>
+        </p>
       </div>
     </div>
   );

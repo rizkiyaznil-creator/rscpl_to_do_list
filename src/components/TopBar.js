@@ -25,6 +25,9 @@ export default function TopBar({ user }) {
           </span>
         </Link>
         <div className="spacer" />
+        <Link href="/" className="btn btn-sm">
+          Profil RS
+        </Link>
         <Link href="/laporan" className="btn btn-sm">
           Laporan
         </Link>
