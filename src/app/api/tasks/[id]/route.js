@@ -9,6 +9,7 @@ import {
 } from "@/lib/constants";
 import { syncStatusProgress, applyChecklistProgress } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
+import { notify } from "@/lib/notifications";
 
 const ownerSelect = {
   id: true,
@@ -170,6 +171,17 @@ export async function PATCH(request, { params }) {
   // Jika ada checklist, hitung ulang progress & status dari checklist.
   if (hasChecklist) {
     await applyChecklistProgress(taskId);
+  }
+
+  // Notifikasi ke pemilik baru bila tugas dialihkan.
+  if (data.ownerId) {
+    await notify({
+      userId: data.ownerId,
+      actorId: session.id,
+      type: "ASSIGNED",
+      message: `${session.name} mengalihkan tugas "${task.title}" kepada Anda`,
+      taskId,
+    });
   }
 
   // Susun catatan aktivitas.

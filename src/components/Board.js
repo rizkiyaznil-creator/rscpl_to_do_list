@@ -60,6 +60,29 @@ export default function Board({ currentUser }) {
     };
   }, []);
 
+  // Buka modal detail bila lonceng notifikasi memintanya, atau bila URL
+  // mengandung ?task=<id> (mis. datang dari halaman lain via notifikasi).
+  useEffect(() => {
+    function onOpenDetail(e) {
+      const id = e?.detail?.taskId;
+      if (id) {
+        setDetailTaskId(Number(id));
+        e.preventDefault(); // beri tahu pemicu bahwa kita menanganinya
+      }
+    }
+    window.addEventListener("open-task-detail", onOpenDetail);
+
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get("task");
+    if (t) {
+      setDetailTaskId(Number(t));
+      // Bersihkan query agar tidak terbuka ulang saat refresh.
+      window.history.replaceState({}, "", "/dashboard");
+    }
+
+    return () => window.removeEventListener("open-task-detail", onOpenDetail);
+  }, []);
+
   const stats = useMemo(() => {
     const s = { total: tasks.length, TODO: 0, IN_PROGRESS: 0, DONE: 0 };
     for (const t of tasks) s[t.status] = (s[t.status] || 0) + 1;

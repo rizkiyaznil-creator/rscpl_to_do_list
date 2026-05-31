@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
+import { notify } from "@/lib/notifications";
 
 const authorSelect = { id: true, name: true, role: true };
 
@@ -58,6 +59,15 @@ export async function POST(request, { params }) {
     actorId: session.id,
     action: "ADD_COMMENT",
     detail: `Menambah komentar`,
+  });
+
+  // Beri tahu pemilik tugas bila komentar berasal dari orang lain.
+  await notify({
+    userId: task.ownerId,
+    actorId: session.id,
+    type: "COMMENT",
+    message: `${session.name} berkomentar pada "${task.title}"`,
+    taskId,
   });
 
   return Response.json({ comment }, { status: 201 });

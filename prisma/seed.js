@@ -126,6 +126,31 @@ async function main() {
     console.log(`Lewati pembuatan contoh tugas (sudah ada ${taskCount} tugas).`);
   }
 
+  // Contoh notifikasi tersimpan (hanya bila belum ada).
+  const notifCount = await prisma.notification.count();
+  if (notifCount === 0) {
+    const firstTask = await prisma.task.findFirst({ where: { ownerId: dokter.id } });
+    await prisma.notification.createMany({
+      data: [
+        {
+          userId: dokter.id,
+          type: "ASSIGNED",
+          message: `${admin.name} menugaskan "Lengkapi rekam medis pasien poli" kepada Anda`,
+          taskId: firstTask?.id ?? null,
+          read: false,
+        },
+        {
+          userId: dokter.id,
+          type: "COMMENT",
+          message: `${perawat.name} berkomentar pada tugas Anda`,
+          taskId: firstTask?.id ?? null,
+          read: false,
+        },
+      ],
+    });
+    console.log("Contoh notifikasi dibuat.");
+  }
+
   console.log("\nSelesai! Akun yang tersedia:");
   console.log("  Admin    -> username: admin         password: admin123");
   console.log("  Dokter   -> username: dr.andi       password: password123");

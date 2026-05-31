@@ -20,10 +20,11 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  ownedTasks   Task[]     @relation("owner")   // tugas yang menjadi tanggung jawab user
-  createdTasks Task[]     @relation("creator") // tugas yang dibuat oleh user
-  comments     Comment[] // komentar/handover yang ditulis user
-  activities   Activity[] // jejak aktivitas yang dilakukan user
+  ownedTasks    Task[]         @relation("owner")   // tugas yang menjadi tanggung jawab user
+  createdTasks  Task[]         @relation("creator") // tugas yang dibuat oleh user
+  comments      Comment[] // komentar/handover yang ditulis user
+  activities    Activity[] // jejak aktivitas yang dilakukan user
+  notifications Notification[] // notifikasi yang ditujukan kepada user
 }
 
 model Task {
@@ -97,5 +98,26 @@ model Activity {
   actor   User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([taskId])
+  @@index([createdAt])
+}
+
+// Notifikasi yang ditujukan kepada seorang user (mis. tugas baru ditugaskan,
+// komentar baru pada tugas miliknya). Pengingat tenggat TIDAK disimpan di sini
+// melainkan dihitung live dari due date (lihat src/lib/notifications.js).
+model Notification {
+  id        Int      @id @default(autoincrement())
+  type      String // "ASSIGNED" | "COMMENT" | dll.
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Penerima notifikasi.
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Tugas terkait (untuk navigasi saat diklik). Boleh null bila tugas dihapus.
+  taskId Int?
+
+  @@index([userId, read])
   @@index([createdAt])
 }

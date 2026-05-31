@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ROLES, ROLE_LABELS } from "@/lib/constants";
 import { initials } from "@/lib/format";
 import { hospital } from "@/lib/hospitalProfile";
+import NotificationBell from "@/components/NotificationBell";
 
 export default function TopBar({ user }) {
   const router = useRouter();
@@ -37,6 +38,7 @@ export default function TopBar({ user }) {
             Kelola Personel
           </Link>
         )}
+        <NotificationBell />
         <Link href="/akun" className="userchip" title="Akun saya">
           <span className="avatar">{initials(user?.name)}</span>
           <div>

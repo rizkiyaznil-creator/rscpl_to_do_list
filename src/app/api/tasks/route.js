@@ -9,6 +9,7 @@ import {
 } from "@/lib/constants";
 import { syncStatusProgress } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
+import { notify } from "@/lib/notifications";
 
 const ownerSelect = {
   id: true,
@@ -126,6 +127,15 @@ export async function POST(request) {
       owner.id === session.id
         ? `Membuat tugas "${task.title}"`
         : `Membuat tugas "${task.title}" untuk ${owner.name}`,
+  });
+
+  // Beri tahu pemilik bila tugas ditugaskan oleh orang lain.
+  await notify({
+    userId: owner.id,
+    actorId: session.id,
+    type: "ASSIGNED",
+    message: `${session.name} menugaskan "${task.title}" kepada Anda`,
+    taskId: task.id,
   });
 
   return Response.json({ task }, { status: 201 });

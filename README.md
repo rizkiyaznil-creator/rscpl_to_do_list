@@ -19,6 +19,10 @@ Akses dilindungi **login** (autentikasi).
   departemen.
 - 🔑 **Akun saya** (`/akun`) — tiap user dapat melihat profilnya & **mengganti
   password sendiri** (wajib verifikasi password lama).
+- 🔔 **Notifikasi & pengingat tenggat** — lonceng di top bar dengan badge:
+  notifikasi saat tugas **ditugaskan** ke Anda atau ada **komentar baru**, plus
+  **pengingat tenggat** otomatis (lewat tempo / hari ini / ≤ 2 hari). Polling
+  tiap 60 detik; klik notifikasi membuka detail tugas.
 - 🎯 Prioritas (Rendah/Sedang/Tinggi) dan tenggat (due date) dengan penanda lewat tempo.
 - ☑️ **Sub-tugas / checklist** — pecah tugas menjadi langkah-langkah; progress &
   status dihitung **otomatis** dari rasio langkah yang selesai.
