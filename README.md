@@ -1,4 +1,4 @@
-# RSCPL To-Do — Manajemen Tugas Rumah Sakit
+# RSP CPL USU — Manajemen Tugas Rumah Sakit
 
 Aplikasi web untuk mengelola **to-do list personel rumah sakit**. Setiap tugas
 memiliki **status** (Belum dikerjakan → Sedang dikerjakan → Selesai) dan

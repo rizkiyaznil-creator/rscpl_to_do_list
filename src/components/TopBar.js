@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ROLES, ROLE_LABELS } from "@/lib/constants";
 import { initials } from "@/lib/format";
+import { hospital } from "@/lib/hospitalProfile";
 
 export default function TopBar({ user }) {
   const router = useRouter();
@@ -20,8 +21,8 @@ export default function TopBar({ user }) {
         <Link href="/dashboard" className="brand" style={{ color: "inherit" }}>
           <span className="mark">✚</span>
           <span>
-            RSCPL To-Do
-            <small>Manajemen Tugas Rumah Sakit</small>
+            {hospital.name}
+            <small>Manajemen Tugas Personel</small>
           </span>
         </Link>
         <div className="spacer" />

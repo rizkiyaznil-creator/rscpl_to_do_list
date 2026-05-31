@@ -1,72 +1,103 @@
 // =============================================================================
-//  PROFIL RUMAH SAKIT  —  SILAKAN EDIT TEKS DI BAWAH SESUAI RS ANDA
+//  PROFIL RUMAH SAKIT  —  RSP CPL USU
 // =============================================================================
 //  File ini berisi seluruh konten yang tampil di halaman awal (landing):
-//  nama, visi, misi, falsafah, nilai, dan timeline/milestone.
-//  Cukup ubah teks di sini; tampilan akan otomatis menyesuaikan.
+//  nama, visi, misi, falsafah, nilai/pilar, dan timeline/milestone.
+//  Cukup ubah teks di sini; tampilan & judul aplikasi menyesuaikan otomatis.
+//
+//  STATUS KONTEN:
+//   - Visi & Misi  : data resmi (dari pihak RS).
+//   - Falsafah, Pilar, Milestone : CONTOH selaras tema, silakan sesuaikan
+//     dengan dokumen resmi / rencana strategis RS.
 // =============================================================================
 
 export const hospital = {
-  name: "RSCPL",
-  fullName: "Rumah Sakit RSCPL",
-  tagline: "Pelayanan kesehatan paripurna yang aman, bermutu, dan penuh empati.",
+  name: "RSP CPL USU",
+  fullName: "Rumah Sakit Pendidikan CPL USU",
+  tagline:
+    "Smart Academic Health Centre yang mengintegrasikan pelayanan, " +
+    "pendidikan, dan penelitian untuk kesehatan yang lebih baik.",
 
   visi:
-    "Menjadi rumah sakit rujukan pilihan utama masyarakat yang unggul dalam " +
-    "mutu pelayanan, pendidikan, dan keselamatan pasien pada tahun 2030.",
+    "Menjadi Smart Academic Health Centre yang unggul di Asia Tenggara dan " +
+    "mengintegrasikan pelayanan, pendidikan, dan penelitian untuk mewujudkan " +
+    "kesehatan yang lebih baik bagi seluruh masyarakat.",
 
   misi: [
-    "Memberikan pelayanan kesehatan yang bermutu, aman, dan terjangkau bagi seluruh lapisan masyarakat.",
-    "Mengembangkan sumber daya manusia yang profesional, kompeten, dan berintegritas.",
-    "Menerapkan tata kelola rumah sakit yang baik, transparan, dan akuntabel.",
-    "Memanfaatkan teknologi informasi kesehatan untuk pelayanan yang efektif dan efisien.",
-    "Membangun budaya keselamatan pasien di seluruh unit pelayanan.",
+    "Memberikan pelayanan klinis yang aman, bermutu tinggi, dan berpusat pada pasien.",
+    "Menjadi pusat pendidikan kedokteran dan kesehatan berkelas dunia.",
+    "Menghasilkan penelitian translasional yang berdampak nyata.",
+    "Membangun sistem kesehatan akademik yang berkelanjutan dan terintegrasi.",
+    "Menjadi mitra terpercaya bagi masyarakat, pemerintah, dan komunitas global.",
   ],
 
   // Falsafah utama RS
+  // CATATAN: teks falsafah di bawah masih CONTOH — silakan ganti dengan
+  // falsafah resmi RSP CPL USU bila sudah tersedia.
   falsafah:
-    "Kesembuhan dan keselamatan pasien adalah tujuan tertinggi kami. " +
-    "Kami melayani dengan hati, dilandasi profesionalisme, kasih sayang, " +
-    "dan penghormatan terhadap martabat setiap insan.",
+    "Pelayanan yang aman, bermutu tinggi, dan berpusat pada pasien, " +
+    "dilandasi semangat akademik untuk mengintegrasikan pelayanan, " +
+    "pendidikan, dan penelitian demi kesehatan yang lebih baik bagi seluruh masyarakat.",
 
-  // Nilai-nilai inti (motto)
+  // Tiga pilar Academic Health Centre (diturunkan langsung dari visi & misi).
+  // Ditampilkan di halaman awal sebagai nilai/pilar utama.
   nilai: [
-    { kode: "C", label: "Care", desc: "Melayani dengan empati dan sepenuh hati." },
-    { kode: "P", label: "Professional", desc: "Bekerja sesuai standar & kompetensi terbaik." },
-    { kode: "L", label: "Loyal", desc: "Berdedikasi pada pasien dan institusi." },
+    {
+      kode: "PL",
+      label: "Pelayanan",
+      desc: "Pelayanan klinis yang aman, bermutu tinggi, dan berpusat pada pasien.",
+    },
+    {
+      kode: "PD",
+      label: "Pendidikan",
+      desc: "Pusat pendidikan kedokteran dan kesehatan berkelas dunia.",
+    },
+    {
+      kode: "PN",
+      label: "Penelitian",
+      desc: "Penelitian translasional yang berdampak nyata bagi masyarakat.",
+    },
   ],
 
   // Timeline / milestone yang akan dicapai.
   // status: "done" (tercapai) | "ongoing" (berjalan) | "planned" (rencana)
+  // CATATAN: tahun & target di bawah masih CONTOH yang diselaraskan dengan
+  // visi "Smart Academic Health Centre unggul di Asia Tenggara".
+  // Silakan sesuaikan dengan rencana strategis (renstra) RS yang sebenarnya.
   milestones: [
     {
       year: "2024",
-      title: "Akreditasi Paripurna",
-      description: "Meraih akreditasi RS tingkat paripurna dari LARS/KARS.",
+      title: "Integrasi Academic Health Centre",
+      description:
+        "Mengintegrasikan pelayanan, pendidikan, dan penelitian dalam satu ekosistem RS pendidikan.",
       status: "done",
     },
     {
       year: "2025",
-      title: "Digitalisasi Rekam Medis",
-      description: "Implementasi rekam medis elektronik (RME) terintegrasi.",
+      title: "Digitalisasi & Smart Hospital",
+      description:
+        "Rekam medis elektronik dan sistem informasi terpadu sebagai fondasi Smart Academic Health Centre.",
       status: "done",
     },
     {
       year: "2026",
-      title: "Manajemen Tugas Digital",
-      description: "Penerapan sistem to-do list & monitoring kinerja personel.",
+      title: "Manajemen Kinerja Digital",
+      description:
+        "Penerapan sistem manajemen tugas & monitoring kinerja personel secara digital.",
       status: "ongoing",
     },
     {
-      year: "2027",
-      title: "Pengembangan Layanan Unggulan",
-      description: "Pembukaan pusat layanan jantung & onkologi terpadu.",
+      year: "2028",
+      title: "Pusat Pendidikan & Riset Translasional",
+      description:
+        "Penguatan pendidikan kedokteran berkelas dunia dan penelitian translasional yang berdampak nyata.",
       status: "planned",
     },
     {
       year: "2030",
-      title: "RS Rujukan Regional",
-      description: "Menjadi rujukan utama tingkat regional dengan standar internasional.",
+      title: "Unggul di Asia Tenggara",
+      description:
+        "Menjadi Smart Academic Health Centre rujukan yang unggul di tingkat Asia Tenggara.",
       status: "planned",
     },
   ],

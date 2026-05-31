@@ -1,7 +1,8 @@
 import "./globals.css";
+import { hospital } from "@/lib/hospitalProfile";
 
 export const metadata = {
-  title: "RSCPL To-Do | Manajemen Tugas Rumah Sakit",
+  title: `${hospital.name} | Manajemen Tugas Rumah Sakit`,
   description:
     "Aplikasi manajemen tugas (to-do list) untuk personel rumah sakit dengan pelacakan progress.",
 };

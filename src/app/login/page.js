@@ -1,8 +1,9 @@
 import Link from "next/link";
 import LoginForm from "@/components/LoginForm";
+import { hospital } from "@/lib/hospitalProfile";
 
 export const metadata = {
-  title: "Masuk | RSCPL To-Do",
+  title: `Masuk | ${hospital.name}`,
 };
 
 export default function LoginPage() {
@@ -12,7 +13,7 @@ export default function LoginPage() {
         <div className="login-logo">
           <div className="mark">✚</div>
           <div>
-            <h1>RSCPL To-Do</h1>
+            <h1>{hospital.name}</h1>
           </div>
         </div>
         <p className="login-sub">Manajemen tugas personel rumah sakit</p>
