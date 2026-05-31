@@ -6,9 +6,9 @@
 //  Cukup ubah teks di sini; tampilan & judul aplikasi menyesuaikan otomatis.
 //
 //  STATUS KONTEN:
-//   - Visi & Misi  : data resmi (dari pihak RS).
-//   - Falsafah, Pilar, Milestone : CONTOH selaras tema, silakan sesuaikan
-//     dengan dokumen resmi / rencana strategis RS.
+//   - Visi, Misi, Moto CAREST : data resmi (dari pihak RS).
+//   - Milestone : CONTOH selaras tema, silakan sesuaikan dengan rencana
+//     strategis (renstra) RS yang sebenarnya.
 // =============================================================================
 
 export const hospital = {
@@ -31,33 +31,70 @@ export const hospital = {
     "Menjadi mitra terpercaya bagi masyarakat, pemerintah, dan komunitas global.",
   ],
 
-  // Falsafah utama RS
-  // CATATAN: teks falsafah di bawah masih CONTOH — silakan ganti dengan
-  // falsafah resmi RSP CPL USU bila sudah tersedia.
-  falsafah:
-    "Pelayanan yang aman, bermutu tinggi, dan berpusat pada pasien, " +
-    "dilandasi semangat akademik untuk mengintegrasikan pelayanan, " +
-    "pendidikan, dan penelitian demi kesehatan yang lebih baik bagi seluruh masyarakat.",
-
-  // Tiga pilar Academic Health Centre (diturunkan langsung dari visi & misi).
-  // Ditampilkan di halaman awal sebagai nilai/pilar utama.
-  nilai: [
-    {
-      kode: "PL",
-      label: "Pelayanan",
-      desc: "Pelayanan klinis yang aman, bermutu tinggi, dan berpusat pada pasien.",
-    },
-    {
-      kode: "PD",
-      label: "Pendidikan",
-      desc: "Pusat pendidikan kedokteran dan kesehatan berkelas dunia.",
-    },
-    {
-      kode: "PN",
-      label: "Penelitian",
-      desc: "Penelitian translasional yang berdampak nyata bagi masyarakat.",
-    },
-  ],
+  // Moto / falsafah utama RS: CAREST (data resmi).
+  // `letter` = huruf akronim yang disorot; `label` = istilah Inggris;
+  // `labelId` = padanan Indonesia; `desc` = penjelasan resmi.
+  moto: {
+    name: "CAREST",
+    subtitle: "Moto & Nilai Utama RSP CPL USU",
+    values: [
+      {
+        letter: "C",
+        label: "Compassion",
+        labelId: "Kepedulian",
+        desc:
+          "Penghormatan kepada hak asasi manusia, etika profesi, prinsip " +
+          "nondiskriminasi, serta sikap humanis dan empatik dalam melayani " +
+          "pasien, peserta didik, dan seluruh pemangku kepentingan.",
+      },
+      {
+        letter: "A",
+        label: "Academic Excellence",
+        labelId: "Keunggulan Akademik",
+        desc:
+          "Penyelenggaraan pelayanan, pendidikan, dan penelitian yang bermutu " +
+          "tinggi, berbasis bukti ilmiah, serta berdaya saing pada tingkat " +
+          "nasional dan internasional.",
+      },
+      {
+        letter: "R",
+        label: "Responsibility",
+        labelId: "Tanggung Jawab",
+        desc:
+          "Profesionalisme, integritas, dan akuntabilitas dalam penyelenggaraan " +
+          "pelayanan, pendidikan, dan penelitian, disertai tata kelola yang " +
+          "transparan, efisien, dan berkelanjutan.",
+      },
+      {
+        letter: "E",
+        label: "Excellence through Innovation",
+        labelId: "Keunggulan melalui Inovasi",
+        desc:
+          "Pengembangan dan penerapan ilmu pengetahuan, teknologi kedokteran, " +
+          "serta inovasi digital secara berkelanjutan untuk meningkatkan mutu " +
+          "pelayanan, pembelajaran, dan dampak ilmiah.",
+      },
+      {
+        letter: "S",
+        label: "Safety First",
+        labelId: "Mengutamakan Keselamatan",
+        desc:
+          "Keselamatan dan kepentingan pasien sebagai prioritas utama dalam " +
+          "setiap pengambilan keputusan klinis dan manajerial, dengan budaya " +
+          "keselamatan yang melekat pada seluruh proses kerja, termasuk " +
+          "keselamatan peserta didik dan tenaga kesehatan.",
+      },
+      {
+        letter: "T",
+        label: "Teamwork & Trust",
+        labelId: "Kerja Sama dan Kepercayaan",
+        desc:
+          "Kolaborasi interprofesional yang solid, komunikasi terbuka, serta " +
+          "saling percaya antar sejawat, peserta didik, peneliti, dan mitra " +
+          "kerja sebagai fondasi Academic Health System.",
+      },
+    ],
+  },
 
   // Timeline / milestone yang akan dicapai.
   // status: "done" (tercapai) | "ongoing" (berjalan) | "planned" (rencana)

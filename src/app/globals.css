@@ -963,6 +963,43 @@ input[type="range"] {
   font-size: 13px;
   opacity: 0.82;
 }
+
+/* Moto CAREST */
+.carest-acronym {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px 0 30px;
+  flex-wrap: wrap;
+}
+.carest-letter {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), #0891b2);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(8, 145, 178, 0.4);
+}
+.carest-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+.carest-id {
+  font-weight: 500;
+  opacity: 0.75;
+  font-size: 13px;
+}
+@media (max-width: 760px) {
+  .carest-letter {
+    width: 42px;
+    height: 42px;
+    font-size: 22px;
+  }
+}
+
 .lp-h2 {
   text-align: center;
   font-size: 26px;

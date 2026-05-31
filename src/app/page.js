@@ -67,18 +67,27 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* ---------- Falsafah ---------- */}
+        {/* ---------- Moto CAREST ---------- */}
         <section className="lp-section">
           <div className="lp-falsafah">
-            <span className="lp-eyebrow center">Falsafah Utama</span>
-            <blockquote>“{hospital.falsafah}”</blockquote>
-            <div className="lp-values">
-              {hospital.nilai.map((n) => (
-                <div className="lp-value" key={n.kode}>
-                  <div className="lp-value-mark">{n.kode}</div>
+            <span className="lp-eyebrow center">{hospital.moto.subtitle}</span>
+            <div className="carest-acronym" aria-label={`Moto ${hospital.moto.name}`}>
+              {hospital.moto.values.map((v) => (
+                <span className="carest-letter" key={v.letter}>
+                  {v.letter}
+                </span>
+              ))}
+            </div>
+            <div className="lp-values carest-grid">
+              {hospital.moto.values.map((v) => (
+                <div className="lp-value" key={v.letter}>
+                  <div className="lp-value-mark">{v.letter}</div>
                   <div>
-                    <b>{n.label}</b>
-                    <p>{n.desc}</p>
+                    <b>
+                      {v.label}{" "}
+                      <span className="carest-id">({v.labelId})</span>
+                    </b>
+                    <p>{v.desc}</p>
                   </div>
                 </div>
               ))}
