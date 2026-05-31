@@ -25,6 +25,9 @@ export default function TopBar({ user }) {
           </span>
         </Link>
         <div className="spacer" />
+        <Link href="/laporan" className="btn btn-sm">
+          Laporan
+        </Link>
         {user?.role === ROLES.ADMIN && (
           <Link href="/admin" className="btn btn-sm">
             Kelola Personel

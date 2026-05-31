@@ -9,7 +9,14 @@ import {
 } from "@/lib/constants";
 import { initials, formatDate, isOverdue } from "@/lib/format";
 
-export default function TaskCard({ task, currentUser, onUpdated, onDeleted, onEdit }) {
+export default function TaskCard({
+  task,
+  currentUser,
+  onUpdated,
+  onDeleted,
+  onEdit,
+  onOpenDetail,
+}) {
   const [progress, setProgress] = useState(task.progress);
   const [busy, setBusy] = useState(false);
 
@@ -22,6 +29,12 @@ export default function TaskCard({ task, currentUser, onUpdated, onDeleted, onEd
     currentUser.role === ROLES.ADMIN ||
     task.ownerId === currentUser.id ||
     task.creatorId === currentUser.id;
+
+  const checklist = task.checklist || [];
+  const checklistTotal = checklist.length;
+  const checklistDone = checklist.filter((c) => c.done).length;
+  const hasChecklist = checklistTotal > 0;
+  const commentCount = task._count?.comments ?? 0;
 
   async function patch(payload) {
     setBusy(true);
@@ -75,7 +88,13 @@ export default function TaskCard({ task, currentUser, onUpdated, onDeleted, onEd
   return (
     <article className={`card ${done ? "done" : ""}`}>
       <div className="card-top">
-        <h3 className="card-title">{task.title}</h3>
+        <h3
+          className="card-title link"
+          onClick={() => onOpenDetail(task)}
+          title="Lihat detail"
+        >
+          {task.title}
+        </h3>
         <span className={`badge status-${task.status}`}>
           {STATUS_LABELS[task.status]}
         </span>
@@ -103,9 +122,12 @@ export default function TaskCard({ task, currentUser, onUpdated, onDeleted, onEd
             {overdue ? " (lewat)" : ""}
           </span>
         )}
-        {task.creator && (
-          <span>oleh {task.creator.name}</span>
+        {hasChecklist && (
+          <span title="Sub-tugas selesai">
+            ☑ {checklistDone}/{checklistTotal}
+          </span>
         )}
+        {commentCount > 0 && <span title="Komentar">💬 {commentCount}</span>}
       </div>
 
       <div className="progress-row">
@@ -115,45 +137,52 @@ export default function TaskCard({ task, currentUser, onUpdated, onDeleted, onEd
         <span className="pct">{progress}%</span>
       </div>
 
-      {canModify ? (
-        <>
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="5"
-            value={progress}
-            disabled={busy}
-            onChange={(e) => setProgress(Number(e.target.value))}
-            onMouseUp={commitProgress}
-            onTouchEnd={commitProgress}
-            onKeyUp={commitProgress}
-            aria-label="Atur progress"
-          />
-          <div className="card-actions">
-            <select value={task.status} onChange={changeStatus} disabled={busy}>
-              {Object.values(STATUS).map((s) => (
-                <option key={s} value={s}>
-                  {STATUS_LABELS[s]}
-                </option>
-              ))}
-            </select>
-            <div className="spacer" />
+      {canModify && !hasChecklist && (
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          value={progress}
+          disabled={busy}
+          onChange={(e) => setProgress(Number(e.target.value))}
+          onMouseUp={commitProgress}
+          onTouchEnd={commitProgress}
+          onKeyUp={commitProgress}
+          aria-label="Atur progress"
+        />
+      )}
+      {hasChecklist && (
+        <div className="readonly-note">
+          Progress otomatis dari checklist ({checklistDone}/{checklistTotal} langkah).
+        </div>
+      )}
+
+      <div className="card-actions">
+        {canModify && !hasChecklist && (
+          <select value={task.status} onChange={changeStatus} disabled={busy}>
+            {Object.values(STATUS).map((s) => (
+              <option key={s} value={s}>
+                {STATUS_LABELS[s]}
+              </option>
+            ))}
+          </select>
+        )}
+        <button className="btn btn-sm" onClick={() => onOpenDetail(task)}>
+          Detail
+        </button>
+        <div className="spacer" />
+        {canModify && (
+          <>
             <button className="btn btn-sm" onClick={() => onEdit(task)} disabled={busy}>
               Ubah
             </button>
             <button className="btn btn-sm btn-danger" onClick={remove} disabled={busy}>
               Hapus
             </button>
-          </div>
-        </>
-      ) : (
-        <div className="card-actions">
-          <span className="readonly-note">
-            Hanya pemilik/admin yang dapat mengubah tugas ini.
-          </span>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </article>
   );
 }

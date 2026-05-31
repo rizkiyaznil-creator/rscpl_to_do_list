@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import TopBar from "@/components/TopBar";
 import TaskCard from "@/components/TaskCard";
 import TaskFormModal from "@/components/TaskFormModal";
+import TaskDetailModal from "@/components/TaskDetailModal";
 import { STATUS, STATUS_LABELS } from "@/lib/constants";
 
 export default function Board({ currentUser }) {
@@ -20,6 +21,18 @@ export default function Board({ currentUser }) {
   // Modal
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [detailTaskId, setDetailTaskId] = useState(null);
+
+  // Muat ulang daftar tugas (dipakai setelah perubahan dari modal detail).
+  async function reloadTasks() {
+    try {
+      const res = await fetch("/api/tasks");
+      const data = await res.json();
+      if (res.ok) setTasks(data.tasks || []);
+    } catch {
+      /* abaikan; biarkan state lama */
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -182,6 +195,7 @@ export default function Board({ currentUser }) {
                   onUpdated={handleUpdated}
                   onDeleted={handleDeleted}
                   onEdit={openEdit}
+                  onOpenDetail={(t) => setDetailTaskId(t.id)}
                 />
               ))}
             </div>
@@ -199,6 +213,15 @@ export default function Board({ currentUser }) {
             setEditingTask(null);
           }}
           onSaved={handleSaved}
+        />
+      )}
+
+      {detailTaskId && (
+        <TaskDetailModal
+          taskId={detailTaskId}
+          currentUser={currentUser}
+          onClose={() => setDetailTaskId(null)}
+          onChanged={reloadTasks}
         />
       )}
     </>

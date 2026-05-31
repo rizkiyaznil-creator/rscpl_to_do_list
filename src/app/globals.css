@@ -575,9 +575,239 @@ input[type="range"] {
   border-bottom: none;
 }
 
+/* ---------- Task detail modal ---------- */
+.card-title.link {
+  cursor: pointer;
+}
+.card-title.link:hover {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.modal-lg {
+  max-width: 640px;
+}
+.detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+.detail-head h3 {
+  font-size: 18px;
+}
+.detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  align-items: center;
+  margin: 12px 0 14px;
+}
+.detail-section {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 14px;
+}
+.detail-section h4 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.muted-sm {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* checklist */
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.checklist li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  margin: 0;
+  font-weight: 400;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+}
+.check input {
+  width: auto;
+}
+.checklist li.done .check span {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 4px 7px;
+  border-radius: 6px;
+}
+.icon-btn:hover {
+  background: var(--danger-light);
+  color: var(--danger);
+}
+.inline-form {
+  display: flex;
+  gap: 8px;
+}
+.inline-form input {
+  flex: 1;
+}
+
+/* comments */
+.comments {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.comment {
+  display: flex;
+  gap: 8px;
+}
+.avatar.sm {
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+.comment-body {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.comment-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.comment-head b {
+  color: var(--text);
+  font-size: 13px;
+}
+.comment-head .icon-btn {
+  margin-left: auto;
+}
+.comment-body p {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+/* activity */
+.activity {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.activity li {
+  display: flex;
+  gap: 9px;
+  font-size: 13px;
+  align-items: flex-start;
+}
+.activity .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-top: 6px;
+  flex-shrink: 0;
+}
+.activity small {
+  color: var(--text-muted);
+}
+
+/* ---------- Reports ---------- */
+.report-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 8px;
+}
+.minibar {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+.minibar .seg {
+  display: block;
+  height: 100%;
+}
+.seg.done {
+  background: var(--done);
+}
+.seg.prog {
+  background: var(--progress);
+}
+.seg.todo {
+  background: #cbd5e1;
+}
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 14px;
+}
+.dot-legend {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin: 0 2px 0 12px;
+}
+.dot-legend.done {
+  background: var(--done);
+}
+.dot-legend.prog {
+  background: var(--progress);
+}
+.dot-legend.todo {
+  background: #cbd5e1;
+}
+
+@media (max-width: 860px) {
+  .report-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 640px) {
   .stats {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr) !important;
   }
   .field-row {
     flex-direction: column;

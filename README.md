@@ -18,6 +18,14 @@ Akses dilindungi **login** (autentikasi).
 - 👥 **Manajemen personel** (khusus admin) — tambah/hapus akun, atur peran &
   departemen.
 - 🎯 Prioritas (Rendah/Sedang/Tinggi) dan tenggat (due date) dengan penanda lewat tempo.
+- ☑️ **Sub-tugas / checklist** — pecah tugas menjadi langkah-langkah; progress &
+  status dihitung **otomatis** dari rasio langkah yang selesai.
+- 💬 **Komentar & handover** — catatan serah-terima antar personel di tiap tugas
+  (cocok untuk pergantian shift).
+- 🧾 **Riwayat aktivitas (audit log)** — mencatat otomatis siapa membuat/mengubah/
+  menyelesaikan/menghapus apa & kapan (per tugas dan global).
+- 📈 **Laporan & statistik** (`/laporan`) — ringkasan status, tugas lewat tenggat,
+  tingkat penyelesaian, beban kerja per personel & per departemen.
 
 ## Teknologi
 
@@ -73,17 +81,21 @@ src/
     auth.js            # hash password, JWT, sesi cookie
     prisma.js          # singleton Prisma Client
     constants.js       # konstanta & label (status, peran, prioritas)
-    tasks.js           # sinkronisasi status <-> progress
-    format.js          # helper format (tanggal, inisial)
+    tasks.js           # sinkronisasi status<->progress & progress dari checklist
+    activity.js        # pencatat audit log
+    format.js          # helper format (tanggal, waktu relatif, inisial)
   app/
     login/             # halaman login
     dashboard/         # papan tugas utama
     admin/             # kelola personel (khusus admin)
+    laporan/           # statistik & audit log
     api/
       auth/            # login, logout, me
-      tasks/           # CRUD tugas
+      tasks/           # CRUD tugas + /[id]/checklist + /[id]/comments
       users/           # kelola personel
-  components/          # komponen UI (Board, TaskCard, modal, dll.)
+      stats/           # agregasi laporan
+      activity/        # riwayat aktivitas global
+  components/          # Board, TaskCard, TaskDetailModal, Reports, dll.
 ```
 
 ## Catatan keamanan

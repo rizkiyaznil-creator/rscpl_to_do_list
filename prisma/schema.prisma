@@ -20,8 +20,10 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  ownedTasks   Task[]   @relation("owner")   // tugas yang menjadi tanggung jawab user
-  createdTasks Task[]   @relation("creator") // tugas yang dibuat oleh user
+  ownedTasks   Task[]     @relation("owner")   // tugas yang menjadi tanggung jawab user
+  createdTasks Task[]     @relation("creator") // tugas yang dibuat oleh user
+  comments     Comment[] // komentar/handover yang ditulis user
+  activities   Activity[] // jejak aktivitas yang dilakukan user
 }
 
 model Task {
@@ -41,6 +43,59 @@ model Task {
   creatorId Int?
   creator   User? @relation("creator", fields: [creatorId], references: [id], onDelete: SetNull)
 
+  checklist  ChecklistItem[] // sub-tugas / langkah
+  comments   Comment[] // komentar & catatan handover
+  activities Activity[] // riwayat aktivitas pada tugas ini
+
   @@index([ownerId])
   @@index([status])
+}
+
+// Sub-tugas / langkah pada sebuah tugas. Bila ada item checklist, progress
+// tugas dihitung otomatis dari rasio item yang selesai.
+model ChecklistItem {
+  id        Int      @id @default(autoincrement())
+  text      String
+  done      Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  taskId Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+// Komentar / catatan serah-terima (handover) antar personel pada sebuah tugas.
+model Comment {
+  id        Int      @id @default(autoincrement())
+  body      String
+  createdAt DateTime @default(now())
+
+  taskId Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  authorId Int?
+  author   User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([taskId])
+}
+
+// Riwayat aktivitas (audit log): siapa melakukan apa & kapan.
+// taskId/actorId dibuat nullable + SetNull agar log tetap tersimpan
+// meski tugas atau user terkait dihapus.
+model Activity {
+  id        Int      @id @default(autoincrement())
+  action    String // kategori, mis. "CREATE_TASK", "UPDATE_STATUS"
+  detail    String? // teks ringkas yang bisa dibaca manusia
+  createdAt DateTime @default(now())
+
+  taskId Int?
+  task   Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  actorId Int?
+  actor   User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([taskId])
+  @@index([createdAt])
 }

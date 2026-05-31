@@ -8,6 +8,7 @@ import {
   STATUS,
 } from "@/lib/constants";
 import { syncStatusProgress } from "@/lib/tasks";
+import { logActivity } from "@/lib/activity";
 
 const ownerSelect = {
   id: true,
@@ -15,6 +16,15 @@ const ownerSelect = {
   username: true,
   role: true,
   department: true,
+};
+
+// Include untuk tampilan daftar: data pemilik/pembuat + ringkasan checklist
+// (id & status selesai) dan jumlah komentar.
+const listInclude = {
+  owner: { select: ownerSelect },
+  creator: { select: ownerSelect },
+  checklist: { select: { id: true, done: true } },
+  _count: { select: { comments: true } },
 };
 
 // GET /api/tasks  -> daftar SEMUA tugas (papan transparan untuk semua personel).
@@ -42,10 +52,7 @@ export async function GET(request) {
   const tasks = await prisma.task.findMany({
     where,
     orderBy: [{ status: "asc" }, { dueDate: "asc" }, { createdAt: "desc" }],
-    include: {
-      owner: { select: ownerSelect },
-      creator: { select: ownerSelect },
-    },
+    include: listInclude,
   });
 
   return Response.json({ tasks });
@@ -108,10 +115,17 @@ export async function POST(request) {
       ownerId,
       creatorId: session.id,
     },
-    include: {
-      owner: { select: ownerSelect },
-      creator: { select: ownerSelect },
-    },
+    include: listInclude,
+  });
+
+  await logActivity({
+    taskId: task.id,
+    actorId: session.id,
+    action: "CREATE_TASK",
+    detail:
+      owner.id === session.id
+        ? `Membuat tugas "${task.title}"`
+        : `Membuat tugas "${task.title}" untuk ${owner.name}`,
   });
 
   return Response.json({ task }, { status: 201 });
