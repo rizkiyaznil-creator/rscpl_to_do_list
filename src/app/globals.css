@@ -246,6 +246,12 @@ textarea {
   align-items: center;
   gap: 10px;
   font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.userchip:hover {
+  background: var(--surface-2);
 }
 .avatar {
   width: 34px;
@@ -546,6 +552,50 @@ input[type="range"] {
   background: var(--danger-light);
   color: var(--danger);
   border: 1px solid #fecaca;
+}
+.alert-success {
+  background: var(--done-bg);
+  color: var(--done);
+  border: 1px solid #bbf7d0;
+}
+
+/* ---------- Account ---------- */
+.account-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 18px;
+  align-items: start;
+}
+.profile-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.profile-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+.profile-list > div:last-child {
+  border-bottom: none;
+}
+.profile-list dt {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.profile-list dd {
+  margin: 0;
+  font-weight: 600;
+  font-size: 13.5px;
+  text-align: right;
+}
+@media (max-width: 640px) {
+  .account-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---------- Table (admin) ---------- */

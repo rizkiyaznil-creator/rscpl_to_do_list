@@ -17,6 +17,8 @@ Akses dilindungi **login** (autentikasi).
   dan **admin** dapat menugaskan ke personel mana pun.
 - 👥 **Manajemen personel** (khusus admin) — tambah/hapus akun, atur peran &
   departemen.
+- 🔑 **Akun saya** (`/akun`) — tiap user dapat melihat profilnya & **mengganti
+  password sendiri** (wajib verifikasi password lama).
 - 🎯 Prioritas (Rendah/Sedang/Tinggi) dan tenggat (due date) dengan penanda lewat tempo.
 - ☑️ **Sub-tugas / checklist** — pecah tugas menjadi langkah-langkah; progress &
   status dihitung **otomatis** dari rasio langkah yang selesai.

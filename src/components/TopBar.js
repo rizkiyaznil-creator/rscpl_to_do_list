@@ -37,7 +37,7 @@ export default function TopBar({ user }) {
             Kelola Personel
           </Link>
         )}
-        <div className="userchip">
+        <Link href="/akun" className="userchip" title="Akun saya">
           <span className="avatar">{initials(user?.name)}</span>
           <div>
             <div style={{ fontWeight: 600 }}>{user?.name}</div>
@@ -49,7 +49,7 @@ export default function TopBar({ user }) {
               {ROLE_LABELS[user?.role] || "Personel"}
             </span>
           </div>
-        </div>
+        </Link>
         <button className="btn btn-sm" onClick={logout}>
           Keluar
         </button>
