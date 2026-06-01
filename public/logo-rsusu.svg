@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none" role="img" aria-label="Logo RS CPL USU">
+  <!-- Mark bergaya logo RS USU: palang dari 5 kotak dengan bayangan abu-abu -->
+  <!-- atas -->
+  <g transform="rotate(-6 300 110)">
+    <rect x="198" y="36" width="180" height="180" rx="6" fill="#ABABAA"/>
+    <rect x="210" y="20" width="180" height="180" rx="6" fill="#E9551F"/>
+  </g>
+  <!-- kiri -->
+  <g transform="rotate(5 110 300)">
+    <rect x="8" y="226" width="180" height="180" rx="6" fill="#ABABAA"/>
+    <rect x="20" y="210" width="180" height="180" rx="6" fill="#E9551F"/>
+  </g>
+  <!-- kanan -->
+  <g transform="rotate(4 490 300)">
+    <rect x="388" y="226" width="180" height="180" rx="6" fill="#ABABAA"/>
+    <rect x="400" y="210" width="180" height="180" rx="6" fill="#E9551F"/>
+  </g>
+  <!-- bawah -->
+  <g transform="rotate(-5 300 490)">
+    <rect x="198" y="416" width="180" height="180" rx="6" fill="#ABABAA"/>
+    <rect x="210" y="400" width="180" height="180" rx="6" fill="#E9551F"/>
+  </g>
+  <!-- tengah (merah-koral) -->
+  <g transform="rotate(-3 300 300)">
+    <rect x="198" y="226" width="180" height="180" rx="6" fill="#ABABAA"/>
+    <rect x="210" y="210" width="180" height="180" rx="6" fill="#EA6E62"/>
+  </g>
+</svg>
