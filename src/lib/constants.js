@@ -10,6 +10,22 @@ export const ROLE_LABELS = {
   STAFF: "Personel",
 };
 
+// Status akun. Pendaftaran mandiri => PENDING (belum bisa login) sampai
+// diverifikasi admin => ACTIVE.
+export const USER_STATUS = {
+  PENDING: "PENDING",
+  ACTIVE: "ACTIVE",
+};
+
+export const USER_STATUS_LABELS = {
+  PENDING: "Menunggu verifikasi",
+  ACTIVE: "Aktif",
+};
+
+export function isValidUserStatus(value) {
+  return Object.values(USER_STATUS).includes(value);
+}
+
 export const STATUS = {
   TODO: "TODO",
   IN_PROGRESS: "IN_PROGRESS",

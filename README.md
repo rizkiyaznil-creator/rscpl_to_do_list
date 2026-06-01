@@ -17,6 +17,11 @@ Akses dilindungi **login** (autentikasi).
   dan **admin** dapat menugaskan ke personel mana pun.
 - 👥 **Manajemen personel** (khusus admin) — tambah/hapus akun, atur peran &
   departemen.
+- 🆕 **Pendaftaran mandiri + verifikasi admin** — siapa pun dapat mendaftar di
+  `/daftar` (nama, username, password). Akun baru berstatus **menunggu
+  verifikasi** dan **tidak bisa login** sampai **admin menyetujui** di panel
+  "Kelola Personel". Admin mendapat notifikasi pendaftar baru & dapat
+  memverifikasi/menolak — termasuk lewat **browser HP** (tampilan responsif).
 - 🔑 **Akun saya** (`/akun`) — tiap user dapat melihat profilnya & **mengganti
   password sendiri** (wajib verifikasi password lama).
 - 🔔 **Notifikasi & pengingat tenggat** — lonceng di top bar dengan badge:
@@ -36,13 +41,15 @@ Akses dilindungi **login** (autentikasi).
 ## Teknologi
 
 - [Next.js 15](https://nextjs.org/) (App Router) — frontend + backend (route handlers)
-- [Prisma](https://www.prisma.io/) + **SQLite** — database
+- [Prisma](https://www.prisma.io/) + **PostgreSQL** — database
 - `jose` (JWT) + `bcryptjs` — autentikasi
 - CSS murni (tanpa framework)
 
 ## Menjalankan secara lokal
 
-Prasyarat: **Node.js 18+**.
+Prasyarat: **Node.js 18+** dan sebuah **database PostgreSQL**. Cara termudah:
+buat database gratis di [Neon](https://neon.tech), salin *connection string*-nya
+(tidak perlu memasang PostgreSQL di komputer).
 
 ```bash
 # 1. Pasang dependensi
@@ -50,10 +57,12 @@ npm install
 
 # 2. Siapkan environment
 cp .env.example .env
-# lalu buka .env dan isi JWT_SECRET dengan nilai acak yang panjang, mis.:
-#   node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+# Buka .env, lalu:
+#  - isi DATABASE_URL dengan connection string PostgreSQL (mis. dari Neon)
+#  - isi JWT_SECRET dengan nilai acak panjang:
+#      node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
-# 3. Inisialisasi database + data contoh (buat tabel & seed)
+# 3. Buat tabel + data contoh (demo)
 npm run setup
 
 # 4. Jalankan
@@ -61,8 +70,9 @@ npm run dev
 # buka http://localhost:3000
 ```
 
-> `npm run setup` menjalankan `prisma generate`, `prisma db push`, dan seed.
-> Untuk mereset database: `npm run db:reset`.
+> `npm run setup` menjalankan `prisma generate`, `prisma db push`, dan seed (data demo).
+> Reset database: `npm run db:reset`. Untuk produksi tanpa data demo, lihat
+> bagian **Deploy online** di bawah.
 
 ## Akun demo (hasil seed)
 
@@ -73,14 +83,55 @@ npm run dev
 | Perawat  | `ns.budi`      | `password123`  |
 | Apoteker | `siti.farmasi` | `password123`  |
 
+> Seed juga membuat satu **pendaftar contoh** (`calon.staf`) berstatus *menunggu
+> verifikasi*, agar fitur verifikasi admin langsung terlihat di panel "Kelola Personel".
+
 > **Penting:** ganti password default & `JWT_SECRET` sebelum dipakai sungguhan.
+
+## Deploy online (Vercel + Neon)
+
+Aplikasi ini siap di-deploy **gratis** ke **Vercel** dengan database **PostgreSQL**
+dari **Neon**. Hasilnya: URL `https://....vercel.app` yang bisa dibuka dari
+**browser HP mana pun**, dengan HTTPS otomatis & data tersimpan permanen.
+
+1. **Buat database (Neon).** Daftar di [neon.tech](https://neon.tech) → buat project →
+   salin *connection string* (pilih yang **Pooled**), bentuknya seperti:
+   `postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require`
+
+2. **Inisialisasi database + admin pertama** (dari komputer Anda, sekali saja):
+
+   ```bash
+   export DATABASE_URL="<connection string Neon>"
+   npx prisma db push     # buat semua tabel di database Neon
+   npm run db:admin       # buat 1 akun admin (default: admin / admin123)
+   ```
+
+   Ingin username/password admin sendiri:
+   `ADMIN_USERNAME=...  ADMIN_PASSWORD=...  npm run db:admin`
+   (Untuk mengisi data demo, pakai `npm run db:seed` alih-alih `db:admin`.)
+
+3. **Deploy ke Vercel.** Daftar di [vercel.com](https://vercel.com) (login via GitHub) →
+   **Add New… → Project** → pilih repo ini → bagian **Environment Variables**, isi:
+   - `DATABASE_URL` = connection string Neon (sama seperti di atas)
+   - `JWT_SECRET` = string acak panjang (`node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`)
+
+   Klik **Deploy**. Vercel menjalankan `prisma generate` (via `postinstall`) lalu
+   `next build` secara otomatis.
+
+4. **Pakai.** Buka URL Vercel di HP → login sebagai admin → **ganti password admin**.
+   Personel lain **mendaftar di `/daftar`**, lalu Anda **verifikasi** mereka di
+   **Kelola Personel**.
+
+> Deploy dari branch yang berisi kode ini (mis. setelah PR di-*merge* ke `main`).
+> Selain Vercel, kode ini juga jalan di Railway/Render/Fly (gunakan PostgreSQL yang sama).
 
 ## Struktur proyek
 
 ```
 prisma/
-  schema.prisma        # model User, Task, ChecklistItem, Comment, Activity
-  seed.js              # data awal (admin + personel + contoh tugas)
+  schema.prisma        # model User (punya status PENDING/ACTIVE), Task, dll.
+  seed.js              # data demo (admin + personel + tugas + pendaftar contoh)
+  create-admin.js      # buat 1 akun admin untuk produksi (npm run db:admin)
 src/
   middleware.js        # proteksi route ("/" & "/login" publik, sisanya butuh login)
   lib/
@@ -94,11 +145,12 @@ src/
   app/
     page.js            # halaman awal publik (profil RS)
     login/             # halaman login
+    daftar/            # halaman pendaftaran mandiri (publik)
     dashboard/         # papan tugas utama
     admin/             # kelola personel (khusus admin)
     laporan/           # statistik, audit log, ekspor CSV/PDF
     api/
-      auth/            # login, logout, me
+      auth/            # login, logout, me, register (pendaftaran)
       tasks/           # CRUD tugas + /[id]/checklist + /[id]/comments
       users/           # kelola personel
       stats/           # agregasi laporan

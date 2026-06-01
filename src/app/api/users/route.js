@@ -1,12 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { getSession, hashPassword } from "@/lib/auth";
-import { ROLES, isValidRole } from "@/lib/constants";
+import { ROLES, USER_STATUS, isValidRole } from "@/lib/constants";
 
 const publicSelect = {
   id: true,
   username: true,
   name: true,
   role: true,
+  status: true,
   department: true,
   createdAt: true,
   _count: { select: { ownedTasks: true } },
@@ -75,8 +76,9 @@ export async function POST(request) {
   }
 
   const passwordHash = await hashPassword(password);
+  // Akun yang dibuat admin langsung aktif (sudah tepercaya).
   const user = await prisma.user.create({
-    data: { username, name, passwordHash, department, role },
+    data: { username, name, passwordHash, department, role, status: USER_STATUS.ACTIVE },
     select: publicSelect,
   });
 

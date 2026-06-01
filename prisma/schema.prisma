@@ -1,13 +1,13 @@
 // Skema database untuk aplikasi to-do list rumah sakit.
-// SQLite tidak mendukung enum, jadi nilai status/role/prioritas disimpan
-// sebagai String dan divalidasi di sisi aplikasi (lihat src/lib/constants.js).
+// Nilai status/role/prioritas disimpan sebagai String (bukan enum native)
+// dan divalidasi di sisi aplikasi (lihat src/lib/constants.js).
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -16,6 +16,10 @@ model User {
   username     String   @unique
   name         String
   role         String   @default("STAFF") // "ADMIN" | "STAFF"
+  // "PENDING" | "ACTIVE". Pendaftaran mandiri lewat /daftar mulai dari PENDING
+  // dan TIDAK bisa login sampai diverifikasi admin. Akun buatan admin & seed
+  // langsung ACTIVE (default ACTIVE agar data lama tidak ikut terkunci).
+  status       String   @default("ACTIVE")
   department   String? // unit/departemen rumah sakit, mis. "IGD", "Farmasi"
   passwordHash String
   createdAt    DateTime @default(now())

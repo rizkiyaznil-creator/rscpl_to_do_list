@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, createSession } from "@/lib/auth";
+import { USER_STATUS } from "@/lib/constants";
 
 export async function POST(request) {
   let body;
@@ -27,6 +28,17 @@ export async function POST(request) {
     return Response.json(
       { error: "Username atau password salah." },
       { status: 401 },
+    );
+  }
+
+  // Kredensial benar, tetapi akun harus sudah diverifikasi admin untuk masuk.
+  if (user.status !== USER_STATUS.ACTIVE) {
+    return Response.json(
+      {
+        error:
+          "Akun Anda belum diverifikasi admin. Mohon tunggu persetujuan sebelum dapat masuk.",
+      },
+      { status: 403 },
     );
   }
 

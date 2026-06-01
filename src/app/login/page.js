@@ -18,14 +18,22 @@ export default function LoginPage() {
         </div>
         <p className="login-sub">Manajemen tugas personel rumah sakit</p>
         <LoginForm />
-        <div className="login-hint">
-          <strong>Akun demo:</strong>
-          <br />
-          Admin → <code>admin</code> / <code>admin123</code>
-          <br />
-          Personel → <code>dr.andi</code> / <code>password123</code>
-        </div>
-        <p style={{ textAlign: "center", marginTop: 16, marginBottom: 0 }}>
+        {process.env.NODE_ENV !== "production" && (
+          <div className="login-hint">
+            <strong>Akun demo:</strong>
+            <br />
+            Admin → <code>admin</code> / <code>admin123</code>
+            <br />
+            Personel → <code>dr.andi</code> / <code>password123</code>
+          </div>
+        )}
+        <p style={{ textAlign: "center", marginTop: 16, marginBottom: 6 }}>
+          Belum punya akun?{" "}
+          <Link href="/daftar" style={{ fontSize: 13 }}>
+            Daftar di sini
+          </Link>
+        </p>
+        <p style={{ textAlign: "center", marginTop: 0, marginBottom: 0 }}>
           <Link href="/" style={{ fontSize: 13 }}>
             ← Kembali ke profil RS
           </Link>

@@ -79,6 +79,27 @@ export default function NotificationBell() {
     }
   }
 
+  async function markRead(notifId) {
+    if (!notifId) return;
+    await fetch("/api/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: notifId }),
+    });
+  }
+
+  // Notifikasi pendaftaran baru mengarahkan admin ke halaman Kelola Personel.
+  async function handleNotifClick(n) {
+    if (n.type === "REGISTER") {
+      await markRead(n.id);
+      setOpen(false);
+      load();
+      router.push("/admin");
+      return;
+    }
+    openTask(n.taskId, n.id);
+  }
+
   const { items, reminders, badge, unreadCount } = data;
   const hasContent = reminders.length > 0 || items.length > 0;
 
@@ -136,10 +157,14 @@ export default function NotificationBell() {
                   <button
                     key={n.id}
                     className={`notif-item ${n.read ? "" : "unread"}`}
-                    onClick={() => openTask(n.taskId, n.id)}
+                    onClick={() => handleNotifClick(n)}
                   >
                     <span className="notif-icon">
-                      {n.type === "ASSIGNED" ? "📌" : "💬"}
+                      {n.type === "ASSIGNED"
+                        ? "📌"
+                        : n.type === "REGISTER"
+                          ? "🆕"
+                          : "💬"}
                     </span>
                     <span className="notif-text">
                       <span>{n.message}</span>

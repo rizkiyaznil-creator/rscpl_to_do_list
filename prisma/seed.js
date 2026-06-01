@@ -10,8 +10,8 @@ async function upsertUser({ username, name, role, department, password }) {
   const passwordHash = await bcrypt.hash(password, 10);
   return prisma.user.upsert({
     where: { username },
-    update: { name, role, department },
-    create: { username, name, role, department, passwordHash },
+    update: { name, role, department, status: "ACTIVE" },
+    create: { username, name, role, department, passwordHash, status: "ACTIVE" },
   });
 }
 
@@ -49,6 +49,23 @@ async function main() {
     department: "Farmasi",
     password: "password123",
   });
+
+  // Contoh pendaftar mandiri yang masih MENUNGGU verifikasi admin, agar fitur
+  // verifikasi langsung terlihat di panel admin. Hanya dibuat bila belum ada.
+  const calon = await prisma.user.findUnique({ where: { username: "calon.staf" } });
+  if (!calon) {
+    await prisma.user.create({
+      data: {
+        username: "calon.staf",
+        name: "Calon Personel (contoh pendaftar)",
+        role: "STAFF",
+        department: "Rawat Inap",
+        status: "PENDING",
+        passwordHash: await bcrypt.hash("password123", 10),
+      },
+    });
+    console.log("Contoh pendaftar PENDING dibuat: calon.staf (tunggu verifikasi).");
+  }
 
   // Buat contoh tugas hanya bila belum ada tugas sama sekali,
   // supaya seed bisa dijalankan ulang tanpa menumpuk data.

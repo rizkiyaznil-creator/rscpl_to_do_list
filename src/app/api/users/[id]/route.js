@@ -1,12 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { getSession, hashPassword } from "@/lib/auth";
-import { ROLES, isValidRole } from "@/lib/constants";
+import { ROLES, USER_STATUS, isValidRole } from "@/lib/constants";
 
 const publicSelect = {
   id: true,
   username: true,
   name: true,
   role: true,
+  status: true,
   department: true,
   createdAt: true,
   _count: { select: { ownedTasks: true } },
@@ -24,6 +25,9 @@ export async function PATCH(request, { params }) {
 
   const { id } = await params;
   const userId = Number(id);
+  if (!Number.isInteger(userId)) {
+    return Response.json({ error: "ID tidak valid." }, { status: 400 });
+  }
   const target = await prisma.user.findUnique({ where: { id: userId } });
   if (!target) {
     return Response.json({ error: "Personel tidak ditemukan." }, { status: 404 });
@@ -40,6 +44,10 @@ export async function PATCH(request, { params }) {
   if (typeof body.name === "string" && body.name.trim()) data.name = body.name.trim();
   if (typeof body.department === "string") data.department = body.department.trim() || null;
   if (isValidRole(body.role)) data.role = body.role;
+  // Verifikasi/aktivasi akun oleh admin (PENDING -> ACTIVE) atau sebaliknya.
+  if (body.status === USER_STATUS.ACTIVE || body.status === USER_STATUS.PENDING) {
+    data.status = body.status;
+  }
   if (body.password) {
     if (String(body.password).length < 6) {
       return Response.json({ error: "Password minimal 6 karakter." }, { status: 400 });
@@ -79,6 +87,9 @@ export async function DELETE(request, { params }) {
 
   const { id } = await params;
   const userId = Number(id);
+  if (!Number.isInteger(userId)) {
+    return Response.json({ error: "ID tidak valid." }, { status: 400 });
+  }
 
   if (userId === session.id) {
     return Response.json(

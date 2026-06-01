@@ -47,7 +47,11 @@ export async function GET(request) {
 
   const q = (searchParams.get("q") || "").trim();
   if (q) {
-    where.OR = [{ title: { contains: q } }, { description: { contains: q } }];
+    // mode "insensitive" -> pencarian tidak peka huruf besar/kecil di PostgreSQL.
+    where.OR = [
+      { title: { contains: q, mode: "insensitive" } },
+      { description: { contains: q, mode: "insensitive" } },
+    ];
   }
 
   const tasks = await prisma.task.findMany({
