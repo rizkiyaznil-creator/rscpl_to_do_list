@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import AccountPanel from "@/components/AccountPanel";
 
 export const metadata = {
-  title: "Akun Saya | RSP CPL USU",
+  title: "Akun Saya | RS CPL USU",
 };
 
 export default async function AkunPage() {
