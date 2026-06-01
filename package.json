@@ -1,0 +1,32 @@
+{
+  "name": "rscpl-todo-list",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Aplikasi web manajemen tugas (to-do list) untuk personel rumah sakit",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "vercel-build": "prisma generate && prisma db push && node prisma/create-admin.js && next build",
+    "start": "next start",
+    "db:push": "prisma db push",
+    "db:seed": "node prisma/seed.js",
+    "db:admin": "node prisma/create-admin.js",
+    "db:reset": "prisma db push --force-reset && node prisma/seed.js",
+    "setup": "prisma generate && prisma db push && node prisma/seed.js",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.0",
+    "bcryptjs": "^2.4.3",
+    "jose": "^5.9.6",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.2.0"
+  }
+}

@@ -1,0 +1,61 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ROLES, ROLE_LABELS } from "@/lib/constants";
+import { initials } from "@/lib/format";
+import { hospital } from "@/lib/hospitalProfile";
+import NotificationBell from "@/components/NotificationBell";
+
+export default function TopBar({ user }) {
+  const router = useRouter();
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
+
+  return (
+    <header className="topbar">
+      <div className="topbar-inner">
+        <Link href="/dashboard" className="brand" style={{ color: "inherit" }}>
+          <span className="mark">✚</span>
+          <span>
+            {hospital.name}
+            <small>Manajemen Tugas Personel</small>
+          </span>
+        </Link>
+        <div className="spacer" />
+        <Link href="/" className="btn btn-sm">
+          Profil RS
+        </Link>
+        <Link href="/laporan" className="btn btn-sm">
+          Laporan
+        </Link>
+        {user?.role === ROLES.ADMIN && (
+          <Link href="/admin" className="btn btn-sm">
+            Kelola Personel
+          </Link>
+        )}
+        <NotificationBell />
+        <Link href="/akun" className="userchip" title="Akun saya">
+          <span className="avatar">{initials(user?.name)}</span>
+          <div>
+            <div style={{ fontWeight: 600 }}>{user?.name}</div>
+            <span
+              className={`badge ${
+                user?.role === ROLES.ADMIN ? "badge-role" : "badge-staff"
+              }`}
+            >
+              {ROLE_LABELS[user?.role] || "Personel"}
+            </span>
+          </div>
+        </Link>
+        <button className="btn btn-sm" onClick={logout}>
+          Keluar
+        </button>
+      </div>
+    </header>
+  );
+}

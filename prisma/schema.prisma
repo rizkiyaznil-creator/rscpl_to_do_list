@@ -1,0 +1,127 @@
+// Skema database untuk aplikasi to-do list rumah sakit.
+// Nilai status/role/prioritas disimpan sebagai String (bukan enum native)
+// dan divalidasi di sisi aplikasi (lihat src/lib/constants.js).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  name         String
+  role         String   @default("STAFF") // "ADMIN" | "STAFF"
+  // "PENDING" | "ACTIVE". Pendaftaran mandiri lewat /daftar mulai dari PENDING
+  // dan TIDAK bisa login sampai diverifikasi admin. Akun buatan admin & seed
+  // langsung ACTIVE (default ACTIVE agar data lama tidak ikut terkunci).
+  status       String   @default("ACTIVE")
+  department   String? // unit/departemen rumah sakit, mis. "IGD", "Farmasi"
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  ownedTasks    Task[]         @relation("owner")   // tugas yang menjadi tanggung jawab user
+  createdTasks  Task[]         @relation("creator") // tugas yang dibuat oleh user
+  comments      Comment[] // komentar/handover yang ditulis user
+  activities    Activity[] // jejak aktivitas yang dilakukan user
+  notifications Notification[] // notifikasi yang ditujukan kepada user
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  status      String    @default("TODO")   // "TODO" | "IN_PROGRESS" | "DONE"
+  progress    Int       @default(0)         // 0 - 100
+  priority    String    @default("MEDIUM")  // "LOW" | "MEDIUM" | "HIGH"
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  ownerId   Int
+  owner     User  @relation("owner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  creatorId Int?
+  creator   User? @relation("creator", fields: [creatorId], references: [id], onDelete: SetNull)
+
+  checklist  ChecklistItem[] // sub-tugas / langkah
+  comments   Comment[] // komentar & catatan handover
+  activities Activity[] // riwayat aktivitas pada tugas ini
+
+  @@index([ownerId])
+  @@index([status])
+}
+
+// Sub-tugas / langkah pada sebuah tugas. Bila ada item checklist, progress
+// tugas dihitung otomatis dari rasio item yang selesai.
+model ChecklistItem {
+  id        Int      @id @default(autoincrement())
+  text      String
+  done      Boolean  @default(false)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  taskId Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+// Komentar / catatan serah-terima (handover) antar personel pada sebuah tugas.
+model Comment {
+  id        Int      @id @default(autoincrement())
+  body      String
+  createdAt DateTime @default(now())
+
+  taskId Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  authorId Int?
+  author   User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([taskId])
+}
+
+// Riwayat aktivitas (audit log): siapa melakukan apa & kapan.
+// taskId/actorId dibuat nullable + SetNull agar log tetap tersimpan
+// meski tugas atau user terkait dihapus.
+model Activity {
+  id        Int      @id @default(autoincrement())
+  action    String // kategori, mis. "CREATE_TASK", "UPDATE_STATUS"
+  detail    String? // teks ringkas yang bisa dibaca manusia
+  createdAt DateTime @default(now())
+
+  taskId Int?
+  task   Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  actorId Int?
+  actor   User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([taskId])
+  @@index([createdAt])
+}
+
+// Notifikasi yang ditujukan kepada seorang user (mis. tugas baru ditugaskan,
+// komentar baru pada tugas miliknya). Pengingat tenggat TIDAK disimpan di sini
+// melainkan dihitung live dari due date (lihat src/lib/notifications.js).
+model Notification {
+  id        Int      @id @default(autoincrement())
+  type      String // "ASSIGNED" | "COMMENT" | dll.
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Penerima notifikasi.
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Tugas terkait (untuk navigasi saat diklik). Boleh null bila tugas dihapus.
+  taskId Int?
+
+  @@index([userId, read])
+  @@index([createdAt])
+}
