@@ -91,39 +91,35 @@ npm run dev
 ## Deploy online (Vercel + Neon)
 
 Aplikasi ini siap di-deploy **gratis** ke **Vercel** dengan database **PostgreSQL**
-dari **Neon**. Hasilnya: URL `https://....vercel.app` yang bisa dibuka dari
-**browser HP mana pun**, dengan HTTPS otomatis & data tersimpan permanen.
+dari **Neon** — **tanpa perlu mengetik perintah apa pun**. Saat deploy, Vercel
+otomatis membuat tabel database & akun admin (lewat skrip `vercel-build`).
+Hasilnya: URL `https://....vercel.app` yang bisa dibuka dari **HP mana pun**,
+HTTPS otomatis, dan data tersimpan permanen.
 
-1. **Buat database (Neon).** Daftar di [neon.tech](https://neon.tech) → buat project →
-   salin *connection string* (pilih yang **Pooled**), bentuknya seperti:
-   `postgresql://user:pass@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require`
+**Prasyarat:** kode sudah ada di branch yang akan di-deploy (mis. PR sudah
+di-*merge* ke `main`).
 
-2. **Inisialisasi database + admin pertama** (dari komputer Anda, sekali saja):
+1. **Buat database (Neon).** Daftar di [neon.tech](https://neon.tech) (login via
+   GitHub) → buat project → salin **connection string**. Pakai koneksi
+   **langsung/Direct** (bukan Pooled) agar pembuatan tabel saat deploy lancar.
+   Bentuknya: `postgresql://user:pass@ep-xxx.region.aws.neon.tech/neondb?sslmode=require`
 
-   ```bash
-   export DATABASE_URL="<connection string Neon>"
-   npx prisma db push     # buat semua tabel di database Neon
-   npm run db:admin       # buat 1 akun admin (default: admin / admin123)
-   ```
+2. **Deploy ke Vercel.** Daftar di [vercel.com](https://vercel.com) (login via GitHub)
+   → **Add New… → Project** → pilih repo ini → buka **Environment Variables**, isi:
+   - `DATABASE_URL` = connection string Neon (langkah 1)
+   - `JWT_SECRET` = teks acak panjang & rahasia
+     (mis. hasil `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`)
+   - *(opsional)* `ADMIN_USERNAME` & `ADMIN_PASSWORD` = login admin pilihan Anda
+     (bila dikosongkan, default **admin / admin123**)
 
-   Ingin username/password admin sendiri:
-   `ADMIN_USERNAME=...  ADMIN_PASSWORD=...  npm run db:admin`
-   (Untuk mengisi data demo, pakai `npm run db:seed` alih-alih `db:admin`.)
+   Klik **Deploy**. Vercel otomatis: buat tabel → buat admin → build.
 
-3. **Deploy ke Vercel.** Daftar di [vercel.com](https://vercel.com) (login via GitHub) →
-   **Add New… → Project** → pilih repo ini → bagian **Environment Variables**, isi:
-   - `DATABASE_URL` = connection string Neon (sama seperti di atas)
-   - `JWT_SECRET` = string acak panjang (`node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`)
-
-   Klik **Deploy**. Vercel menjalankan `prisma generate` (via `postinstall`) lalu
-   `next build` secara otomatis.
-
-4. **Pakai.** Buka URL Vercel di HP → login sebagai admin → **ganti password admin**.
+3. **Pakai.** Buka URL Vercel di HP → login admin → **segera ganti password admin**.
    Personel lain **mendaftar di `/daftar`**, lalu Anda **verifikasi** mereka di
    **Kelola Personel**.
 
-> Deploy dari branch yang berisi kode ini (mis. setelah PR di-*merge* ke `main`).
-> Selain Vercel, kode ini juga jalan di Railway/Render/Fly (gunakan PostgreSQL yang sama).
+> Selain Vercel, kode ini juga jalan di Railway/Render/Fly (gunakan PostgreSQL
+> yang sama). Untuk mengisi data demo, jalankan `npm run db:seed` secara manual.
 
 ## Struktur proyek
 

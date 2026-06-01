@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "vercel-build": "prisma generate && prisma db push && node prisma/create-admin.js && next build",
     "start": "next start",
     "db:push": "prisma db push",
     "db:seed": "node prisma/seed.js",
