@@ -4,7 +4,7 @@ import { ROLES } from "@/lib/constants";
 import AdminPanel from "@/components/AdminPanel";
 
 export const metadata = {
-  title: "Kelola Personel | RSCPL To-Do",
+  title: "Kelola Personel | RS CPL USU",
 };
 
 export default async function AdminPage() {

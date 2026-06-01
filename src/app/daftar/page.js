@@ -11,7 +11,7 @@ export default function RegisterPage() {
     <div className="login-wrap">
       <div className="login-card">
         <div className="login-logo">
-          <div className="mark">✚</div>
+          <img className="mark" src="/logo-rsusu.png" alt="Logo RS CPL USU" />
           <div>
             <h1>{hospital.name}</h1>
           </div>

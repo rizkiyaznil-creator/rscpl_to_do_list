@@ -20,7 +20,7 @@ export default function TopBar({ user }) {
     <header className="topbar">
       <div className="topbar-inner">
         <Link href="/dashboard" className="brand" style={{ color: "inherit" }}>
-          <span className="mark">✚</span>
+          <img className="mark" src="/logo-rsusu.png" alt="Logo RS CPL USU" />
           <span>
             {hospital.name}
             <small>Manajemen Tugas Personel</small>
