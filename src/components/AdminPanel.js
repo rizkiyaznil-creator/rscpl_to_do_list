@@ -11,6 +11,7 @@ export default function AdminPanel({ currentUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [resetUser, setResetUser] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -177,14 +178,29 @@ export default function AdminPanel({ currentUser }) {
                       </td>
                       <td>{u._count?.ownedTasks ?? 0}</td>
                       <td style={{ textAlign: "right" }}>
-                        {u.id !== currentUser.id && (
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 6,
+                            justifyContent: "flex-end",
+                            flexWrap: "wrap",
+                          }}
+                        >
                           <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => removeUser(u)}
+                            className="btn btn-sm"
+                            onClick={() => setResetUser(u)}
                           >
-                            Hapus
+                            Reset Password
                           </button>
-                        )}
+                          {u.id !== currentUser.id && (
+                            <button
+                              className="btn btn-sm btn-danger"
+                              onClick={() => removeUser(u)}
+                            >
+                              Hapus
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -197,6 +213,10 @@ export default function AdminPanel({ currentUser }) {
 
       {showForm && (
         <UserFormModal onClose={() => setShowForm(false)} onCreated={handleCreated} />
+      )}
+
+      {resetUser && (
+        <ResetPasswordModal user={resetUser} onClose={() => setResetUser(null)} />
       )}
     </>
   );
@@ -303,6 +323,105 @@ function UserFormModal({ onClose, onCreated }) {
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+// Modal reset password oleh admin. Admin menetapkan/menghasilkan password BARU
+// (password lama tidak bisa dilihat karena disimpan sebagai hash) lalu password
+// baru itu ditampilkan untuk diberikan ke personel.
+function ResetPasswordModal({ user, onClose }) {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [done, setDone] = useState(false);
+
+  // Password acak mudah dibaca (tanpa karakter ambigu seperti l/1/O/0).
+  function generate() {
+    const chars = "abcdefghijkmnpqrstuvwxyz23456789";
+    let p = "";
+    for (let i = 0; i < 8; i++) p += chars[Math.floor(Math.random() * chars.length)];
+    setPassword(p);
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    if (password.length < 6) {
+      setError("Password minimal 6 karakter.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Gagal mengatur ulang password.");
+        setSaving(false);
+        return;
+      }
+      setDone(true);
+    } catch {
+      setError("Tidak dapat terhubung ke server.");
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h3>Reset Password</h3>
+        <p style={{ marginTop: 0, color: "var(--text-muted)", fontSize: 13.5 }}>
+          Akun: <b>{user.name}</b> (@{user.username})
+        </p>
+
+        {done ? (
+          <div>
+            <div className="alert alert-success">
+              Password berhasil diatur ulang. Berikan password baru ini kepada personel:
+            </div>
+            <div className="reset-password-box">{password}</div>
+            <p style={{ fontSize: 12.5, color: "var(--text-muted)" }}>
+              Minta personel segera menggantinya sendiri lewat menu “Akun Saya”
+              setelah berhasil masuk.
+            </p>
+            <div className="modal-actions">
+              <button className="btn btn-primary" onClick={onClose}>
+                Selesai
+              </button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={submit}>
+            {error && <div className="alert alert-error">{error}</div>}
+            <div className="field">
+              <label>Password baru (min. 6 karakter)</label>
+              <input
+                type="text"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="ketik manual atau buat otomatis"
+                autoFocus
+              />
+            </div>
+            <button type="button" className="btn btn-sm" onClick={generate}>
+              🎲 Buatkan otomatis
+            </button>
+            <div className="modal-actions">
+              <button type="button" className="btn" onClick={onClose} disabled={saving}>
+                Batal
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={saving}>
+                {saving ? "Menyimpan..." : "Atur ulang"}
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

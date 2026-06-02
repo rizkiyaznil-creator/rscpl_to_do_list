@@ -1421,3 +1421,19 @@ input[type="range"] {
     flex: 1;
   }
 }
+
+/* Kotak menampilkan password baru hasil reset (untuk disalin admin) */
+.reset-password-box {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-align: center;
+  padding: 12px;
+  background: var(--surface-2);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  margin: 6px 0 10px;
+  user-select: all;
+  word-break: break-all;
+}

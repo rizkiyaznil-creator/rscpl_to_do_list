@@ -23,9 +23,12 @@ export async function middleware(request) {
   const { pathname } = request.nextUrl;
   const authed = await isAuthenticated(request);
 
-  // Halaman publik (boleh diakses tanpa login): landing, login, & daftar.
+  // Halaman publik (boleh diakses tanpa login): landing, login, daftar, lupa-password.
   const isPublic =
-    pathname === "/" || pathname === "/login" || pathname === "/daftar";
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/daftar" ||
+    pathname === "/lupa-password";
 
   // Belum login & halaman butuh proteksi -> arahkan ke /login
   if (!authed && !isPublic) {
@@ -35,7 +38,12 @@ export async function middleware(request) {
 
   // Sudah login tapi membuka /login atau /daftar -> arahkan ke dashboard
   // (halaman "/" tetap boleh dibuka meski sudah login)
-  if (authed && (pathname === "/login" || pathname === "/daftar")) {
+  if (
+    authed &&
+    (pathname === "/login" ||
+      pathname === "/daftar" ||
+      pathname === "/lupa-password")
+  ) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

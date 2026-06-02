@@ -88,9 +88,9 @@ export default function NotificationBell() {
     });
   }
 
-  // Notifikasi pendaftaran baru mengarahkan admin ke halaman Kelola Personel.
+  // Notifikasi pendaftaran / lupa-password mengarahkan admin ke Kelola Personel.
   async function handleNotifClick(n) {
-    if (n.type === "REGISTER") {
+    if (n.type === "REGISTER" || n.type === "RESET_REQUEST") {
       await markRead(n.id);
       setOpen(false);
       load();
@@ -164,7 +164,9 @@ export default function NotificationBell() {
                         ? "📌"
                         : n.type === "REGISTER"
                           ? "🆕"
-                          : "💬"}
+                          : n.type === "RESET_REQUEST"
+                            ? "🔑"
+                            : "💬"}
                     </span>
                     <span className="notif-text">
                       <span>{n.message}</span>

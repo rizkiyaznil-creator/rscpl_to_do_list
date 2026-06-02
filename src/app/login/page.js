@@ -27,7 +27,12 @@ export default function LoginPage() {
             Personel → <code>dr.andi</code> / <code>password123</code>
           </div>
         )}
-        <p style={{ textAlign: "center", marginTop: 16, marginBottom: 6 }}>
+        <p style={{ textAlign: "center", marginTop: 14, marginBottom: 6 }}>
+          <Link href="/lupa-password" style={{ fontSize: 13 }}>
+            Lupa password?
+          </Link>
+        </p>
+        <p style={{ textAlign: "center", marginTop: 0, marginBottom: 6 }}>
           Belum punya akun?{" "}
           <Link href="/daftar" style={{ fontSize: 13 }}>
             Daftar di sini
