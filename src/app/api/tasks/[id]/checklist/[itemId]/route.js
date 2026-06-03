@@ -5,11 +5,7 @@ import { applyChecklistProgress } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
 
 function canModify(session, task) {
-  return (
-    session.role === ROLES.ADMIN ||
-    task.ownerId === session.id ||
-    task.creatorId === session.id
-  );
+  return session.role === ROLES.ADMIN || task.ownerId === session.id;
 }
 
 // Ambil item + tugasnya, sekaligus cek izin. Mengembalikan {error,status} bila gagal.

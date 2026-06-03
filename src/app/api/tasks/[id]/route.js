@@ -26,13 +26,10 @@ const listInclude = {
   _count: { select: { comments: true } },
 };
 
-// Boleh mengubah/menghapus bila: admin, pemilik tugas, atau pembuat tugas.
+// Boleh mengubah bila: admin atau pemilik (penanggung jawab) tugas.
+// (Hapus tugas: hanya admin — lihat handler DELETE.)
 function canModify(session, task) {
-  return (
-    session.role === ROLES.ADMIN ||
-    task.ownerId === session.id ||
-    task.creatorId === session.id
-  );
+  return session.role === ROLES.ADMIN || task.ownerId === session.id;
 }
 
 // GET /api/tasks/:id -> detail lengkap (checklist, komentar, riwayat).
