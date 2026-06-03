@@ -227,6 +227,7 @@ function UserFormModal({ onClose, onCreated }) {
     name: "",
     username: "",
     department: "",
+    email: "",
     role: ROLES.STAFF,
     password: "",
   });
@@ -294,6 +295,15 @@ function UserFormModal({ onClose, onCreated }) {
                 placeholder="mis. IGD"
               />
             </div>
+          </div>
+          <div className="field">
+            <label>Email (opsional, untuk pengingat tugas)</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+              placeholder="mis. nama@email.com"
+            />
           </div>
           <div className="field-row">
             <div className="field">
