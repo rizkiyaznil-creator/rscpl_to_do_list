@@ -3,9 +3,10 @@
 import { useState, useEffect, useMemo } from "react";
 import TopBar from "@/components/TopBar";
 import TaskCard from "@/components/TaskCard";
+import TaskRow from "@/components/TaskRow";
 import TaskFormModal from "@/components/TaskFormModal";
 import TaskDetailModal from "@/components/TaskDetailModal";
-import { STATUS, STATUS_LABELS } from "@/lib/constants";
+import { STATUS, STATUS_LABELS, STATUS_ORDER, PRIORITY_ORDER } from "@/lib/constants";
 
 export default function Board({ currentUser }) {
   const [tasks, setTasks] = useState([]);
@@ -22,6 +23,10 @@ export default function Board({ currentUser }) {
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [detailTaskId, setDetailTaskId] = useState(null);
+
+  // Tampilan papan: "table" (default, bisa disortir) atau "card".
+  const [view, setView] = useState("table");
+  const [sort, setSort] = useState({ key: "dueDate", dir: "asc" });
 
   // Muat ulang daftar tugas (dipakai setelah perubahan dari modal detail).
   async function reloadTasks() {
@@ -109,6 +114,64 @@ export default function Board({ currentUser }) {
       return true;
     });
   }, [tasks, q, ownerFilter, statusFilter, currentUser.id]);
+
+  // Urutkan hasil filter sesuai kolom yang dipilih.
+  const sorted = useMemo(() => {
+    const { key, dir } = sort;
+    const mul = dir === "asc" ? 1 : -1;
+    const val = (t) => {
+      switch (key) {
+        case "title":
+          return (t.title || "").toLowerCase();
+        case "owner":
+          return (t.owner?.name || "").toLowerCase();
+        case "priority":
+          return PRIORITY_ORDER.indexOf(t.priority); // 0 = Tinggi
+        case "status":
+          return STATUS_ORDER.indexOf(t.status); // 0 = Belum dikerjakan
+        case "progress":
+          return t.progress ?? 0;
+        case "dueDate":
+          return t.dueDate ? new Date(t.dueDate).getTime() : null;
+        default:
+          return 0;
+      }
+    };
+    return [...filtered].sort((a, b) => {
+      const va = val(a);
+      const vb = val(b);
+      if (key === "dueDate") {
+        // Tugas tanpa tenggat selalu di bawah.
+        if (va === null && vb === null) return 0;
+        if (va === null) return 1;
+        if (vb === null) return -1;
+      }
+      if (va < vb) return -1 * mul;
+      if (va > vb) return 1 * mul;
+      return 0;
+    });
+  }, [filtered, sort]);
+
+  function toggleSort(key) {
+    setSort((s) =>
+      s.key === key
+        ? { key, dir: s.dir === "asc" ? "desc" : "asc" }
+        : { key, dir: "asc" },
+    );
+  }
+
+  // Header kolom yang bisa diklik untuk menyortir.
+  const renderTh = (label, k) => {
+    const active = sort.key === k;
+    return (
+      <th className="th-sort" onClick={() => toggleSort(k)}>
+        {label}{" "}
+        <span className="sort-ind">
+          {active ? (sort.dir === "asc" ? "▲" : "▼") : "↕"}
+        </span>
+      </th>
+    );
+  };
 
   function handleUpdated(updated) {
     setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
@@ -208,20 +271,67 @@ export default function Board({ currentUser }) {
             <div className="section-head">
               <h2>Papan Tugas</h2>
               <span className="count">{filtered.length} tugas</span>
+              <div className="spacer" />
+              <div className="view-toggle">
+                <button
+                  className={`btn btn-sm ${view === "table" ? "btn-primary" : ""}`}
+                  onClick={() => setView("table")}
+                >
+                  ▤ Tabel
+                </button>
+                <button
+                  className={`btn btn-sm ${view === "card" ? "btn-primary" : ""}`}
+                  onClick={() => setView("card")}
+                >
+                  ▦ Kartu
+                </button>
+              </div>
             </div>
-            <div className="task-grid">
-              {filtered.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  currentUser={currentUser}
-                  onUpdated={handleUpdated}
-                  onDeleted={handleDeleted}
-                  onEdit={openEdit}
-                  onOpenDetail={(t) => setDetailTaskId(t.id)}
-                />
-              ))}
-            </div>
+
+            {view === "table" ? (
+              <div className="table-wrap">
+                <table className="table task-table">
+                  <thead>
+                    <tr>
+                      {renderTh("Tugas", "title")}
+                      {renderTh("Penanggung jawab", "owner")}
+                      {renderTh("Prioritas", "priority")}
+                      {renderTh("Status", "status")}
+                      {renderTh("Tenggat", "dueDate")}
+                      {renderTh("Progress", "progress")}
+                      <th>Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sorted.map((task) => (
+                      <TaskRow
+                        key={task.id}
+                        task={task}
+                        currentUser={currentUser}
+                        onUpdated={handleUpdated}
+                        onDeleted={handleDeleted}
+                        onEdit={openEdit}
+                        onOpenDetail={(t) => setDetailTaskId(t.id)}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="task-grid">
+                {sorted.map((task) => (
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    currentUser={currentUser}
+                    onUpdated={handleUpdated}
+                    onDeleted={handleDeleted}
+                    onEdit={openEdit}
+                    onOpenDetail={(t) => setDetailTaskId(t.id)}
+                  />
+                ))}
+              </div>
+            )}
           </>
         )}
       </main>
