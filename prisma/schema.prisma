@@ -15,6 +15,7 @@ model User {
   id           Int      @id @default(autoincrement())
   username     String   @unique
   name         String
+  email        String? // untuk pengingat tugas via email (opsional)
   role         String   @default("STAFF") // "ADMIN" | "STAFF"
   // "PENDING" | "ACTIVE". Pendaftaran mandiri lewat /daftar mulai dari PENDING
   // dan TIDAK bisa login sampai diverifikasi admin. Akun buatan admin & seed

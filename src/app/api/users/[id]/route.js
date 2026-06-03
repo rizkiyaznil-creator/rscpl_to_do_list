@@ -6,6 +6,7 @@ const publicSelect = {
   id: true,
   username: true,
   name: true,
+  email: true,
   role: true,
   status: true,
   department: true,

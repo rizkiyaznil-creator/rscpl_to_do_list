@@ -13,6 +13,10 @@ export default function AccountPanel({ currentUser, profile }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [saving, setSaving] = useState(false);
+  const [email, setEmail] = useState(profile.email || "");
+  const [emailError, setEmailError] = useState("");
+  const [emailSuccess, setEmailSuccess] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -49,6 +53,31 @@ export default function AccountPanel({ currentUser, profile }) {
       setError("Tidak dapat terhubung ke server.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function saveEmail(e) {
+    e.preventDefault();
+    setEmailError("");
+    setEmailSuccess("");
+    setSavingEmail(true);
+    try {
+      const res = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setEmailError(data.error || "Gagal menyimpan email.");
+        setSavingEmail(false);
+        return;
+      }
+      setEmailSuccess("Email berhasil disimpan.");
+    } catch {
+      setEmailError("Tidak dapat terhubung ke server.");
+    } finally {
+      setSavingEmail(false);
     }
   }
 
@@ -148,6 +177,34 @@ export default function AccountPanel({ currentUser, profile }) {
               </div>
               <button type="submit" className="btn btn-primary" disabled={saving}>
                 {saving ? "Menyimpan..." : "Ganti Password"}
+              </button>
+            </form>
+          </section>
+
+          {/* Email untuk pengingat tugas */}
+          <section className="card">
+            <h3 style={{ marginTop: 0, fontSize: 16 }}>Email Pengingat</h3>
+            <p className="muted-sm" style={{ marginTop: 0 }}>
+              Dipakai untuk mengirim pengingat tugas Anda (saat tugas dibuat, H-1,
+              dan hari-H).
+            </p>
+            <form onSubmit={saveEmail}>
+              {emailError && <div className="alert alert-error">{emailError}</div>}
+              {emailSuccess && (
+                <div className="alert alert-success">{emailSuccess}</div>
+              )}
+              <div className="field">
+                <label htmlFor="email">Alamat email</label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="mis. nama@email.com"
+                />
+              </div>
+              <button type="submit" className="btn btn-primary" disabled={savingEmail}>
+                {savingEmail ? "Menyimpan..." : "Simpan Email"}
               </button>
             </form>
           </section>

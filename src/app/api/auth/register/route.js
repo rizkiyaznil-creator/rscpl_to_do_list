@@ -18,6 +18,7 @@ export async function POST(request) {
   const name = (body?.name || "").trim();
   const password = body?.password || "";
   const department = (body?.department || "").trim() || null;
+  const email = (body?.email || "").trim() || null;
 
   if (!username || !name || !password) {
     return Response.json(
@@ -37,6 +38,9 @@ export async function POST(request) {
   if (password.length < 6) {
     return Response.json({ error: "Password minimal 6 karakter." }, { status: 400 });
   }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return Response.json({ error: "Format email tidak valid." }, { status: 400 });
+  }
 
   const existing = await prisma.user.findUnique({ where: { username } });
   if (existing) {
@@ -48,6 +52,7 @@ export async function POST(request) {
       username,
       name,
       department,
+      email,
       passwordHash: await hashPassword(password),
       role: ROLES.STAFF,
       status: USER_STATUS.PENDING,

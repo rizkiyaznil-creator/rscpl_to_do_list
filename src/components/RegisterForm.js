@@ -8,6 +8,7 @@ export default function RegisterForm() {
     name: "",
     username: "",
     department: "",
+    email: "",
     password: "",
     confirm: "",
   });
@@ -37,6 +38,7 @@ export default function RegisterForm() {
           name: form.name,
           username: form.username,
           department: form.department,
+          email: form.email,
           password: form.password,
         }),
       });
@@ -100,6 +102,16 @@ export default function RegisterForm() {
           value={form.department}
           onChange={(e) => set("department", e.target.value)}
           placeholder="mis. IGD"
+        />
+      </div>
+      <div className="field">
+        <label htmlFor="email">Email (opsional, untuk pengingat tugas)</label>
+        <input
+          id="email"
+          type="email"
+          value={form.email}
+          onChange={(e) => set("email", e.target.value)}
+          placeholder="mis. nama@email.com"
         />
       </div>
       <div className="field">

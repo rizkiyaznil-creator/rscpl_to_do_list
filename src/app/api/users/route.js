@@ -6,6 +6,7 @@ const publicSelect = {
   id: true,
   username: true,
   name: true,
+  email: true,
   role: true,
   status: true,
   department: true,
@@ -52,6 +53,7 @@ export async function POST(request) {
   const name = (body?.name || "").trim();
   const password = body?.password || "";
   const department = (body?.department || "").trim() || null;
+  const email = (body?.email || "").trim() || null;
   const role = isValidRole(body?.role) ? body.role : ROLES.STAFF;
 
   if (!username || !name || !password) {
@@ -78,7 +80,7 @@ export async function POST(request) {
   const passwordHash = await hashPassword(password);
   // Akun yang dibuat admin langsung aktif (sudah tepercaya).
   const user = await prisma.user.create({
-    data: { username, name, passwordHash, department, role, status: USER_STATUS.ACTIVE },
+    data: { username, name, passwordHash, department, email, role, status: USER_STATUS.ACTIVE },
     select: publicSelect,
   });
 

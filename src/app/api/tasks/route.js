@@ -10,6 +10,7 @@ import {
 import { syncStatusProgress } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
+import { sendEmail, taskReminderEmail } from "@/lib/email";
 
 const ownerSelect = {
   id: true,
@@ -141,6 +142,12 @@ export async function POST(request) {
     message: `${session.name} menugaskan "${task.title}" kepada Anda`,
     taskId: task.id,
   });
+
+  // Kirim email "tugas baru" ke penanggung jawab bila ia punya email (best-effort).
+  if (owner.email) {
+    const { subject, html, text } = taskReminderEmail(task, "new");
+    await sendEmail({ to: owner.email, subject, html, text });
+  }
 
   return Response.json({ task }, { status: 201 });
 }
