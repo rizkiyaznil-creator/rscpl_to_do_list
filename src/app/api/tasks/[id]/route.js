@@ -220,9 +220,10 @@ export async function DELETE(request, { params }) {
   if (!task) {
     return Response.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
   }
-  if (!canModify(session, task)) {
+  // Hanya admin yang boleh menghapus tugas (personel tidak dapat menghapus).
+  if (session.role !== ROLES.ADMIN) {
     return Response.json(
-      { error: "Anda tidak berhak menghapus tugas ini." },
+      { error: "Hanya admin yang dapat menghapus tugas." },
       { status: 403 },
     );
   }

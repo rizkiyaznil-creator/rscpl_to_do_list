@@ -29,6 +29,8 @@ export default function TaskCard({
     currentUser.role === ROLES.ADMIN ||
     task.ownerId === currentUser.id ||
     task.creatorId === currentUser.id;
+  // Hanya admin yang boleh menghapus tugas.
+  const canDelete = currentUser.role === ROLES.ADMIN;
 
   const checklist = task.checklist || [];
   const checklistTotal = checklist.length;
@@ -173,14 +175,14 @@ export default function TaskCard({
         </button>
         <div className="spacer" />
         {canModify && (
-          <>
-            <button className="btn btn-sm" onClick={() => onEdit(task)} disabled={busy}>
-              Ubah
-            </button>
-            <button className="btn btn-sm btn-danger" onClick={remove} disabled={busy}>
-              Hapus
-            </button>
-          </>
+          <button className="btn btn-sm" onClick={() => onEdit(task)} disabled={busy}>
+            Ubah
+          </button>
+        )}
+        {canDelete && (
+          <button className="btn btn-sm btn-danger" onClick={remove} disabled={busy}>
+            Hapus
+          </button>
         )}
       </div>
     </article>
