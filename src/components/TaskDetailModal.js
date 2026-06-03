@@ -42,9 +42,7 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
 
   const canModify =
     task &&
-    (currentUser.role === ROLES.ADMIN ||
-      task.ownerId === currentUser.id ||
-      task.creatorId === currentUser.id);
+    (currentUser.role === ROLES.ADMIN || task.ownerId === currentUser.id);
 
   // ----- Checklist -----
   async function addItem(e) {

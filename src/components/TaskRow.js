@@ -16,9 +16,7 @@ export default function TaskRow({
   const [busy, setBusy] = useState(false);
 
   const canModify =
-    currentUser.role === ROLES.ADMIN ||
-    task.ownerId === currentUser.id ||
-    task.creatorId === currentUser.id;
+    currentUser.role === ROLES.ADMIN || task.ownerId === currentUser.id;
   // Hanya admin yang boleh menghapus tugas.
   const canDelete = currentUser.role === ROLES.ADMIN;
 
