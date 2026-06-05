@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import PasswordField from "@/components/PasswordField";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -51,18 +52,14 @@ export default function LoginForm() {
           required
         />
       </div>
-      <div className="field">
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          required
-        />
-      </div>
+      <PasswordField
+        id="password"
+        label="Password"
+        autoComplete="current-password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
       <button
         type="submit"
         className="btn btn-primary"

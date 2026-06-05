@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import PasswordField from "@/components/PasswordField";
 
 export default function RegisterForm() {
   const [form, setForm] = useState({
@@ -114,30 +115,22 @@ export default function RegisterForm() {
           placeholder="mis. nama@email.com"
         />
       </div>
-      <div className="field">
-        <label htmlFor="password">Password (min. 6 karakter)</label>
-        <input
-          id="password"
-          type="password"
-          autoComplete="new-password"
-          value={form.password}
-          onChange={(e) => set("password", e.target.value)}
-          placeholder="••••••••"
-          required
-        />
-      </div>
-      <div className="field">
-        <label htmlFor="confirm">Ulangi password</label>
-        <input
-          id="confirm"
-          type="password"
-          autoComplete="new-password"
-          value={form.confirm}
-          onChange={(e) => set("confirm", e.target.value)}
-          placeholder="••••••••"
-          required
-        />
-      </div>
+      <PasswordField
+        id="password"
+        label="Password (min. 6 karakter)"
+        autoComplete="new-password"
+        value={form.password}
+        onChange={(e) => set("password", e.target.value)}
+        required
+      />
+      <PasswordField
+        id="confirm"
+        label="Ulangi password"
+        autoComplete="new-password"
+        value={form.confirm}
+        onChange={(e) => set("confirm", e.target.value)}
+        required
+      />
       <button
         type="submit"
         className="btn btn-primary"
