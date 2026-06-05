@@ -12,8 +12,9 @@ export default function PasswordField({
   placeholder = "••••••••",
   required = false,
   autoFocus = false,
+  defaultShow = false,
 }) {
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(defaultShow);
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>

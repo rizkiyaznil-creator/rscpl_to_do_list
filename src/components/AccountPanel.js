@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import TopBar from "@/components/TopBar";
+import PasswordField from "@/components/PasswordField";
 import { ROLE_LABELS } from "@/lib/constants";
 import { initials, formatDate } from "@/lib/format";
 
@@ -142,39 +143,30 @@ export default function AccountPanel({ currentUser, profile }) {
               {error && <div className="alert alert-error">{error}</div>}
               {success && <div className="alert alert-success">{success}</div>}
 
-              <div className="field">
-                <label htmlFor="cur">Password lama</label>
-                <input
-                  id="cur"
-                  type="password"
-                  autoComplete="current-password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="new">Password baru (min. 6 karakter)</label>
-                <input
-                  id="new"
-                  type="password"
-                  autoComplete="new-password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="confirm">Ulangi password baru</label>
-                <input
-                  id="confirm"
-                  type="password"
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-              </div>
+              <PasswordField
+                id="cur"
+                label="Password lama"
+                autoComplete="current-password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                required
+              />
+              <PasswordField
+                id="new"
+                label="Password baru (min. 6 karakter)"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
+              <PasswordField
+                id="confirm"
+                label="Ulangi password baru"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
               <button type="submit" className="btn btn-primary" disabled={saving}>
                 {saving ? "Menyimpan..." : "Ganti Password"}
               </button>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import TopBar from "@/components/TopBar";
+import PasswordField from "@/components/PasswordField";
 import { ROLES, ROLE_LABELS, USER_STATUS } from "@/lib/constants";
 import { initials } from "@/lib/format";
 
@@ -313,16 +314,13 @@ function UserFormModal({ onClose, onCreated }) {
                 <option value={ROLES.ADMIN}>{ROLE_LABELS.ADMIN}</option>
               </select>
             </div>
-            <div className="field">
-              <label>Password * (min. 6)</label>
-              <input
-                type="password"
-                value={form.password}
-                onChange={(e) => set("password", e.target.value)}
-                placeholder="••••••••"
-                required
-              />
-            </div>
+            <PasswordField
+              id="new-user-password"
+              label="Password * (min. 6)"
+              value={form.password}
+              onChange={(e) => set("password", e.target.value)}
+              required
+            />
           </div>
           <div className="modal-actions">
             <button type="button" className="btn" onClick={onClose} disabled={saving}>
@@ -409,16 +407,15 @@ function ResetPasswordModal({ user, onClose }) {
         ) : (
           <form onSubmit={submit}>
             {error && <div className="alert alert-error">{error}</div>}
-            <div className="field">
-              <label>Password baru (min. 6 karakter)</label>
-              <input
-                type="text"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="ketik manual atau buat otomatis"
-                autoFocus
-              />
-            </div>
+            <PasswordField
+              id="reset-password"
+              label="Password baru (min. 6 karakter)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="ketik manual atau buat otomatis"
+              autoFocus
+              defaultShow
+            />
             <button type="button" className="btn btn-sm" onClick={generate}>
               🎲 Buatkan otomatis
             </button>
