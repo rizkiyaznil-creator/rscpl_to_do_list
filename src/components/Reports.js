@@ -5,6 +5,7 @@ import Link from "next/link";
 import TopBar from "@/components/TopBar";
 import { initials, timeAgo, formatDate } from "@/lib/format";
 import { hospital } from "@/lib/hospitalProfile";
+import { generateReportPdf } from "@/lib/reportPdf";
 
 // Bungkus nilai agar aman sebagai field CSV.
 function csvCell(value) {
@@ -31,20 +32,24 @@ function MiniBar({ todo, inProgress, done, total }) {
 export default function Reports({ currentUser }) {
   const [stats, setStats] = useState(null);
   const [activities, setActivities] = useState([]);
+  const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pdfBusy, setPdfBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
     Promise.all([
       fetch("/api/stats").then((r) => r.json().then((d) => ({ ok: r.ok, d }))),
       fetch("/api/activity?limit=40").then((r) => r.json()),
+      fetch("/api/tasks").then((r) => r.json()),
     ])
-      .then(([s, a]) => {
+      .then(([s, a, t]) => {
         if (!active) return;
         if (s.ok) setStats(s.d);
         else setError(s.d.error || "Gagal memuat statistik.");
         setActivities(a.activities || []);
+        setTasks(t.tasks || []);
       })
       .catch(() => active && setError("Tidak dapat terhubung ke server."))
       .finally(() => active && setLoading(false));
@@ -101,9 +106,17 @@ export default function Reports({ currentUser }) {
     URL.revokeObjectURL(url);
   }
 
-  // ---- Ekspor PDF via cetak bawaan browser ("Simpan sebagai PDF") ----
-  function exportPDF() {
-    window.print();
+  // ---- Ekspor PDF (file PDF profesional via jsPDF) ----
+  async function exportPDF() {
+    if (!stats) return;
+    setPdfBusy(true);
+    try {
+      await generateReportPdf({ stats, tasks, hospital });
+    } catch (e) {
+      alert("Gagal membuat PDF: " + (e?.message || "kesalahan tak terduga"));
+    } finally {
+      setPdfBusy(false);
+    }
   }
 
   return (
@@ -128,9 +141,9 @@ export default function Reports({ currentUser }) {
           <button
             className="btn btn-sm btn-primary"
             onClick={exportPDF}
-            disabled={!stats}
+            disabled={!stats || pdfBusy}
           >
-            🖨 Cetak / PDF
+            {pdfBusy ? "Membuat PDF..." : "🖨 Unduh PDF"}
           </button>
         </div>
 
