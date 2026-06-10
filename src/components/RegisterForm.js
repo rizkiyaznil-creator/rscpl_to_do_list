@@ -89,6 +89,9 @@ export default function RegisterForm() {
           id="username"
           type="text"
           autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           value={form.username}
           onChange={(e) => set("username", e.target.value)}
           placeholder="mis. ns.budi"
