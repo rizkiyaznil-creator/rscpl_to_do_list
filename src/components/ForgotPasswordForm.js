@@ -52,6 +52,9 @@ export default function ForgotPasswordForm() {
           id="username"
           type="text"
           autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="mis. ns.budi"

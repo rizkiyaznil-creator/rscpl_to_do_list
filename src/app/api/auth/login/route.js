@@ -10,7 +10,9 @@ export async function POST(request) {
     return Response.json({ error: "Format permintaan tidak valid." }, { status: 400 });
   }
 
-  const username = (body?.username || "").trim();
+  // Username disimpan huruf kecil, jadi samakan agar tidak peka kapital
+  // (mis. keyboard HP otomatis mengapitalkan huruf pertama).
+  const username = (body?.username || "").trim().toLowerCase();
   const password = body?.password || "";
 
   if (!username || !password) {
