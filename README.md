@@ -134,6 +134,11 @@ di-*merge* ke `main`).
    Personel lain **mendaftar di `/daftar`**, lalu Anda **verifikasi** mereka di
    **Kelola Personel**.
 
+> ⚡ **Region:** `vercel.json` menjalankan server di **Singapura (`sin1`)** — sama dengan
+> region database Neon & dekat pengguna. Jika database Neon Anda di region lain,
+> sesuaikan `regions` agar server & database berada di lokasi yang sama (beda benua
+> membuat setiap query jauh lebih lambat).
+
 > Selain Vercel, kode ini juga jalan di Railway/Render/Fly (gunakan PostgreSQL
 > yang sama). Untuk mengisi data demo, jalankan `npm run db:seed` secara manual.
 

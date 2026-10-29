@@ -6,9 +6,12 @@ import { visibleScope, inScope } from "@/lib/logbook";
 
 // Komentar hanya untuk yang boleh melihat tugasnya (pemilik, atasan, akses semua).
 async function canSeeTask(session, taskId) {
-  const task = await prisma.task.findUnique({ where: { id: taskId } });
+  const [task, scope] = await Promise.all([
+    prisma.task.findUnique({ where: { id: taskId } }),
+    visibleScope(session),
+  ]);
   if (!task) return { error: "Tugas tidak ditemukan.", status: 404 };
-  if (!inScope(await visibleScope(session), task.ownerId)) {
+  if (!inScope(scope, task.ownerId)) {
     return { error: "Anda tidak berhak mengakses tugas ini.", status: 403 };
   }
   return { task };
