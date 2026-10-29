@@ -13,7 +13,7 @@ const LEVEL_ICON = {
 export default function NotificationBell() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [data, setData] = useState({ items: [], reminders: [], badge: 0, unreadCount: 0 });
+  const [data, setData] = useState({ items: [], reminders: [], logbook: null, badge: 0, unreadCount: 0 });
   const ref = useRef(null);
 
   const load = useCallback(async () => {
@@ -97,11 +97,18 @@ export default function NotificationBell() {
       router.push("/admin");
       return;
     }
+    if (n.type === "LOGBOOK_APPROVED") {
+      await markRead(n.id);
+      setOpen(false);
+      load();
+      router.push("/logbook");
+      return;
+    }
     openTask(n.taskId, n.id);
   }
 
-  const { items, reminders, badge, unreadCount } = data;
-  const hasContent = reminders.length > 0 || items.length > 0;
+  const { items, reminders, logbook, badge, unreadCount } = data;
+  const hasContent = Boolean(logbook) || reminders.length > 0 || items.length > 0;
 
   return (
     <div className="notif" ref={ref}>
@@ -127,6 +134,26 @@ export default function NotificationBell() {
           </div>
 
           <div className="notif-body">
+            {/* Pengingat logbook (live, Senin–Jumat) */}
+            {logbook && (
+              <div className="notif-group">
+                <div className="notif-group-title">Logbook</div>
+                <button
+                  className="notif-item reminder today"
+                  onClick={() => {
+                    setOpen(false);
+                    router.push("/logbook");
+                  }}
+                >
+                  <span className="notif-icon">📝</span>
+                  <span className="notif-text">
+                    <b>{logbook.label}</b>
+                    <small>Ketuk untuk mengisi kegiatan hari ini</small>
+                  </span>
+                </button>
+              </div>
+            )}
+
             {/* Pengingat tenggat (live) */}
             {reminders.length > 0 && (
               <div className="notif-group">
@@ -166,7 +193,9 @@ export default function NotificationBell() {
                           ? "🆕"
                           : n.type === "RESET_REQUEST"
                             ? "🔑"
-                            : "💬"}
+                            : n.type === "LOGBOOK_APPROVED"
+                              ? "✅"
+                              : "💬"}
                     </span>
                     <span className="notif-text">
                       <span>{n.message}</span>

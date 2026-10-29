@@ -10,7 +10,7 @@ const GRAY = [107, 114, 128];
 const LIGHT = [236, 240, 241];
 
 // Ambil logo dari /public sebagai data URL untuk disisipkan ke PDF (browser).
-async function loadLogoDataUrl() {
+export async function loadLogoDataUrl() {
   try {
     const res = await fetch("/logo-rsusu.png");
     if (!res.ok) return null;
