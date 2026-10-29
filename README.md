@@ -15,8 +15,11 @@ Akses dilindungi **login** (autentikasi).
   persentase otomatis diselaraskan (100% = Selesai).
 - ✍️ **Pembuatan tugas fleksibel** — setiap user dapat membuat tugasnya sendiri,
   dan **admin** dapat menugaskan ke personel mana pun.
-- 👥 **Manajemen personel** (khusus admin) — tambah/hapus akun, atur peran &
-  departemen.
+- 👥 **Manajemen personel** (khusus admin) — tambah/ubah/hapus akun, atur peran &
+  **jabatan sesuai SOTK** (Direktur → Wadir → Manajer → Koordinator → Staf, plus
+  SPI & Komite). Jabatan struktural hanya boleh dipegang 1 orang.
+- 🏛 **Kelola Jabatan** (`/admin/jabatan`, khusus admin) — daftar jabatan baku
+  (terisi otomatis dari SOTK) yang dapat ditambah/diubah, termasuk atasan langsung.
 - 🆕 **Pendaftaran mandiri + verifikasi admin** — siapa pun dapat mendaftar di
   `/daftar` (nama, username, password). Akun baru berstatus **menunggu
   verifikasi** dan **tidak bisa login** sampai **admin menyetujui** di panel
@@ -36,7 +39,7 @@ Akses dilindungi **login** (autentikasi).
 - 🧾 **Riwayat aktivitas (audit log)** — mencatat otomatis siapa membuat/mengubah/
   menyelesaikan/menghapus apa & kapan (per tugas dan global).
 - 📈 **Laporan & statistik** (`/laporan`) — ringkasan status, tugas lewat tenggat,
-  tingkat penyelesaian, beban kerja per personel & per departemen.
+  tingkat penyelesaian, beban kerja per personel & per bidang.
 
 ## Teknologi
 

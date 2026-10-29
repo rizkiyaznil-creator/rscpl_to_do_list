@@ -26,6 +26,36 @@ export function isValidUserStatus(value) {
   return Object.values(USER_STATUS).includes(value);
 }
 
+// Level jabatan dalam SOTK (urut dari tertinggi).
+export const POSITION_LEVELS = [
+  "DIREKTUR",
+  "WADIR",
+  "MANAJER",
+  "KOORDINATOR",
+  "KEPALA",
+  "ANGGOTA",
+  "STAF",
+];
+
+export const POSITION_LEVEL_LABELS = {
+  DIREKTUR: "Direktur",
+  WADIR: "Wakil Direktur",
+  MANAJER: "Manajer",
+  KOORDINATOR: "Koordinator",
+  KEPALA: "Kepala / Ketua (SPI, Komite)",
+  ANGGOTA: "Anggota (SPI, Komite)",
+  STAF: "Staf",
+};
+
+export function isValidPositionLevel(value) {
+  return POSITION_LEVELS.includes(value);
+}
+
+// Field jabatan yang disertakan bersama data user di API.
+export const POSITION_SELECT = {
+  select: { id: true, name: true, level: true, bidang: true },
+};
+
 export const STATUS = {
   TODO: "TODO",
   IN_PROGRESS: "IN_PROGRESS",

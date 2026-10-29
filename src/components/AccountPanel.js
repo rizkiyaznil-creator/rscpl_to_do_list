@@ -119,8 +119,12 @@ export default function AccountPanel({ currentUser, profile }) {
                 <dd>{profile.username}</dd>
               </div>
               <div>
-                <dt>Departemen</dt>
-                <dd>{profile.department || "—"}</dd>
+                <dt>Jabatan</dt>
+                <dd>{profile.position?.name || "Belum ditetapkan"}</dd>
+              </div>
+              <div>
+                <dt>Bidang</dt>
+                <dd>{profile.position?.bidang || "—"}</dd>
               </div>
               <div>
                 <dt>Jumlah tugas</dt>
@@ -132,7 +136,7 @@ export default function AccountPanel({ currentUser, profile }) {
               </div>
             </dl>
             <p className="muted-sm" style={{ marginTop: 12 }}>
-              Untuk mengubah nama, departemen, atau peran, hubungi admin.
+              Untuk mengubah nama, jabatan, atau peran, hubungi admin.
             </p>
           </section>
 

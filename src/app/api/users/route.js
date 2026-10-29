@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession, hashPassword } from "@/lib/auth";
-import { ROLES, USER_STATUS, isValidRole } from "@/lib/constants";
+import { ROLES, USER_STATUS, isValidRole, POSITION_SELECT } from "@/lib/constants";
+import { resolvePositionAssignment } from "@/lib/positions";
 
 const publicSelect = {
   id: true,
@@ -9,7 +10,7 @@ const publicSelect = {
   email: true,
   role: true,
   status: true,
-  department: true,
+  position: POSITION_SELECT,
   createdAt: true,
   _count: { select: { ownedTasks: true } },
 };
@@ -52,7 +53,6 @@ export async function POST(request) {
   const username = (body?.username || "").trim().toLowerCase();
   const name = (body?.name || "").trim();
   const password = body?.password || "";
-  const department = (body?.department || "").trim() || null;
   const email = (body?.email || "").trim() || null;
   const role = isValidRole(body?.role) ? body.role : ROLES.STAFF;
 
@@ -77,10 +77,23 @@ export async function POST(request) {
     );
   }
 
+  const assigned = await resolvePositionAssignment(body?.positionId);
+  if (assigned.error) {
+    return Response.json({ error: assigned.error }, { status: assigned.status });
+  }
+
   const passwordHash = await hashPassword(password);
   // Akun yang dibuat admin langsung aktif (sudah tepercaya).
   const user = await prisma.user.create({
-    data: { username, name, passwordHash, department, email, role, status: USER_STATUS.ACTIVE },
+    data: {
+      username,
+      name,
+      passwordHash,
+      email,
+      role,
+      positionId: assigned.positionId,
+      status: USER_STATUS.ACTIVE,
+    },
     select: publicSelect,
   });
 

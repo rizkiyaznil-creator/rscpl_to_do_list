@@ -16,11 +16,16 @@ export async function GET() {
         progress: true,
         dueDate: true,
         ownerId: true,
-        owner: { select: { id: true, name: true, department: true } },
+        owner: { select: { id: true, position: { select: { bidang: true } } } },
       },
     }),
     prisma.user.findMany({
-      select: { id: true, name: true, department: true, role: true },
+      select: {
+        id: true,
+        name: true,
+        role: true,
+        position: { select: { name: true, bidang: true } },
+      },
       orderBy: { name: "asc" },
     }),
   ]);
@@ -57,15 +62,15 @@ export async function GET() {
     if (isOverdue(t)) bucket.overdue++;
   };
 
-  // Per departemen
-  const deptMap = new Map();
+  // Per bidang (diambil dari jabatan pemilik tugas)
+  const bidangMap = new Map();
   for (const t of tasks) {
-    const dept = t.owner?.department || "Tanpa departemen";
-    if (!deptMap.has(dept)) deptMap.set(dept, blank());
-    tally(deptMap.get(dept), t);
+    const bidang = t.owner?.position?.bidang || "Belum ada jabatan";
+    if (!bidangMap.has(bidang)) bidangMap.set(bidang, blank());
+    tally(bidangMap.get(bidang), t);
   }
-  const byDepartment = [...deptMap.entries()]
-    .map(([department, c]) => ({ department, ...c }))
+  const byBidang = [...bidangMap.entries()]
+    .map(([bidang, c]) => ({ bidang, ...c }))
     .sort((a, b) => b.total - a.total);
 
   // Per personel (sertakan semua user agar yang 0 tugas pun tampil)
@@ -74,7 +79,8 @@ export async function GET() {
     personMap.set(u.id, {
       id: u.id,
       name: u.name,
-      department: u.department || "—",
+      jabatan: u.position?.name || "—",
+      bidang: u.position?.bidang || "—",
       role: u.role,
       ...blank(),
     });
@@ -84,5 +90,5 @@ export async function GET() {
   }
   const byPerson = [...personMap.values()].sort((a, b) => b.total - a.total);
 
-  return Response.json({ totals, byDepartment, byPerson });
+  return Response.json({ totals, byBidang, byPerson });
 }

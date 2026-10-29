@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession, hashPassword } from "@/lib/auth";
-import { ROLES, USER_STATUS, isValidRole } from "@/lib/constants";
+import { ROLES, USER_STATUS, isValidRole, POSITION_SELECT } from "@/lib/constants";
+import { resolvePositionAssignment } from "@/lib/positions";
 
 const publicSelect = {
   id: true,
@@ -9,7 +10,7 @@ const publicSelect = {
   email: true,
   role: true,
   status: true,
-  department: true,
+  position: POSITION_SELECT,
   createdAt: true,
   _count: { select: { ownedTasks: true } },
 };
@@ -43,7 +44,20 @@ export async function PATCH(request, { params }) {
 
   const data = {};
   if (typeof body.name === "string" && body.name.trim()) data.name = body.name.trim();
-  if (typeof body.department === "string") data.department = body.department.trim() || null;
+  if ("email" in body) {
+    const email = (body.email || "").trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return Response.json({ error: "Format email tidak valid." }, { status: 400 });
+    }
+    data.email = email || null;
+  }
+  if ("positionId" in body) {
+    const assigned = await resolvePositionAssignment(body.positionId, userId);
+    if (assigned.error) {
+      return Response.json({ error: assigned.error }, { status: assigned.status });
+    }
+    data.positionId = assigned.positionId;
+  }
   if (isValidRole(body.role)) data.role = body.role;
   // Verifikasi/aktivasi akun oleh admin (PENDING -> ACTIVE) atau sebaliknya.
   if (body.status === USER_STATUS.ACTIVE || body.status === USER_STATUS.PENDING) {

@@ -6,6 +6,7 @@ import {
   isValidPriority,
   clampProgress,
   STATUS,
+  POSITION_SELECT,
 } from "@/lib/constants";
 import { syncStatusProgress } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
@@ -17,7 +18,7 @@ const ownerSelect = {
   name: true,
   username: true,
   role: true,
-  department: true,
+  position: POSITION_SELECT,
 };
 
 // Include untuk tampilan daftar: data pemilik/pembuat + ringkasan checklist
