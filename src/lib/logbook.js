@@ -62,10 +62,12 @@ function descendants(org, positionId) {
   return out;
 }
 
-function viewerPosition(org, viewerId) {
-  const u = org.userById.get(viewerId);
+// Jabatan seorang user (atau null bila belum ditetapkan).
+export function positionOf(org, userId) {
+  const u = org.userById.get(userId);
   return u?.positionId != null ? org.pos.get(u.positionId) : null;
 }
+const viewerPosition = positionOf;
 
 export function canSeeAll(org, viewerId, viewerRole) {
   if (viewerRole === ROLES.ADMIN) return true;

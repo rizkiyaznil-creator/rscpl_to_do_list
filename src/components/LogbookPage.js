@@ -27,6 +27,16 @@ export default function LogbookPage({ currentUser }) {
     }
   }, []);
 
+  // Tautan langsung dari Dashboard: ?tab=team&user=<id>&week=<YYYY-MM-DD>
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") === "team") setTab("team");
+    const w = params.get("week");
+    if (w && /^\d{4}-\d{2}-\d{2}$/.test(w)) setWeek(weekStartKey(w));
+    const u = Number(params.get("user"));
+    if (Number.isInteger(u) && u > 0) setViewUser({ id: u });
+  }, []);
+
   useEffect(() => {
     loadCategories();
     // Tab "Logbook Bawahan" hanya untuk yang punya bawahan / akses semua.

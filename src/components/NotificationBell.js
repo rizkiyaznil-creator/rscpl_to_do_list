@@ -68,13 +68,13 @@ export default function NotificationBell() {
     load();
     if (taskId) {
       // Board mendengarkan event ini untuk membuka modal detail bila sedang
-      // di dashboard; jika tidak, arahkan ke dashboard dengan query.
+      // di halaman Tugas; jika tidak, arahkan ke halaman Tugas dengan query.
       const handled = window.dispatchEvent(
         new CustomEvent("open-task-detail", { detail: { taskId }, cancelable: true }),
       );
       // dispatchEvent mengembalikan false hanya bila preventDefault dipanggil.
       if (handled !== false) {
-        router.push(`/dashboard?task=${taskId}`);
+        router.push(`/tugas?task=${taskId}`);
       }
     }
   }
