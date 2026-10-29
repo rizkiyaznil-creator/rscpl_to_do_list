@@ -3,7 +3,7 @@
 // dan divalidasi di sisi aplikasi (lihat src/lib/constants.js).
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   // relationJoins: relasi (include) diambil dalam SATU query SQL (JOIN), bukan
   // satu query per relasi -> jauh lebih sedikit bolak-balik ke database.
   previewFeatures = ["relationJoins"]
@@ -84,6 +84,7 @@ model Task {
   creator   User? @relation("creator", fields: [creatorId], references: [id], onDelete: SetNull)
 
   logEntries LogEntry[] // kegiatan logbook yang ditautkan ke tugas ini
+  reminders  TaskReminder[] // jejak email pengingat yang sudah terkirim
   checklist  ChecklistItem[] // sub-tugas / langkah
   comments   Comment[] // komentar & catatan handover
   activities Activity[] // riwayat aktivitas pada tugas ini
@@ -248,4 +249,19 @@ model PerfValue {
 
   @@unique([paramId, periodType, periodStart])
   @@index([periodType, periodStart])
+}
+
+// Jejak email pengingat tenggat yang sudah terkirim, agar setiap jenis
+// pengingat (H-3, H-1, hari-H, lewat tenggat) hanya dikirim SEKALI per tenggat.
+// Bila tenggat diubah, kunci dueDate berubah sehingga pengingat dapat dikirim lagi.
+model TaskReminder {
+  id      Int      @id @default(autoincrement())
+  kind    String // "H3" | "H1" | "H0" | "OVERDUE"
+  dueDate DateTime @db.Date
+  sentAt  DateTime @default(now())
+
+  taskId Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, kind, dueDate])
 }

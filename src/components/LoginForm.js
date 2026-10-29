@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PasswordField from "@/components/PasswordField";
 
-export default function LoginForm() {
+// next: halaman tujuan setelah login (mis. tautan "Buka tugas" dari email).
+export default function LoginForm({ next }) {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -27,8 +28,8 @@ export default function LoginForm() {
         setLoading(false);
         return;
       }
-      // Berhasil: arahkan ke dashboard.
-      router.push("/dashboard");
+      // Berhasil: kembali ke halaman yang dituju, atau ke dashboard.
+      router.push(next || "/dashboard");
       router.refresh();
     } catch {
       setError("Tidak dapat terhubung ke server.");

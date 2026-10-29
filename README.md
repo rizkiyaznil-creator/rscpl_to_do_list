@@ -33,6 +33,11 @@ Akses dilindungi **login** (autentikasi).
   notifikasi saat tugas **ditugaskan** ke Anda atau ada **komentar baru**, plus
   **pengingat tenggat** otomatis (lewat tempo / hari ini / ≤ 2 hari). Polling
   tiap 60 detik; klik notifikasi membuka detail tugas.
+- 📧 **Email pengingat tenggat** (ditandai *penting* di Gmail/Outlook) — dikirim
+  otomatis pukul 07.00 WIB ke penanggung jawab pada **H-3, H-1, dan hari-H**;
+  tugas yang **lewat tenggat** mendapat **satu** email lanjutan dengan salinan (CC)
+  ke **atasan langsung**. Tiap jenis hanya terkirim sekali per tenggat (bila
+  tenggat diubah, pengingat berjalan lagi). Butuh `SMTP_USER`/`SMTP_PASS`.
 - 🎯 Prioritas (Rendah/Sedang/Tinggi) dan tenggat (due date) dengan penanda lewat tempo.
 - ☑️ **Sub-tugas / checklist** — pecah tugas menjadi langkah-langkah; progress &
   status dihitung **otomatis** dari rasio langkah yang selesai.
