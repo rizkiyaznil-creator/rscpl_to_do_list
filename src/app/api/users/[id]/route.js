@@ -70,8 +70,8 @@ export async function PATCH(request, { params }) {
     data.passwordHash = await hashPassword(String(body.password));
   }
 
-  // Cegah admin terakhir menurunkan dirinya sendiri menjadi STAFF.
-  if (data.role === ROLES.STAFF && target.role === ROLES.ADMIN) {
+  // Cegah admin terakhir diturunkan menjadi peran lain (Personel/Subadmin).
+  if (data.role && data.role !== ROLES.ADMIN && target.role === ROLES.ADMIN) {
     const adminCount = await prisma.user.count({ where: { role: ROLES.ADMIN } });
     if (adminCount <= 1) {
       return Response.json(

@@ -4,7 +4,7 @@
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 
-const { seedPositions, seedLogCategories } = require("./seed-positions");
+const { seedPositions, seedLogCategories, seedPerfParams } = require("./seed-positions");
 
 const prisma = new PrismaClient();
 
@@ -28,6 +28,7 @@ async function main() {
   console.log("Menyiapkan data awal...");
   await seedPositions(prisma);
   await seedLogCategories(prisma);
+  await seedPerfParams(prisma);
 
   const admin = await upsertUser({
     username: "admin",

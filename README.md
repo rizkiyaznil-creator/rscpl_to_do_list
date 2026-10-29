@@ -45,6 +45,14 @@ Akses dilindungi **login** (autentikasi).
   (logbook menunggu persetujuan, belum mengisi, tugas lewat tenggat), tugas per
   bidang (Direktur/Wadir), dan pendaftar menunggu verifikasi (admin). Papan tugas
   kini di menu **Tugas** (`/tugas`).
+- 📈 **Performa RS** (`/performa`, semua personel dapat melihat) — volume pelayanan,
+  efisiensi rawat inap (BOR, ALOS, TOI, BTO, GDR, NDR dihitung otomatis dari sensus),
+  13 Indikator Nasional Mutu + kepuasan pasien (pembilang/penyebut, status vs target),
+  dan insiden keselamatan pasien. Tampilan mingguan, bulanan, triwulan, semester,
+  tahunan & multi-tahun; detail tren per indikator; ekspor PDF/CSV. Data diinput
+  mingguan/bulanan oleh **Admin/Subadmin** (`/performa/input`) atau **diimpor dari
+  template Excel standar**; parameter & target dikelola admin (`/performa/parameter`).
+  Akun peran **Subadmin Performa** hanya dapat mengakses menu Performa RS & Akun Saya.
 - 📝 **Logbook kegiatan** (`/logbook`) — personel mencatat kegiatan harian (jam,
   kategori, uraian, hasil, link bukti Google Drive, tautan tugas); rekap mingguan
   otomatis. Hak lihat berjenjang sesuai jabatan (Admin, Direktur & Kepala SPI

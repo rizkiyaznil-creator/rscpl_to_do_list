@@ -357,6 +357,7 @@ function UserFormModal({ positions, onClose, onSaved }) {
               <label>Peran aplikasi</label>
               <select value={form.role} onChange={(e) => set("role", e.target.value)}>
                 <option value={ROLES.STAFF}>{ROLE_LABELS.STAFF}</option>
+                <option value={ROLES.SUBADMIN}>{ROLE_LABELS.SUBADMIN}</option>
                 <option value={ROLES.ADMIN}>{ROLE_LABELS.ADMIN}</option>
               </select>
             </div>
@@ -452,6 +453,7 @@ function EditUserModal({ user, positions, isSelf, onClose, onSaved }) {
               disabled={isSelf}
             >
               <option value={ROLES.STAFF}>{ROLE_LABELS.STAFF}</option>
+              <option value={ROLES.SUBADMIN}>{ROLE_LABELS.SUBADMIN}</option>
               <option value={ROLES.ADMIN}>{ROLE_LABELS.ADMIN}</option>
             </select>
             {isSelf && (

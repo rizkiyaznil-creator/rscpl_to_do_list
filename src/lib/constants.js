@@ -3,12 +3,20 @@
 export const ROLES = {
   ADMIN: "ADMIN",
   STAFF: "STAFF",
+  // Petugas input data Performa RS: hanya mengakses menu Performa RS & Akun Saya.
+  SUBADMIN: "SUBADMIN",
 };
 
 export const ROLE_LABELS = {
   ADMIN: "Admin",
   STAFF: "Personel",
+  SUBADMIN: "Subadmin Performa",
 };
+
+// Boleh menginput / mengimpor data Performa RS.
+export function canInputPerforma(role) {
+  return role === ROLES.ADMIN || role === ROLES.SUBADMIN;
+}
 
 // Status akun. Pendaftaran mandiri => PENDING (belum bisa login) sampai
 // diverifikasi admin => ACTIVE.
@@ -102,3 +110,22 @@ export function clampProgress(value) {
   if (Number.isNaN(n)) return 0;
   return Math.max(0, Math.min(100, n));
 }
+
+// ---------- Performa RS ----------
+export const PERF_GROUPS = {
+  A: "Volume pelayanan",
+  B: "Sensus rawat inap",
+  C: "Indikator Nasional Mutu",
+  D: "Insiden keselamatan pasien",
+  E: "Keuangan",
+  F: "SDM & Pendidikan",
+};
+
+export const PERF_FREQ_LABELS = { WEEK: "Mingguan", MONTH: "Bulanan" };
+
+export const PERF_KIND_LABELS = {
+  COUNT: "Jumlah (dijumlah per periode)",
+  STOCK: "Nilai terakhir (mis. jumlah TT)",
+  RATIO: "Persentase (pembilang ÷ penyebut)",
+  SCORE: "Nilai indeks (rata-rata berbobot responden)",
+};
