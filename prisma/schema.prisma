@@ -34,6 +34,7 @@ model User {
   positionId Int?
   position   Position? @relation(fields: [positionId], references: [id], onDelete: SetNull)
 
+  perfValues    PerfValue[] // data performa RS yang terakhir diinput user
   logEntries    LogEntry[] // logbook kegiatan harian milik user
   logApprovals  LogApproval[]  @relation("logOwner") // minggu logbook user yang sudah disetujui
   logApproved   LogApproval[]  @relation("logApprover") // persetujuan logbook yang diberikan user
@@ -206,4 +207,45 @@ model LogCategory {
   name      String   @unique
   order     Int      @default(0)
   createdAt DateTime @default(now())
+}
+
+// ---------- Performa RS ----------
+// Definisi parameter/indikator performa. Diisi awal oleh prisma/seed-positions.js
+// dan dapat dikelola admin. Parameter "builtin" dipakai rumus Barber-Johnson.
+model PerfParam {
+  id       Int     @id @default(autoincrement())
+  code     String  @unique // kode tetap, dipakai template Excel, mis. "rajal"
+  name     String
+  group    String // "A".."F" (lihat PERF_GROUPS)
+  freq     String // "WEEK" | "MONTH"
+  kind     String // "COUNT" (dijumlah) | "STOCK" (nilai terakhir) | "RATIO" (pembilang/penyebut) | "SCORE" (indeks berbobot responden)
+  unit     String?
+  source   String? // sumber data / unit PIC
+  targetOp String? // "GTE" | "LTE"
+  target   Float?
+  order    Int     @default(0)
+  active   Boolean @default(true)
+  builtin  Boolean @default(false)
+
+  values PerfValue[]
+}
+
+// Nilai satu parameter untuk satu periode (minggu: Senin; bulan: tanggal 1).
+model PerfValue {
+  id          Int      @id @default(autoincrement())
+  periodType  String // "WEEK" | "MONTH"
+  periodStart DateTime @db.Date
+  value       Float? // COUNT / STOCK / nilai SCORE
+  num         Float? // pembilang (RATIO)
+  den         Float? // penyebut (RATIO) atau jumlah responden (SCORE)
+  updatedAt   DateTime @updatedAt
+
+  paramId Int
+  param   PerfParam @relation(fields: [paramId], references: [id], onDelete: Cascade)
+
+  updatedById Int?
+  updatedBy   User? @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@unique([paramId, periodType, periodStart])
+  @@index([periodType, periodStart])
 }

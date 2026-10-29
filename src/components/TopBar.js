@@ -8,10 +8,12 @@ import { hospital } from "@/lib/hospitalProfile";
 import NotificationBell from "@/components/NotificationBell";
 
 // Menu utama. `match` = awalan path yang menandai menu sebagai aktif.
+// `admin`: khusus admin. `subadmin`: satu-satunya menu yang tampil untuk Subadmin.
 const NAV = [
   { href: "/dashboard", label: "Dashboard", match: ["/dashboard"] },
   { href: "/tugas", label: "Tugas", match: ["/tugas"] },
   { href: "/logbook", label: "Logbook", match: ["/logbook"] },
+  { href: "/performa", label: "Performa RS", match: ["/performa"], subadmin: true },
   { href: "/laporan", label: "Laporan", match: ["/laporan"] },
   { href: "/admin", label: "Kelola Personel", match: ["/admin"], admin: true },
   { href: "/", label: "Profil RS", match: [] },
@@ -30,7 +32,11 @@ export default function TopBar({ user }) {
   return (
     <header className="topbar">
       <div className="topbar-inner">
-        <Link href="/dashboard" className="brand" style={{ color: "inherit" }}>
+        <Link
+          href={user?.role === ROLES.SUBADMIN ? "/performa" : "/dashboard"}
+          className="brand"
+          style={{ color: "inherit" }}
+        >
           <img className="mark" src="/logo-rsusu.png" alt="Logo RS CPL USU" />
           <span>
             {hospital.name}
@@ -40,7 +46,9 @@ export default function TopBar({ user }) {
         <div className="spacer" />
         {/* Di HP, menu ini pindah ke baris kedua & bisa digeser ke samping. */}
         <nav className="topnav">
-          {NAV.filter((n) => !n.admin || user?.role === ROLES.ADMIN).map((n) => {
+          {NAV.filter((n) =>
+            user?.role === ROLES.SUBADMIN ? n.subadmin : !n.admin || user?.role === ROLES.ADMIN,
+          ).map((n) => {
             const active = n.match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
             return (
               <Link

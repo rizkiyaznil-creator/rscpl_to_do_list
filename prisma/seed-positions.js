@@ -1,4 +1,4 @@
-// Mengisi daftar jabatan baku sesuai SOTK (+ kategori baku logbook) RS Pendidikan Prof. dr. Chairuddin
+// Mengisi daftar jabatan baku sesuai SOTK (+ kategori logbook & parameter Performa RS) RS Pendidikan Prof. dr. Chairuddin
 // P. Lubis USU. Idempotent: HANYA mengisi bila tabel jabatan masih kosong,
 // sehingga perubahan yang dibuat admin lewat "Kelola Jabatan" tidak tertimpa.
 // Jalankan: node prisma/seed-positions.js  (otomatis saat build Vercel).
@@ -139,12 +139,72 @@ async function seedLogCategories(prisma) {
   console.log(`Kategori logbook dibuat: ${LOG_CATEGORIES.length}.`);
 }
 
-module.exports = { seedPositions, seedLogCategories };
+// Parameter baku Performa RS (admin dapat mengubah/menambah lewat aplikasi).
+// [kode, nama, kelompok, frekuensi, jenis, satuan, sumber, targetOp, target, builtin]
+const RM = "Rekam Medis (SIMRS)";
+const SHRI = "Sensus Harian Rawat Inap (SHRI) · Rekam Medis";
+const KM = "Komite Mutu (PMKP)";
+const KP = "Komite Mutu (Tim Keselamatan Pasien)";
+const PERF_PARAMS = [
+  ["rajal", "Kunjungan rawat jalan", "A", "WEEK", "COUNT", "kunjungan", RM],
+  ["igd", "Kunjungan IGD", "A", "WEEK", "COUNT", "kunjungan", RM],
+  ["ranap_masuk", "Pasien masuk rawat inap", "A", "WEEK", "COUNT", "pasien", RM],
+  ["op_elektif", "Operasi elektif", "A", "WEEK", "COUNT", "operasi", "IBP"],
+  ["op_emergensi", "Operasi emergensi", "A", "WEEK", "COUNT", "operasi", "IBP"],
+  ["persalinan", "Persalinan", "A", "WEEK", "COUNT", "persalinan", "Maternitas"],
+  ["lab", "Pemeriksaan laboratorium", "A", "WEEK", "COUNT", "pemeriksaan", "Instalasi Laboratorium"],
+  ["rad", "Pemeriksaan radiologi", "A", "WEEK", "COUNT", "pemeriksaan", "Instalasi Radiologi"],
+  ["tt", "Tempat tidur (TT) tersedia", "B", "WEEK", "STOCK", "TT", SHRI, null, null, true],
+  ["hp", "Jumlah hari perawatan", "B", "WEEK", "COUNT", "hari", SHRI, null, null, true],
+  ["ld", "Lama dirawat pasien keluar", "B", "WEEK", "COUNT", "hari", SHRI, null, null, true],
+  ["keluar_hidup", "Pasien keluar hidup", "B", "WEEK", "COUNT", "pasien", SHRI, null, null, true],
+  ["mati_lt48", "Pasien meninggal < 48 jam", "B", "WEEK", "COUNT", "pasien", SHRI, null, null, true],
+  ["mati_ge48", "Pasien meninggal ≥ 48 jam", "B", "WEEK", "COUNT", "pasien", SHRI, null, null, true],
+  ["inm_hh", "Kepatuhan kebersihan tangan", "C", "MONTH", "RATIO", "%", KM, "GTE", 85],
+  ["inm_apd", "Kepatuhan penggunaan APD", "C", "MONTH", "RATIO", "%", KM, "GTE", 100],
+  ["inm_id", "Kepatuhan identifikasi pasien", "C", "MONTH", "RATIO", "%", KM, "GTE", 100],
+  ["inm_sc", "Waktu tanggap operasi SC emergensi ≤ 30 menit", "C", "MONTH", "RATIO", "%", KM, "GTE", 80],
+  ["inm_wtrj", "Waktu tunggu rawat jalan ≤ 60 menit", "C", "MONTH", "RATIO", "%", KM, "GTE", 80],
+  ["inm_tunda", "Penundaan operasi elektif", "C", "MONTH", "RATIO", "%", KM, "LTE", 5],
+  ["inm_visite", "Kepatuhan waktu visite dokter", "C", "MONTH", "RATIO", "%", KM, "GTE", 80],
+  ["inm_kritis", "Pelaporan hasil kritis laboratorium", "C", "MONTH", "RATIO", "%", KM, "GTE", 100],
+  ["inm_fornas", "Kepatuhan penggunaan Formularium Nasional", "C", "MONTH", "RATIO", "%", KM, "GTE", 80],
+  ["inm_cp", "Kepatuhan terhadap alur klinis (clinical pathway)", "C", "MONTH", "RATIO", "%", KM, "GTE", 80],
+  ["inm_jatuh", "Kepatuhan upaya pencegahan risiko jatuh", "C", "MONTH", "RATIO", "%", KM, "GTE", 100],
+  ["inm_komplain", "Kecepatan waktu tanggap komplain", "C", "MONTH", "RATIO", "%", KM, "GTE", 80],
+  ["kepuasan", "Kepuasan pasien (nilai indeks)", "C", "MONTH", "SCORE", "indeks", "Survei kepuasan · Komite Mutu / Humas", "GTE", 76.61],
+  ["ktd", "KTD (Kejadian Tidak Diharapkan)", "D", "WEEK", "COUNT", "insiden", KP],
+  ["knc", "KNC (Kejadian Nyaris Cedera)", "D", "WEEK", "COUNT", "insiden", KP],
+  ["ktc", "KTC (Kejadian Tidak Cedera)", "D", "WEEK", "COUNT", "insiden", KP],
+  ["kpc", "KPC (Kondisi Potensial Cedera)", "D", "WEEK", "COUNT", "insiden", KP],
+  ["sentinel", "Kejadian sentinel", "D", "WEEK", "COUNT", "insiden", KP],
+];
+
+async function seedPerfParams(prisma) {
+  const count = await prisma.perfParam.count();
+  if (count > 0) {
+    console.log(`Parameter performa sudah ada (${count}) — lewati.`);
+    return;
+  }
+  await prisma.perfParam.createMany({
+    data: PERF_PARAMS.map(([code, name, group, freq, kind, unit, source, targetOp, target, builtin], order) => ({
+      code, name, group, freq, kind, unit, source,
+      targetOp: targetOp || null,
+      target: target ?? null,
+      builtin: Boolean(builtin),
+      order,
+    })),
+  });
+  console.log(`Parameter performa dibuat: ${PERF_PARAMS.length}.`);
+}
+
+module.exports = { seedPositions, seedLogCategories, seedPerfParams };
 
 if (require.main === module) {
   const prisma = new PrismaClient();
   seedPositions(prisma)
     .then(() => seedLogCategories(prisma))
+    .then(() => seedPerfParams(prisma))
     .catch((e) => {
       console.error(e);
       process.exit(1);
