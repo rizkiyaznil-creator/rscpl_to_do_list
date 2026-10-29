@@ -31,7 +31,10 @@ model User {
   positionId Int?
   position   Position? @relation(fields: [positionId], references: [id], onDelete: SetNull)
 
-  ownedTasks    Task[]         @relation("owner")   // tugas yang menjadi tanggung jawab user
+  logEntries    LogEntry[] // logbook kegiatan harian milik user
+  logApprovals  LogApproval[]  @relation("logOwner") // minggu logbook user yang sudah disetujui
+  logApproved   LogApproval[]  @relation("logApprover") // persetujuan logbook yang diberikan user
+  ownedTasks    Task[]         @relation("owner") // tugas yang menjadi tanggung jawab user
   createdTasks  Task[]         @relation("creator") // tugas yang dibuat oleh user
   comments      Comment[] // komentar/handover yang ditulis user
   activities    Activity[] // jejak aktivitas yang dilakukan user
@@ -63,19 +66,20 @@ model Task {
   id          Int       @id @default(autoincrement())
   title       String
   description String?
-  status      String    @default("TODO")   // "TODO" | "IN_PROGRESS" | "DONE"
-  progress    Int       @default(0)         // 0 - 100
-  priority    String    @default("MEDIUM")  // "LOW" | "MEDIUM" | "HIGH"
+  status      String    @default("TODO") // "TODO" | "IN_PROGRESS" | "DONE"
+  progress    Int       @default(0) // 0 - 100
+  priority    String    @default("MEDIUM") // "LOW" | "MEDIUM" | "HIGH"
   dueDate     DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  ownerId   Int
-  owner     User  @relation("owner", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId Int
+  owner   User @relation("owner", fields: [ownerId], references: [id], onDelete: Cascade)
 
   creatorId Int?
   creator   User? @relation("creator", fields: [creatorId], references: [id], onDelete: SetNull)
 
+  logEntries LogEntry[] // kegiatan logbook yang ditautkan ke tugas ini
   checklist  ChecklistItem[] // sub-tugas / langkah
   comments   Comment[] // komentar & catatan handover
   activities Activity[] // riwayat aktivitas pada tugas ini
@@ -152,4 +156,51 @@ model Notification {
 
   @@index([userId, read])
   @@index([createdAt])
+}
+
+// Logbook: catatan kegiatan yang SUDAH dikerjakan personel, per hari.
+model LogEntry {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @db.Date // tanggal kegiatan (kalender WIB)
+  startTime   String // "HH:MM"
+  endTime     String // "HH:MM" (boleh melewati tengah malam, mis. jaga malam)
+  minutes     Int // durasi dihitung dari jam mulai-selesai
+  category    String // kategori baku atau ditulis sendiri ("Lainnya")
+  description String // uraian kegiatan
+  output      String? // hasil / output
+  evidenceUrl String? // link bukti (Google Drive / cloud)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  taskId Int? // tautan opsional ke tugas di Papan Tugas
+  task   Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([userId, date])
+}
+
+// Persetujuan logbook mingguan oleh atasan langsung. Minggu yang sudah
+// disetujui TERKUNCI: hanya Direktur/Wadir terkait yang boleh mengubahnya.
+model LogApproval {
+  id         Int      @id @default(autoincrement())
+  weekStart  DateTime @db.Date // Senin pada minggu tsb.
+  approvedAt DateTime @default(now())
+
+  userId Int // pemilik logbook
+  user   User @relation("logOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  approvedById Int?
+  approvedBy   User? @relation("logApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@unique([userId, weekStart])
+}
+
+// Kategori baku logbook yang dikelola admin.
+model LogCategory {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
 }

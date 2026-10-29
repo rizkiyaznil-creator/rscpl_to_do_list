@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { getDueReminders } from "@/lib/notifications";
+import { getDueReminders, getLogbookReminder } from "@/lib/notifications";
 
 // GET /api/notifications
 // Mengembalikan: notifikasi tersimpan (assigned/comment), pengingat tenggat
@@ -11,7 +11,7 @@ export async function GET() {
     return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
   }
 
-  const [items, unreadCount, reminders] = await Promise.all([
+  const [items, unreadCount, reminders, logbook] = await Promise.all([
     prisma.notification.findMany({
       where: { userId: session.id },
       orderBy: { createdAt: "desc" },
@@ -19,12 +19,13 @@ export async function GET() {
     }),
     prisma.notification.count({ where: { userId: session.id, read: false } }),
     getDueReminders(session.id),
+    getLogbookReminder(session.id),
   ]);
 
-  // Badge = notifikasi belum dibaca + pengingat tenggat yang sedang aktif.
-  const badge = unreadCount + reminders.length;
+  // Badge = notifikasi belum dibaca + pengingat tenggat + pengingat logbook.
+  const badge = unreadCount + reminders.length + (logbook ? 1 : 0);
 
-  return Response.json({ items, reminders, unreadCount, badge });
+  return Response.json({ items, reminders, logbook, unreadCount, badge });
 }
 
 // POST /api/notifications  body: { id } untuk tandai satu, atau { all: true }.

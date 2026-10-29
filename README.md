@@ -38,6 +38,12 @@ Akses dilindungi **login** (autentikasi).
   (cocok untuk pergantian shift).
 - 🧾 **Riwayat aktivitas (audit log)** — mencatat otomatis siapa membuat/mengubah/
   menyelesaikan/menghapus apa & kapan (per tugas dan global).
+- 📝 **Logbook kegiatan** (`/logbook`) — personel mencatat kegiatan harian (jam,
+  kategori, uraian, hasil, link bukti Google Drive, tautan tugas); rekap mingguan
+  otomatis. Hak lihat berjenjang sesuai jabatan (Admin, Direktur & Kepala SPI
+  melihat semua). Atasan langsung menyetujui per minggu → minggu terkunci dan hanya
+  bisa diubah Direktur/Wadir terkait. Pengingat Senin–Jumat bila belum mengisi.
+  Ekspor PDF/CSV per personel & rekap bawahan.
 - 📈 **Laporan & statistik** (`/laporan`) — ringkasan status, tugas lewat tenggat,
   tingkat penyelesaian, beban kerja per personel & per bidang.
 

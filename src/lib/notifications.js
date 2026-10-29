@@ -1,5 +1,23 @@
 import { prisma } from "@/lib/prisma";
 import { STATUS } from "@/lib/constants";
+import { todayKey, isWeekday, keyToDate } from "@/lib/logdate";
+
+// Pengingat logbook (live): pada hari kerja Senin–Jumat, ingatkan personel
+// yang memegang jabatan bila hari ini belum mengisi logbook. Akun tanpa
+// jabatan (mis. akun Administrator sistem) tidak diingatkan.
+export async function getLogbookReminder(userId) {
+  const today = todayKey();
+  if (!isWeekday(today)) return null;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { positionId: true },
+  });
+  if (!user?.positionId) return null;
+  const filled = await prisma.logEntry.count({
+    where: { userId, date: keyToDate(today) },
+  });
+  return filled > 0 ? null : { date: today, label: "Anda belum mengisi logbook hari ini" };
+}
 
 // Buat notifikasi tersimpan untuk seorang user. Best-effort: jangan sampai
 // kegagalan notifikasi menggagalkan operasi utama. Tidak memberi notifikasi

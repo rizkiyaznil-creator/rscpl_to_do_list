@@ -1,4 +1,4 @@
-// Mengisi daftar jabatan baku sesuai SOTK RS Pendidikan Prof. dr. Chairuddin
+// Mengisi daftar jabatan baku sesuai SOTK (+ kategori baku logbook) RS Pendidikan Prof. dr. Chairuddin
 // P. Lubis USU. Idempotent: HANYA mengisi bila tabel jabatan masih kosong,
 // sehingga perubahan yang dibuat admin lewat "Kelola Jabatan" tidak tertimpa.
 // Jalankan: node prisma/seed-positions.js  (otomatis saat build Vercel).
@@ -118,11 +118,33 @@ async function seedPositions(prisma) {
   console.log(`Daftar jabatan SOTK dibuat: ${list.length} jabatan.`);
 }
 
-module.exports = { seedPositions };
+// Kategori baku logbook (admin dapat menambah/menghapus lewat aplikasi).
+const LOG_CATEGORIES = [
+  "Pelayanan",
+  "Administrasi",
+  "Rapat/Koordinasi",
+  "Pendidikan & Pelatihan",
+  "Penelitian",
+];
+
+async function seedLogCategories(prisma) {
+  const count = await prisma.logCategory.count();
+  if (count > 0) {
+    console.log(`Kategori logbook sudah ada (${count}) — lewati.`);
+    return;
+  }
+  await prisma.logCategory.createMany({
+    data: LOG_CATEGORIES.map((name, order) => ({ name, order })),
+  });
+  console.log(`Kategori logbook dibuat: ${LOG_CATEGORIES.length}.`);
+}
+
+module.exports = { seedPositions, seedLogCategories };
 
 if (require.main === module) {
   const prisma = new PrismaClient();
   seedPositions(prisma)
+    .then(() => seedLogCategories(prisma))
     .catch((e) => {
       console.error(e);
       process.exit(1);

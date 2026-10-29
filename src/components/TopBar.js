@@ -27,17 +27,23 @@ export default function TopBar({ user }) {
           </span>
         </Link>
         <div className="spacer" />
-        <Link href="/" className="btn btn-sm">
-          Profil RS
-        </Link>
-        <Link href="/laporan" className="btn btn-sm">
-          Laporan
-        </Link>
-        {user?.role === ROLES.ADMIN && (
-          <Link href="/admin" className="btn btn-sm">
-            Kelola Personel
+        {/* Di HP, menu ini pindah ke baris kedua & bisa digeser ke samping. */}
+        <nav className="topnav">
+          <Link href="/" className="btn btn-sm">
+            Profil RS
           </Link>
-        )}
+          <Link href="/logbook" className="btn btn-sm">
+            Logbook
+          </Link>
+          <Link href="/laporan" className="btn btn-sm">
+            Laporan
+          </Link>
+          {user?.role === ROLES.ADMIN && (
+            <Link href="/admin" className="btn btn-sm">
+              Kelola Personel
+            </Link>
+          )}
+        </nav>
         <NotificationBell />
         <Link href="/akun" className="userchip" title="Akun saya">
           <span className="avatar">{initials(user?.name)}</span>
