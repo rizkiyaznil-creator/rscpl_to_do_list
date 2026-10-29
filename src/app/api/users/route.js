@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession, hashPassword } from "@/lib/auth";
 import { ROLES, USER_STATUS, isValidRole, POSITION_SELECT } from "@/lib/constants";
 import { resolvePositionAssignment } from "@/lib/positions";
+import { visibleScope } from "@/lib/logbook";
 
 const publicSelect = {
   id: true,
@@ -15,14 +16,17 @@ const publicSelect = {
   _count: { select: { ownedTasks: true } },
 };
 
-// GET /api/users -> daftar personel (untuk dropdown penugasan & pengelompokan papan).
+// GET /api/users -> daftar personel yang boleh dilihat (diri sendiri + bawahan;
+// Admin/Direktur/Kepala SPI: semua). Dipakai filter papan tugas & panel admin.
 export async function GET() {
   const session = await getSession();
   if (!session) {
     return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
   }
 
+  const scope = await visibleScope(session);
   const users = await prisma.user.findMany({
+    where: scope.ids ? { id: { in: scope.ids } } : {},
     orderBy: [{ role: "asc" }, { name: "asc" }],
     select: publicSelect,
   });

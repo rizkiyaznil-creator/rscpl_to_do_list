@@ -1,16 +1,20 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { STATUS } from "@/lib/constants";
+import { visibleScope } from "@/lib/logbook";
 
-// GET /api/stats -> ringkasan & laporan beban kerja.
+// GET /api/stats -> ringkasan & laporan beban kerja, sebatas data yang boleh
+// dilihat (diri sendiri + bawahan; Admin/Direktur/Kepala SPI: semua).
 export async function GET() {
   const session = await getSession();
   if (!session) {
     return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
   }
 
+  const scope = await visibleScope(session);
   const [tasks, users] = await Promise.all([
     prisma.task.findMany({
+      where: scope.ids ? { ownerId: { in: scope.ids } } : {},
       select: {
         status: true,
         progress: true,
@@ -20,6 +24,7 @@ export async function GET() {
       },
     }),
     prisma.user.findMany({
+      where: scope.ids ? { id: { in: scope.ids } } : {},
       select: {
         id: true,
         name: true,
