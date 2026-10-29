@@ -11,6 +11,7 @@ import {
 import { syncStatusProgress } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
+import { visibleScope } from "@/lib/logbook";
 import { sendEmail, taskReminderEmail } from "@/lib/email";
 
 const ownerSelect = {
@@ -30,7 +31,8 @@ const listInclude = {
   _count: { select: { comments: true } },
 };
 
-// GET /api/tasks  -> daftar SEMUA tugas (papan transparan untuk semua personel).
+// GET /api/tasks  -> daftar tugas yang boleh dilihat: milik sendiri + bawahan
+// (berjenjang sesuai jabatan); Admin, Direktur, Kepala SPI melihat semua.
 // Filter opsional via query: ?ownerId=, ?status=, ?q=
 export async function GET(request) {
   const session = await getSession();
@@ -39,10 +41,15 @@ export async function GET(request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const where = {};
+  const scope = await visibleScope(session);
+  const where = scope.ids ? { ownerId: { in: scope.ids } } : {};
 
   const ownerId = searchParams.get("ownerId");
-  if (ownerId) where.ownerId = Number(ownerId);
+  if (ownerId) {
+    const oid = Number(ownerId);
+    // Pemilik di luar cakupan -> hasil kosong (tanpa membocorkan data).
+    where.ownerId = scope.ids && !scope.ids.includes(oid) ? -1 : oid;
+  }
 
   const status = searchParams.get("status");
   if (status && isValidStatus(status)) where.status = status;

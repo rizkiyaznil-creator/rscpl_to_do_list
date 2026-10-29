@@ -9,8 +9,10 @@ Akses dilindungi **login** (autentikasi).
 
 - 🔐 **Login & autentikasi** — password di-hash (bcrypt), sesi disimpan di JWT
   pada cookie httpOnly, seluruh halaman dilindungi middleware.
-- 📋 **Papan tugas transparan** — semua personel dapat melihat to-do list semua
-  orang, dengan filter per personel, per status, dan pencarian.
+- 📋 **Papan tugas berjenjang** (`/tugas`) — personel melihat tugasnya sendiri dan
+  tugas semua bawahannya sesuai jabatan (rekan setingkat tidak saling melihat);
+  Admin, Direktur, dan Kepala SPI melihat semua. Berlaku juga untuk Laporan dan
+  riwayat aktivitas. Dilengkapi filter per personel, per status, dan pencarian.
 - 📊 **Progress ganda** — status bertahap **+** persentase (slider). Status &
   persentase otomatis diselaraskan (100% = Selesai).
 - ✍️ **Pembuatan tugas fleksibel** — setiap user dapat membuat tugasnya sendiri,

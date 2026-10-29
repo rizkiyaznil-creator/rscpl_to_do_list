@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { ROLES } from "@/lib/constants";
 
-// Aturan akses logbook berbasis struktur jabatan (SOTK).
-//  - Lihat     : diri sendiri + semua bawahan (berjenjang). Admin, Direktur,
-//                dan Kepala SPI dapat melihat SEMUA logbook.
+// Aturan akses berbasis struktur jabatan (SOTK) — dipakai logbook & tugas.
+//  - Lihat     : diri sendiri + semua bawahan (berjenjang); rekan setingkat
+//                tidak saling melihat. Admin, Direktur, dan Kepala SPI dapat
+//                melihat SEMUA logbook & tugas.
 //  - Setujui   : atasan langsung (pemegang jabatan atasan terdekat yang terisi).
 //  - Ubah minggu yang sudah disetujui: hanya Direktur atau Wadir terkait
 //                (Wadir yang membawahi pemilik logbook).
@@ -114,4 +115,17 @@ export function canOverride(org, viewerId, ownerId) {
   const owner = org.userById.get(ownerId);
   if (owner?.positionId == null) return false;
   return ancestors(org, owner.positionId).includes(vp.id);
+}
+
+// Cakupan data yang boleh dilihat sebuah sesi, siap dipakai di filter Prisma.
+//   ids = null      -> boleh melihat semua
+//   ids = [id, ...] -> hanya data milik user-user ini (diri sendiri + bawahan)
+export async function visibleScope(session) {
+  const org = await loadOrg();
+  if (canSeeAll(org, session.id, session.role)) return { org, ids: null };
+  return { org, ids: [...visibleUserIds(org, session.id, session.role)] };
+}
+
+export function inScope(scope, userId) {
+  return scope.ids === null || scope.ids.includes(userId);
 }

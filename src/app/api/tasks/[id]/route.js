@@ -11,6 +11,7 @@ import {
 import { syncStatusProgress, applyChecklistProgress } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
+import { visibleScope, inScope } from "@/lib/logbook";
 
 const ownerSelect = {
   id: true,
@@ -61,6 +62,9 @@ export async function GET(request, { params }) {
 
   if (!task) {
     return Response.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
+  }
+  if (!inScope(await visibleScope(session), task.ownerId)) {
+    return Response.json({ error: "Anda tidak berhak melihat tugas ini." }, { status: 403 });
   }
 
   return Response.json({ task });
