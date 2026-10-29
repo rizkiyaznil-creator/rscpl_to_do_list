@@ -6,7 +6,13 @@ export const metadata = {
   title: `Masuk | ${hospital.name}`,
 };
 
-export default function LoginPage() {
+// Hanya path internal ("/tugas?task=5"), bukan alamat situs lain ("//evil.com").
+function safeNext(value) {
+  return typeof value === "string" && value.startsWith("/") && !value.startsWith("//") ? value : null;
+}
+
+export default async function LoginPage({ searchParams }) {
+  const next = safeNext((await searchParams)?.next);
   return (
     <div className="login-wrap">
       <div className="login-card">
@@ -17,7 +23,7 @@ export default function LoginPage() {
           </div>
         </div>
         <p className="login-sub">Manajemen tugas personel rumah sakit</p>
-        <LoginForm />
+        <LoginForm next={next} />
         {process.env.NODE_ENV !== "production" && (
           <div className="login-hint">
             <strong>Akun demo:</strong>

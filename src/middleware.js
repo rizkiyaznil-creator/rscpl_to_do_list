@@ -50,9 +50,12 @@ export async function middleware(request) {
     pathname === "/daftar" ||
     pathname === "/lupa-password";
 
-  // Belum login & halaman butuh proteksi -> arahkan ke /login
+  // Belum login & halaman butuh proteksi -> arahkan ke /login, lalu kembali ke
+  // halaman semula setelah login (mis. tautan tugas dari email pengingat).
   if (!authed && !isPublic) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    const login = new URL("/login", request.url);
+    login.searchParams.set("next", pathname + request.nextUrl.search);
+    return NextResponse.redirect(login);
   }
 
   const home = isSubadmin ? "/performa" : "/dashboard";
