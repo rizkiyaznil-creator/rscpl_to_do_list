@@ -38,6 +38,11 @@ Akses dilindungi **login** (autentikasi).
   (cocok untuk pergantian shift).
 - 🧾 **Riwayat aktivitas (audit log)** — mencatat otomatis siapa membuat/mengubah/
   menyelesaikan/menghapus apa & kapan (per tugas dan global).
+- 🏠 **Dashboard** (`/dashboard`, halaman awal setelah login) — ringkasan tugas saya
+  (+ tenggat terdekat), logbook minggu ini (hari kerja yang belum diisi), bawahan
+  (logbook menunggu persetujuan, belum mengisi, tugas lewat tenggat), tugas per
+  bidang (Direktur/Wadir), dan pendaftar menunggu verifikasi (admin). Papan tugas
+  kini di menu **Tugas** (`/tugas`).
 - 📝 **Logbook kegiatan** (`/logbook`) — personel mencatat kegiatan harian (jam,
   kategori, uraian, hasil, link bukti Google Drive, tautan tugas); rekap mingguan
   otomatis. Hak lihat berjenjang sesuai jabatan (Admin, Direktur & Kepala SPI

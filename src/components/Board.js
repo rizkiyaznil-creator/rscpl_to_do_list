@@ -82,7 +82,7 @@ export default function Board({ currentUser }) {
     if (t) {
       setDetailTaskId(Number(t));
       // Bersihkan query agar tidak terbuka ulang saat refresh.
-      window.history.replaceState({}, "", "/dashboard");
+      window.history.replaceState({}, "", "/tugas");
     }
 
     return () => window.removeEventListener("open-task-detail", onOpenDetail);
