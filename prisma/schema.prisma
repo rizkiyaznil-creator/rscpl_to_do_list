@@ -21,15 +21,42 @@ model User {
   // dan TIDAK bisa login sampai diverifikasi admin. Akun buatan admin & seed
   // langsung ACTIVE (default ACTIVE agar data lama tidak ikut terkunci).
   status       String   @default("ACTIVE")
-  department   String? // unit/departemen rumah sakit, mis. "IGD", "Farmasi"
+  // (Usang) dulu dipakai untuk unit/departemen. Kini digantikan jabatan
+  // (positionId). Kolom dibiarkan agar `prisma db push` tidak menghapus data.
+  department   String?
   passwordHash String
   createdAt    DateTime @default(now())
+
+  // Jabatan sesuai SOTK (lihat model Position). Null = belum ditetapkan admin.
+  positionId Int?
+  position   Position? @relation(fields: [positionId], references: [id], onDelete: SetNull)
 
   ownedTasks    Task[]         @relation("owner")   // tugas yang menjadi tanggung jawab user
   createdTasks  Task[]         @relation("creator") // tugas yang dibuat oleh user
   comments      Comment[] // komentar/handover yang ditulis user
   activities    Activity[] // jejak aktivitas yang dilakukan user
   notifications Notification[] // notifikasi yang ditujukan kepada user
+}
+
+// Jabatan dalam struktur organisasi (SOTK), tersusun sebagai pohon melalui
+// parentId (atasan langsung). Diisi awal oleh prisma/seed-positions.js dan
+// dapat dikelola admin lewat menu "Kelola Jabatan".
+model Position {
+  id        Int      @id @default(autoincrement())
+  name      String // mis. "Manajer Keuangan"
+  level     String // DIREKTUR | WADIR | MANAJER | KOORDINATOR | KEPALA | ANGGOTA | STAF
+  bidang    String? // mis. "Bidang Medik"; dipakai untuk pengelompokan laporan
+  single    Boolean  @default(true) // jabatan struktural hanya boleh diisi 1 orang
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  parentId Int?
+  parent   Position?  @relation("PositionTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children Position[] @relation("PositionTree")
+
+  users User[]
+
+  @@index([parentId])
 }
 
 model Task {

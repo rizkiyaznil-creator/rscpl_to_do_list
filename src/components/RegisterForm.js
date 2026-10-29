@@ -8,7 +8,6 @@ export default function RegisterForm() {
   const [form, setForm] = useState({
     name: "",
     username: "",
-    department: "",
     email: "",
     password: "",
     confirm: "",
@@ -38,7 +37,6 @@ export default function RegisterForm() {
         body: JSON.stringify({
           name: form.name,
           username: form.username,
-          department: form.department,
           email: form.email,
           password: form.password,
         }),
@@ -96,16 +94,6 @@ export default function RegisterForm() {
           onChange={(e) => set("username", e.target.value)}
           placeholder="mis. ns.budi"
           required
-        />
-      </div>
-      <div className="field">
-        <label htmlFor="department">Departemen / unit (opsional)</label>
-        <input
-          id="department"
-          type="text"
-          value={form.department}
-          onChange={(e) => set("department", e.target.value)}
-          placeholder="mis. IGD"
         />
       </div>
       <div className="field">

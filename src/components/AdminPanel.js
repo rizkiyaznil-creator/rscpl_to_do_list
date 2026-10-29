@@ -4,35 +4,60 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import TopBar from "@/components/TopBar";
 import PasswordField from "@/components/PasswordField";
+import PositionSelect from "@/components/PositionSelect";
 import { ROLES, ROLE_LABELS, USER_STATUS } from "@/lib/constants";
 import { initials } from "@/lib/format";
 
+// Kirim JSON & kembalikan { ok, data } tanpa melempar error.
+async function sendJson(url, method, body) {
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json();
+    return { ok: res.ok, data };
+  } catch {
+    return { ok: false, data: { error: "Tidak dapat terhubung ke server." } };
+  }
+}
+
 export default function AdminPanel({ currentUser }) {
   const [users, setUsers] = useState([]);
+  const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editUser, setEditUser] = useState(null);
+  const [verifyUser, setVerifyUser] = useState(null);
   const [resetUser, setResetUser] = useState(null);
+  const [showWipe, setShowWipe] = useState(false);
+
+  async function loadAll() {
+    try {
+      const [uRes, pRes] = await Promise.all([fetch("/api/users"), fetch("/api/positions")]);
+      const [uData, pData] = await Promise.all([uRes.json(), pRes.json()]);
+      if (uRes.ok) setUsers(uData.users || []);
+      else setError(uData.error || "Gagal memuat data.");
+      if (pRes.ok) setPositions(pData.positions || []);
+    } catch {
+      setError("Tidak dapat terhubung ke server.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    let active = true;
-    fetch("/api/users")
-      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
-      .then(({ ok, d }) => {
-        if (!active) return;
-        if (ok) setUsers(d.users || []);
-        else setError(d.error || "Gagal memuat data.");
-      })
-      .catch(() => active && setError("Tidak dapat terhubung ke server."))
-      .finally(() => active && setLoading(false));
-    return () => {
-      active = false;
-    };
+    loadAll();
   }, []);
 
-  function handleCreated(user) {
-    setUsers((prev) => [...prev, user]);
+  // Setelah ada perubahan personel, muat ulang agar status "terisi" jabatan ikut segar.
+  function afterChange() {
     setShowForm(false);
+    setEditUser(null);
+    setVerifyUser(null);
+    loadAll();
   }
 
   async function removeUser(u) {
@@ -42,43 +67,17 @@ export default function AdminPanel({ currentUser }) {
       )
     )
       return;
-    try {
-      const res = await fetch(`/api/users/${u.id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (res.ok) setUsers((prev) => prev.filter((x) => x.id !== u.id));
-      else alert(data.error || "Gagal menghapus.");
-    } catch {
-      alert("Tidak dapat terhubung ke server.");
-    }
-  }
-
-  // Verifikasi pendaftar: ubah status PENDING -> ACTIVE.
-  async function approveUser(u) {
-    try {
-      const res = await fetch(`/api/users/${u.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: USER_STATUS.ACTIVE }),
-      });
-      const data = await res.json();
-      if (res.ok) setUsers((prev) => prev.map((x) => (x.id === u.id ? data.user : x)));
-      else alert(data.error || "Gagal memverifikasi.");
-    } catch {
-      alert("Tidak dapat terhubung ke server.");
-    }
+    const { ok, data } = await sendJson(`/api/users/${u.id}`, "DELETE");
+    if (ok) afterChange();
+    else alert(data.error || "Gagal menghapus.");
   }
 
   // Tolak pendaftar: hapus akunnya (belum punya data sehingga aman dihapus).
   async function rejectUser(u) {
     if (!confirm(`Tolak & hapus pendaftaran "${u.name}" (@${u.username})?`)) return;
-    try {
-      const res = await fetch(`/api/users/${u.id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (res.ok) setUsers((prev) => prev.filter((x) => x.id !== u.id));
-      else alert(data.error || "Gagal menolak.");
-    } catch {
-      alert("Tidak dapat terhubung ke server.");
-    }
+    const { ok, data } = await sendJson(`/api/users/${u.id}`, "DELETE");
+    if (ok) afterChange();
+    else alert(data.error || "Gagal menolak.");
   }
 
   const pending = users.filter((u) => u.status === USER_STATUS.PENDING);
@@ -94,6 +93,9 @@ export default function AdminPanel({ currentUser }) {
           </Link>
           <h2 style={{ fontSize: 20 }}>Kelola Personel</h2>
           <div className="spacer" />
+          <Link href="/admin/jabatan" className="btn">
+            🏛 Kelola Jabatan
+          </Link>
           <button className="btn btn-primary" onClick={() => setShowForm(true)}>
             + Tambah Personel
           </button>
@@ -121,14 +123,14 @@ export default function AdminPanel({ currentUser }) {
                           <b>{u.name}</b>
                           <small>
                             @{u.username}
-                            {u.department ? ` · ${u.department}` : ""}
+                            {u.email ? ` · ${u.email}` : ""}
                           </small>
                         </div>
                       </div>
                       <div className="pending-actions">
                         <button
                           className="btn btn-sm btn-primary"
-                          onClick={() => approveUser(u)}
+                          onClick={() => setVerifyUser(u)}
                         >
                           ✓ Verifikasi
                         </button>
@@ -151,7 +153,7 @@ export default function AdminPanel({ currentUser }) {
                   <tr>
                     <th>Nama</th>
                     <th>Username</th>
-                    <th>Departemen</th>
+                    <th>Jabatan</th>
                     <th>Peran</th>
                     <th>Tugas</th>
                     <th></th>
@@ -167,7 +169,16 @@ export default function AdminPanel({ currentUser }) {
                         </div>
                       </td>
                       <td>{u.username}</td>
-                      <td>{u.department || "—"}</td>
+                      <td>
+                        {u.position ? (
+                          <>
+                            {u.position.name}
+                            <div className="muted-sm">{u.position.bidang}</div>
+                          </>
+                        ) : (
+                          <span className="muted-sm">Belum ditetapkan</span>
+                        )}
+                      </td>
                       <td>
                         <span
                           className={`badge ${
@@ -179,18 +190,11 @@ export default function AdminPanel({ currentUser }) {
                       </td>
                       <td>{u._count?.ownedTasks ?? 0}</td>
                       <td style={{ textAlign: "right" }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: 6,
-                            justifyContent: "flex-end",
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          <button
-                            className="btn btn-sm"
-                            onClick={() => setResetUser(u)}
-                          >
+                        <div className="row-actions">
+                          <button className="btn btn-sm" onClick={() => setEditUser(u)}>
+                            Ubah
+                          </button>
+                          <button className="btn btn-sm" onClick={() => setResetUser(u)}>
                             Reset Password
                           </button>
                           {u.id !== currentUser.id && (
@@ -208,27 +212,75 @@ export default function AdminPanel({ currentUser }) {
                 </tbody>
               </table>
             </div>
+
+            {/* Zona berbahaya: mulai ulang data personel sesuai SOTK baru */}
+            <div className="danger-zone">
+              <div>
+                <b>Hapus semua personel lama</b>
+                <p className="muted-sm" style={{ margin: "4px 0 0" }}>
+                  Menghapus semua akun <b>kecuali admin</b> beserta seluruh tugas,
+                  notifikasi, dan riwayat aktivitas. Daftar jabatan tetap. Unduh
+                  arsip laporan PDF/CSV lebih dulu.
+                </p>
+              </div>
+              <button className="btn btn-danger" onClick={() => setShowWipe(true)}>
+                Hapus semua personel lama
+              </button>
+            </div>
           </>
         )}
       </main>
 
       {showForm && (
-        <UserFormModal onClose={() => setShowForm(false)} onCreated={handleCreated} />
+        <UserFormModal
+          positions={positions}
+          onClose={() => setShowForm(false)}
+          onSaved={afterChange}
+        />
+      )}
+
+      {editUser && (
+        <EditUserModal
+          user={editUser}
+          positions={positions}
+          isSelf={editUser.id === currentUser.id}
+          onClose={() => setEditUser(null)}
+          onSaved={afterChange}
+        />
+      )}
+
+      {verifyUser && (
+        <VerifyModal
+          user={verifyUser}
+          positions={positions}
+          onClose={() => setVerifyUser(null)}
+          onSaved={afterChange}
+        />
       )}
 
       {resetUser && (
         <ResetPasswordModal user={resetUser} onClose={() => setResetUser(null)} />
       )}
+
+      {showWipe && (
+        <WipeModal
+          onClose={() => setShowWipe(false)}
+          onDone={() => {
+            setShowWipe(false);
+            loadAll();
+          }}
+        />
+      )}
     </>
   );
 }
 
-function UserFormModal({ onClose, onCreated }) {
+function UserFormModal({ positions, onClose, onSaved }) {
   const [form, setForm] = useState({
     name: "",
     username: "",
-    department: "",
     email: "",
+    positionId: "",
     role: ROLES.STAFF,
     password: "",
   });
@@ -243,23 +295,13 @@ function UserFormModal({ onClose, onCreated }) {
     e.preventDefault();
     setError("");
     setSaving(true);
-    try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Gagal menambah personel.");
-        setSaving(false);
-        return;
-      }
-      onCreated(data.user);
-    } catch {
-      setError("Tidak dapat terhubung ke server.");
+    const { ok, data } = await sendJson("/api/users", "POST", form);
+    if (!ok) {
+      setError(data.error || "Gagal menambah personel.");
       setSaving(false);
+      return;
     }
+    onSaved();
   }
 
   return (
@@ -285,30 +327,34 @@ function UserFormModal({ onClose, onCreated }) {
                 value={form.username}
                 onChange={(e) => set("username", e.target.value)}
                 placeholder="mis. dr.andi"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 required
               />
             </div>
             <div className="field">
-              <label>Departemen</label>
+              <label>Email (untuk pengingat)</label>
               <input
-                value={form.department}
-                onChange={(e) => set("department", e.target.value)}
-                placeholder="mis. IGD"
+                type="email"
+                value={form.email}
+                onChange={(e) => set("email", e.target.value)}
+                placeholder="mis. nama@email.com"
               />
             </div>
           </div>
           <div className="field">
-            <label>Email (opsional, untuk pengingat tugas)</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => set("email", e.target.value)}
-              placeholder="mis. nama@email.com"
+            <label htmlFor="new-user-position">Jabatan</label>
+            <PositionSelect
+              id="new-user-position"
+              positions={positions}
+              value={form.positionId}
+              onChange={(v) => set("positionId", v)}
             />
           </div>
           <div className="field-row">
             <div className="field">
-              <label>Peran</label>
+              <label>Peran aplikasi</label>
               <select value={form.role} onChange={(e) => set("role", e.target.value)}>
                 <option value={ROLES.STAFF}>{ROLE_LABELS.STAFF}</option>
                 <option value={ROLES.ADMIN}>{ROLE_LABELS.ADMIN}</option>
@@ -328,6 +374,218 @@ function UserFormModal({ onClose, onCreated }) {
             </button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? "Menyimpan..." : "Tambah"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// Ubah data personel: nama, email, jabatan, peran.
+function EditUserModal({ user, positions, isSelf, onClose, onSaved }) {
+  const [form, setForm] = useState({
+    name: user.name,
+    email: user.email || "",
+    positionId: user.position?.id ?? "",
+    role: user.role,
+  });
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  function set(key, value) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setSaving(true);
+    const { ok, data } = await sendJson(`/api/users/${user.id}`, "PATCH", form);
+    if (!ok) {
+      setError(data.error || "Gagal menyimpan perubahan.");
+      setSaving(false);
+      return;
+    }
+    onSaved();
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h3>Ubah Personel</h3>
+        <p className="muted-sm" style={{ marginTop: 0 }}>@{user.username}</p>
+        <form onSubmit={submit}>
+          {error && <div className="alert alert-error">{error}</div>}
+          <div className="field">
+            <label>Nama lengkap *</label>
+            <input
+              value={form.name}
+              onChange={(e) => set("name", e.target.value)}
+              required
+            />
+          </div>
+          <div className="field">
+            <label>Email (untuk pengingat)</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+              placeholder="mis. nama@email.com"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="edit-user-position">Jabatan</label>
+            <PositionSelect
+              id="edit-user-position"
+              positions={positions}
+              value={form.positionId}
+              onChange={(v) => set("positionId", v)}
+              userId={user.id}
+            />
+          </div>
+          <div className="field">
+            <label>Peran aplikasi</label>
+            <select
+              value={form.role}
+              onChange={(e) => set("role", e.target.value)}
+              disabled={isSelf}
+            >
+              <option value={ROLES.STAFF}>{ROLE_LABELS.STAFF}</option>
+              <option value={ROLES.ADMIN}>{ROLE_LABELS.ADMIN}</option>
+            </select>
+            {isSelf && (
+              <small className="muted-sm">Peran akun Anda sendiri tidak bisa diubah di sini.</small>
+            )}
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="btn" onClick={onClose} disabled={saving}>
+              Batal
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              {saving ? "Menyimpan..." : "Simpan"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// Verifikasi pendaftar sekaligus menetapkan jabatannya.
+function VerifyModal({ user, positions, onClose, onSaved }) {
+  const [positionId, setPositionId] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setSaving(true);
+    const { ok, data } = await sendJson(`/api/users/${user.id}`, "PATCH", {
+      status: USER_STATUS.ACTIVE,
+      positionId,
+    });
+    if (!ok) {
+      setError(data.error || "Gagal memverifikasi.");
+      setSaving(false);
+      return;
+    }
+    onSaved();
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h3>Verifikasi Pendaftar</h3>
+        <p className="muted-sm" style={{ marginTop: 0 }}>
+          <b>{user.name}</b> (@{user.username})
+        </p>
+        <form onSubmit={submit}>
+          {error && <div className="alert alert-error">{error}</div>}
+          <div className="field">
+            <label htmlFor="verify-position">Tetapkan jabatan</label>
+            <PositionSelect
+              id="verify-position"
+              positions={positions}
+              value={positionId}
+              onChange={setPositionId}
+            />
+            <small className="muted-sm">
+              Boleh dikosongkan dulu, lalu diatur nanti lewat tombol "Ubah".
+            </small>
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="btn" onClick={onClose} disabled={saving}>
+              Batal
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              {saving ? "Memproses..." : "✓ Verifikasi"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// Konfirmasi hapus semua personel lama (ketik HAPUS).
+function WipeModal({ onClose, onDone }) {
+  const [text, setText] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function submit(e) {
+    e.preventDefault();
+    setError("");
+    setSaving(true);
+    const { ok, data } = await sendJson("/api/admin/reset-personnel", "POST", {
+      confirm: text.trim(),
+    });
+    if (!ok) {
+      setError(data.error || "Gagal menghapus data.");
+      setSaving(false);
+      return;
+    }
+    const d = data.deleted;
+    alert(`Selesai. Terhapus: ${d.users} personel, ${d.tasks} tugas.`);
+    onDone();
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h3>⚠️ Hapus semua personel lama</h3>
+        <div className="alert alert-error">
+          Tindakan ini <b>permanen</b>: semua akun selain admin, seluruh tugas,
+          notifikasi, dan riwayat aktivitas akan dihapus dan <b>tidak bisa
+          dikembalikan</b>.
+        </div>
+        <form onSubmit={submit}>
+          {error && <div className="alert alert-error">{error}</div>}
+          <div className="field">
+            <label htmlFor="wipe-confirm">
+              Ketik <b>HAPUS</b> untuk melanjutkan
+            </label>
+            <input
+              id="wipe-confirm"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              autoCapitalize="characters"
+              autoComplete="off"
+              autoFocus
+            />
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="btn" onClick={onClose} disabled={saving}>
+              Batal
+            </button>
+            <button
+              type="submit"
+              className="btn btn-danger"
+              disabled={saving || text.trim() !== "HAPUS"}
+            >
+              {saving ? "Menghapus..." : "Hapus permanen"}
             </button>
           </div>
         </form>

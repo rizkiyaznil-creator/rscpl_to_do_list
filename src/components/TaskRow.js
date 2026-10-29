@@ -85,7 +85,7 @@ export default function TaskRow({
           <span className="avatar">{initials(task.owner?.name)}</span>
           <div>
             <b>{task.owner?.name}</b>
-            <div className="muted-sm">{task.owner?.department || "—"}</div>
+            <div className="muted-sm">{task.owner?.position?.name || "—"}</div>
           </div>
         </div>
       </td>

@@ -11,7 +11,7 @@ export default async function AkunPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  // Ambil data terkini (departemen, jumlah tugas) untuk ditampilkan.
+  // Ambil data terkini (jabatan, jumlah tugas) untuk ditampilkan.
   const user = await prisma.user.findUnique({
     where: { id: session.id },
     select: {
@@ -20,7 +20,7 @@ export default async function AkunPage() {
       name: true,
       email: true,
       role: true,
-      department: true,
+      position: { select: { name: true, bidang: true } },
       createdAt: true,
       _count: { select: { ownedTasks: true } },
     },

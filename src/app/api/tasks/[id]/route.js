@@ -6,6 +6,7 @@ import {
   isValidStatus,
   isValidPriority,
   clampProgress,
+  POSITION_SELECT,
 } from "@/lib/constants";
 import { syncStatusProgress, applyChecklistProgress } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
@@ -16,7 +17,7 @@ const ownerSelect = {
   name: true,
   username: true,
   role: true,
-  department: true,
+  position: POSITION_SELECT,
 };
 
 const listInclude = {

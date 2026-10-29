@@ -93,13 +93,13 @@ export async function buildReportDoc({ stats, tasks, hospital, logoDataUrl }) {
   });
   y = doc.lastAutoTable.finalY + 9;
 
-  // ---------- Per Departemen ----------
-  heading("Per Departemen");
+  // ---------- Per Bidang ----------
+  heading("Per Bidang");
   autoTable(doc, {
     startY: y + 2,
-    head: [["Departemen", "Total", "Selesai", "Sedang", "Belum", "Lewat", "% Selesai"]],
-    body: stats.byDepartment.map((d) => [
-      d.department,
+    head: [["Bidang", "Total", "Selesai", "Sedang", "Belum", "Lewat", "% Selesai"]],
+    body: stats.byBidang.map((d) => [
+      d.bidang,
       d.total,
       d.done,
       d.inProgress,
@@ -139,10 +139,10 @@ export async function buildReportDoc({ stats, tasks, hospital, logoDataUrl }) {
   heading("Beban Kerja Personel");
   autoTable(doc, {
     startY: y + 2,
-    head: [["Personel", "Departemen", "Total", "Selesai", "Sedang", "Belum", "Lewat", "Progress"]],
+    head: [["Personel", "Jabatan", "Total", "Selesai", "Sedang", "Belum", "Lewat", "Progress"]],
     body: persons.map((p) => [
       p.name,
-      p.department,
+      p.jabatan,
       p.total,
       p.done,
       p.inProgress,
@@ -204,7 +204,7 @@ export async function buildReportDoc({ stats, tasks, hospital, logoDataUrl }) {
     doc.setFontSize(8.5);
     doc.setTextColor(...GRAY);
     doc.text(
-      `${p.department} · ${arr.length} tugas · rata-rata progress ${avgProgress(p.id)}%`,
+      `${p.jabatan} · ${arr.length} tugas · rata-rata progress ${avgProgress(p.id)}%`,
       margin,
       y + 4.5,
     );

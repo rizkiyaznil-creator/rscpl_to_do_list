@@ -107,7 +107,7 @@ export default function TaskCard({
         <div>
           <b>{task.owner?.name}</b>
           <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-            {task.owner?.department || "—"}
+            {task.owner?.position?.name || "—"}
           </div>
         </div>
       </div>

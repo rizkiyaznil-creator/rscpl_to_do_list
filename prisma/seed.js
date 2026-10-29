@@ -4,25 +4,34 @@
 const { PrismaClient } = require("@prisma/client");
 const bcrypt = require("bcryptjs");
 
+const { seedPositions } = require("./seed-positions");
+
 const prisma = new PrismaClient();
 
-async function upsertUser({ username, name, role, department, password }) {
+async function positionId(name) {
+  if (!name) return null;
+  const p = await prisma.position.findFirst({ where: { name } });
+  return p?.id ?? null;
+}
+
+async function upsertUser({ username, name, role, position, password }) {
   const passwordHash = await bcrypt.hash(password, 10);
+  const pid = await positionId(position);
   return prisma.user.upsert({
     where: { username },
-    update: { name, role, department, status: "ACTIVE" },
-    create: { username, name, role, department, passwordHash, status: "ACTIVE" },
+    update: { name, role, positionId: pid, status: "ACTIVE" },
+    create: { username, name, role, positionId: pid, passwordHash, status: "ACTIVE" },
   });
 }
 
 async function main() {
   console.log("Menyiapkan data awal...");
+  await seedPositions(prisma);
 
   const admin = await upsertUser({
     username: "admin",
     name: "Administrator RS",
     role: "ADMIN",
-    department: "Manajemen",
     password: "admin123",
   });
 
@@ -30,7 +39,7 @@ async function main() {
     username: "dr.andi",
     name: "dr. Andi Wijaya",
     role: "STAFF",
-    department: "Poliklinik Umum",
+    position: "Manajer Pelayanan Medik dan Keperawatan",
     password: "password123",
   });
 
@@ -38,7 +47,7 @@ async function main() {
     username: "ns.budi",
     name: "Ns. Budi Santoso",
     role: "STAFF",
-    department: "IGD",
+    position: "Staf Pelayanan Medik dan Keperawatan",
     password: "password123",
   });
 
@@ -46,7 +55,7 @@ async function main() {
     username: "siti.farmasi",
     name: "Siti Nurhaliza, S.Farm",
     role: "STAFF",
-    department: "Farmasi",
+    position: "Koordinator Penunjang Medis",
     password: "password123",
   });
 
@@ -59,7 +68,6 @@ async function main() {
         username: "calon.staf",
         name: "Calon Personel (contoh pendaftar)",
         role: "STAFF",
-        department: "Rawat Inap",
         status: "PENDING",
         passwordHash: await bcrypt.hash("password123", 10),
       },

@@ -95,7 +95,7 @@ export default function TaskFormModal({ currentUser, users, task, onClose, onSav
                 {users.map((u) => (
                   <option key={u.id} value={u.id}>
                     {u.name}
-                    {u.department ? ` — ${u.department}` : ""}
+                    {u.position ? ` — ${u.position.name}` : ""}
                   </option>
                 ))}
               </select>

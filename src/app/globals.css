@@ -1530,3 +1530,44 @@ input[type="range"] {
 .password-toggle:hover {
   opacity: 1;
 }
+
+/* ---------- Kelola Personel: zona berbahaya ---------- */
+.danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 28px;
+  padding: 16px;
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+  background: var(--danger-light);
+}
+.danger-zone > div {
+  flex: 1;
+  min-width: 220px;
+}
+
+/* ---------- Kelola Jabatan: pohon jabatan ---------- */
+.pos-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.pos-branch {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.check-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.check-line input {
+  width: auto;
+}

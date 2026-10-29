@@ -77,17 +77,17 @@ export default function Reports({ currentUser }) {
     lines.push(csvRow(["Tingkat penyelesaian (%)", stats.totals.completionRate]));
     lines.push("");
 
-    lines.push(csvRow(["Per Departemen"]));
-    lines.push(csvRow(["Departemen", "Total", "Belum", "Sedang", "Selesai", "Lewat tenggat"]));
-    for (const d of stats.byDepartment) {
-      lines.push(csvRow([d.department, d.total, d.todo, d.inProgress, d.done, d.overdue]));
+    lines.push(csvRow(["Per Bidang"]));
+    lines.push(csvRow(["Bidang", "Total", "Belum", "Sedang", "Selesai", "Lewat tenggat"]));
+    for (const d of stats.byBidang) {
+      lines.push(csvRow([d.bidang, d.total, d.todo, d.inProgress, d.done, d.overdue]));
     }
     lines.push("");
 
     lines.push(csvRow(["Beban Kerja Personel"]));
-    lines.push(csvRow(["Personel", "Departemen", "Peran", "Total", "Belum", "Sedang", "Selesai", "Lewat tenggat"]));
+    lines.push(csvRow(["Personel", "Jabatan", "Bidang", "Peran", "Total", "Belum", "Sedang", "Selesai", "Lewat tenggat"]));
     for (const p of stats.byPerson) {
-      lines.push(csvRow([p.name, p.department, p.role, p.total, p.todo, p.inProgress, p.done, p.overdue]));
+      lines.push(csvRow([p.name, p.jabatan, p.bidang, p.role, p.total, p.todo, p.inProgress, p.done, p.overdue]));
     }
 
     // BOM agar Excel membaca karakter Indonesia dengan benar.
@@ -185,32 +185,32 @@ export default function Reports({ currentUser }) {
             </div>
 
             <div className="report-grid">
-              {/* Per departemen */}
+              {/* Per bidang */}
               <section>
                 <div className="section-head">
-                  <h2>Per Departemen</h2>
+                  <h2>Per Bidang</h2>
                 </div>
                 <table className="table">
                   <thead>
                     <tr>
-                      <th>Departemen</th>
+                      <th>Bidang</th>
                       <th>Komposisi</th>
                       <th style={{ textAlign: "right" }}>Selesai</th>
                       <th style={{ textAlign: "right" }}>Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {stats.byDepartment.length === 0 && (
+                    {stats.byBidang.length === 0 && (
                       <tr>
                         <td colSpan={4} className="muted-sm">
                           Belum ada data.
                         </td>
                       </tr>
                     )}
-                    {stats.byDepartment.map((d) => (
-                      <tr key={d.department}>
+                    {stats.byBidang.map((d) => (
+                      <tr key={d.bidang}>
                         <td>
-                          <b>{d.department}</b>
+                          <b>{d.bidang}</b>
                           {d.overdue > 0 && (
                             <span className="badge status-TODO" style={{ marginLeft: 6 }}>
                               {d.overdue} lewat
@@ -252,7 +252,7 @@ export default function Reports({ currentUser }) {
                               <b>{p.name}</b>
                               <br />
                               <small style={{ color: "var(--text-muted)" }}>
-                                {p.department}
+                                {p.jabatan}
                               </small>
                             </span>
                           </div>

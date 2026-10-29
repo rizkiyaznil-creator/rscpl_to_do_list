@@ -53,7 +53,6 @@ export async function POST(request) {
       username: user.username,
       name: user.name,
       role: user.role,
-      department: user.department,
     },
   });
 }

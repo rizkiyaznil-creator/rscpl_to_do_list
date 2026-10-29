@@ -17,7 +17,6 @@ export async function POST(request) {
   const username = (body?.username || "").trim().toLowerCase();
   const name = (body?.name || "").trim();
   const password = body?.password || "";
-  const department = (body?.department || "").trim() || null;
   const email = (body?.email || "").trim() || null;
 
   if (!username || !name || !password) {
@@ -51,7 +50,6 @@ export async function POST(request) {
     data: {
       username,
       name,
-      department,
       email,
       passwordHash: await hashPassword(password),
       role: ROLES.STAFF,

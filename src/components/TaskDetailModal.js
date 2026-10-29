@@ -160,7 +160,7 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
                   <b>{task.owner?.name}</b>
                   <br />
                   <small style={{ color: "var(--text-muted)" }}>
-                    {task.owner?.department || "—"}
+                    {task.owner?.position?.name || "—"}
                   </small>
                 </span>
               </span>

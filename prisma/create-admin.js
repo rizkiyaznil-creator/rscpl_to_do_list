@@ -27,7 +27,6 @@ async function main() {
       name,
       role: "ADMIN",
       status: "ACTIVE",
-      department: "Manajemen",
       passwordHash,
     },
   });
