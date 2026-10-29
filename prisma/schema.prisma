@@ -4,6 +4,9 @@
 
 generator client {
   provider = "prisma-client-js"
+  // relationJoins: relasi (include) diambil dalam SATU query SQL (JOIN), bukan
+  // satu query per relasi -> jauh lebih sedikit bolak-balik ke database.
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {

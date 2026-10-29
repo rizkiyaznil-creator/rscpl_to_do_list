@@ -42,7 +42,7 @@ export async function GET(request, { params }) {
   }
 
   const { id } = await params;
-  const task = await prisma.task.findUnique({
+  const taskQuery = prisma.task.findUnique({
     where: { id: Number(id) },
     include: {
       owner: { select: ownerSelect },
@@ -59,11 +59,13 @@ export async function GET(request, { params }) {
       },
     },
   });
+  // Data tugas & cakupan hak lihat diambil bersamaan (tidak saling bergantung).
+  const [task, scope] = await Promise.all([taskQuery, visibleScope(session)]);
 
   if (!task) {
     return Response.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
   }
-  if (!inScope(await visibleScope(session), task.ownerId)) {
+  if (!inScope(scope, task.ownerId)) {
     return Response.json({ error: "Anda tidak berhak melihat tugas ini." }, { status: 403 });
   }
 

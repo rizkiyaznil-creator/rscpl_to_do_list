@@ -8,15 +8,12 @@ import { todayKey, isWeekday, keyToDate } from "@/lib/logdate";
 export async function getLogbookReminder(userId) {
   const today = todayKey();
   if (!isWeekday(today)) return null;
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { positionId: true },
-  });
-  if (!user?.positionId) return null;
-  const filled = await prisma.logEntry.count({
-    where: { userId, date: keyToDate(today) },
-  });
-  return filled > 0 ? null : { date: today, label: "Anda belum mengisi logbook hari ini" };
+  const [user, filled] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { positionId: true } }),
+    prisma.logEntry.count({ where: { userId, date: keyToDate(today) } }),
+  ]);
+  if (!user?.positionId || filled > 0) return null;
+  return { date: today, label: "Anda belum mengisi logbook hari ini" };
 }
 
 // Buat notifikasi tersimpan untuk seorang user. Best-effort: jangan sampai
