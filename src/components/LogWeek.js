@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import LogWeekNav from "@/components/LogWeekNav";
 import LogEntryModal from "@/components/LogEntryModal";
+import LogComments from "@/components/LogComments";
 import { hospital } from "@/lib/hospitalProfile";
 import {
   addDays,
@@ -43,6 +44,8 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
   const [modal, setModal] = useState(null); // { entry } | { date }
   const [busy, setBusy] = useState(false);
   const [exportPeriod, setExportPeriod] = useState("week");
+  const [openThreads, setOpenThreads] = useState(() => new Set()); // id kegiatan dgn utas terbuka
+  const [revise, setRevise] = useState(null); // teks alasan saat form "kembalikan" terbuka
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -68,6 +71,10 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
   const perms = data?.perms || {};
   const approval = (data?.approvals || []).find((a) => a.weekStart === week) || null;
   const locked = Boolean(approval);
+  const revision = (data?.revisions || []).find((r) => r.weekStart === week) || null;
+  const comments = (data?.comments || []).filter((c) => c.weekStart === week);
+  const weekComments = comments.filter((c) => c.entryId == null);
+  const entryComments = (id) => comments.filter((c) => c.entryId === id);
   const canEdit = (perms.isOwner && !locked) || (locked && perms.canOverride);
   const canAdd = perms.isOwner && !locked && week <= today;
   const totalMinutes = entries.reduce((s, e) => s + e.minutes, 0);
@@ -98,6 +105,36 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
     else alert(d.error || "Gagal membatalkan persetujuan.");
   }
 
+  async function requestRevision(e) {
+    e.preventDefault();
+    if (!revise?.trim()) return;
+    setBusy(true);
+    const { ok, data: d } = await sendJson("/api/logbook/revision", "POST", { userId, week, reason: revise });
+    setBusy(false);
+    if (ok) {
+      setRevise(null);
+      load();
+    } else alert(d.error || "Gagal mengembalikan logbook.");
+  }
+
+  async function markFixed() {
+    if (!confirm("Tandai logbook minggu ini sudah diperbaiki? Atasan akan diberi tahu untuk memeriksa kembali.")) return;
+    setBusy(true);
+    const { ok, data: d } = await sendJson("/api/logbook/revision", "PATCH", { week });
+    setBusy(false);
+    if (ok) load();
+    else alert(d.error || "Gagal menyimpan.");
+  }
+
+  function toggleThread(id) {
+    setOpenThreads((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   async function remove(entry) {
     if (!confirm(`Hapus kegiatan "${entry.description.slice(0, 60)}"?`)) return;
     const { ok, data: d } = await sendJson(`/api/logbook/${entry.id}`, "DELETE");
@@ -107,13 +144,29 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
 
   async function exportAs(kind) {
     if (!data) return;
-    let payload = { owner: data.owner, from: week, to: addDays(week, 6), entries, approvals: data.approvals };
+    let payload = {
+      owner: data.owner,
+      from: week,
+      to: addDays(week, 6),
+      entries,
+      approvals: data.approvals,
+      comments,
+      revisions: data.revisions,
+    };
     if (exportPeriod === "month") {
       const r = monthRange(week);
       const res = await fetch(`/api/logbook?userId=${userId}&from=${r.from}&to=${r.to}`);
       const d = await res.json();
       if (!res.ok) return alert(d.error || "Gagal memuat data bulan ini.");
-      payload = { owner: d.owner, from: r.from, to: r.to, entries: d.entries, approvals: d.approvals };
+      payload = {
+        owner: d.owner,
+        from: r.from,
+        to: r.to,
+        entries: d.entries,
+        approvals: d.approvals,
+        comments: d.comments,
+        revisions: d.revisions,
+      };
     }
     try {
       if (kind === "pdf") {
@@ -156,7 +209,7 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
       ) : data ? (
         <>
           {/* Status persetujuan */}
-          <div className={`approval-bar ${locked ? "ok" : "wait"}`}>
+          <div className={`approval-bar ${locked ? "ok" : revision && !revision.resolvedAt ? "revise" : "wait"}`}>
             <div>
               {locked ? (
                 <>
@@ -164,6 +217,25 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
                   {formatDate(approval.approvedAt)}
                   <div className="muted-sm">
                     🔒 Terkunci. Hanya Direktur/Wadir terkait yang dapat mengubah.
+                  </div>
+                </>
+              ) : revision && !revision.resolvedAt ? (
+                <>
+                  ↩️ <b>Dikembalikan untuk perbaikan</b> oleh {revision.requestedBy || "-"} ·{" "}
+                  {formatDate(revision.createdAt)}
+                  <div className="revision-reason">“{revision.reason}”</div>
+                  {perms.isOwner && (
+                    <div className="muted-sm">
+                      Perbaiki kegiatan sesuai catatan, lalu klik <b>Sudah diperbaiki</b>.
+                    </div>
+                  )}
+                </>
+              ) : revision ? (
+                <>
+                  🛠 <b>Sudah diperbaiki</b> · menunggu persetujuan
+                  <div className="muted-sm">
+                    Diperbaiki {formatDate(revision.resolvedAt)}
+                    {perms.approverNames?.length ? ` · Atasan langsung: ${perms.approverNames.join(", ")}` : ""}
                   </div>
                 </>
               ) : (
@@ -186,6 +258,16 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
                   title={entries.length === 0 ? "Belum ada kegiatan" : ""}
                 >
                   ✓ Setujui minggu ini
+                </button>
+              )}
+              {!locked && perms.canApprove && entries.length > 0 && (!revision || revision.resolvedAt) && (
+                <button className="btn btn-sm" onClick={() => setRevise("")} disabled={busy}>
+                  ↩ Kembalikan untuk perbaikan
+                </button>
+              )}
+              {!locked && perms.isOwner && revision && !revision.resolvedAt && (
+                <button className="btn btn-sm btn-primary" onClick={markFixed} disabled={busy}>
+                  ✓ Sudah diperbaiki
                 </button>
               )}
               {locked && perms.canOverride && (
@@ -219,6 +301,24 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
                 ))
               )}
             </div>
+          </div>
+
+          <div className="week-notes">
+            <div className="week-notes-head">
+              💬 <b>Catatan minggu ini</b>
+              {weekComments.length > 0 && <span className="count">{weekComments.length}</span>}
+              <span className="muted-sm">
+                {perms.isOwner ? "Masukan atasan & balasan Anda" : "Masukan umum untuk logbook minggu ini"}
+              </span>
+            </div>
+            <LogComments
+              comments={weekComments}
+              ownerId={userId}
+              ownerName={data.owner?.name}
+              week={week}
+              perms={perms}
+              onChanged={load}
+            />
           </div>
 
           <div className="log-toolbar">
@@ -294,7 +394,23 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
                               🔗 Lihat bukti
                             </a>
                           )}
+                          {entryComments(e.id).length === 0 && (
+                            <button className="link-btn" onClick={() => toggleThread(e.id)}>
+                              💬 {perms.isOwner ? "Komentar" : "Beri komentar"}
+                            </button>
+                          )}
                         </div>
+                        {(entryComments(e.id).length > 0 || openThreads.has(e.id)) && (
+                          <LogComments
+                            comments={entryComments(e.id)}
+                            ownerId={userId}
+                            ownerName={data.owner?.name}
+                            week={week}
+                            entryId={e.id}
+                            perms={perms}
+                            onChanged={load}
+                          />
+                        )}
                       </div>
                       {canEdit && (
                         <div className="log-actions">
@@ -314,6 +430,39 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
           })}
         </>
       ) : null}
+
+      {revise !== null && (
+        <div className="modal-overlay" onClick={() => setRevise(null)}>
+          <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={requestRevision}>
+            <h3 style={{ marginTop: 0 }}>↩ Kembalikan untuk perbaikan</h3>
+            <p className="muted-sm" style={{ marginTop: 0 }}>
+              Logbook {data?.owner?.name} minggu ini akan dikembalikan. Tuliskan bagian yang perlu
+              diperbaiki — catatan ini dikirim sebagai notifikasi dan tampil di logbook.
+            </p>
+            <div className="field">
+              <label htmlFor="revise-reason">Alasan / yang perlu diperbaiki</label>
+              <textarea
+                id="revise-reason"
+                rows={4}
+                value={revise}
+                onChange={(e) => setRevise(e.target.value)}
+                placeholder="mis. Lengkapi link bukti kegiatan Selasa & uraikan hasil rapat Kamis."
+                maxLength={2000}
+                autoFocus
+                required
+              />
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="btn" onClick={() => setRevise(null)}>
+                Batal
+              </button>
+              <button className="btn btn-primary" disabled={busy || !revise.trim()}>
+                Kembalikan
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {modal && (
         <LogEntryModal

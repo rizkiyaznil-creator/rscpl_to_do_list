@@ -38,6 +38,10 @@ model User {
   logEntries    LogEntry[] // logbook kegiatan harian milik user
   logApprovals  LogApproval[]  @relation("logOwner") // minggu logbook user yang sudah disetujui
   logApproved   LogApproval[]  @relation("logApprover") // persetujuan logbook yang diberikan user
+  logComments   LogComment[]   @relation("logCommentOwner") // komentar pada logbook milik user
+  logCommented  LogComment[]   @relation("logCommentAuthor") // komentar logbook yang ditulis user
+  logRevisions  LogRevision[]  @relation("logRevisionOwner") // minggu logbook user yang dikembalikan
+  logRevised    LogRevision[]  @relation("logRevisionBy") // pengembalian logbook oleh user
   ownedTasks    Task[]         @relation("owner") // tugas yang menjadi tanggung jawab user
   createdTasks  Task[]         @relation("creator") // tugas yang dibuat oleh user
   comments      Comment[] // komentar/handover yang ditulis user
@@ -158,6 +162,8 @@ model Notification {
 
   // Tugas terkait (untuk navigasi saat diklik). Boleh null bila tugas dihapus.
   taskId Int?
+  // Tautan halaman tujuan saat diklik (mis. logbook minggu tertentu).
+  link   String?
 
   @@index([userId, read])
   @@index([createdAt])
@@ -183,7 +189,49 @@ model LogEntry {
   taskId Int? // tautan opsional ke tugas di Papan Tugas
   task   Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
 
+  comments LogComment[] // komentar atasan / balasan pada kegiatan ini
+
   @@index([userId, date])
+}
+
+// Komentar pada logbook: per kegiatan (entryId terisi) atau per minggu
+// (entryId null). Ditulis atasan berjenjang / yang berhak melihat, dan
+// pemilik logbook dapat membalas. Tetap boleh ditulis setelah minggu terkunci.
+model LogComment {
+  id        Int      @id @default(autoincrement())
+  weekStart DateTime @db.Date // Senin pada minggu logbook
+  body      String
+  kind      String   @default("COMMENT") // "COMMENT" | "REVISION" (alasan dikembalikan)
+  createdAt DateTime @default(now())
+
+  ownerId Int // pemilik logbook
+  owner   User @relation("logCommentOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  authorId Int?
+  author   User? @relation("logCommentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  entryId Int?
+  entry   LogEntry? @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([ownerId, weekStart])
+}
+
+// Minggu logbook yang dikembalikan atasan untuk diperbaiki. Dihapus saat
+// minggu tsb disetujui. resolvedAt terisi bila pemilik menandai sudah diperbaiki.
+model LogRevision {
+  id         Int       @id @default(autoincrement())
+  weekStart  DateTime  @db.Date
+  reason     String
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  userId Int // pemilik logbook
+  user   User @relation("logRevisionOwner", fields: [userId], references: [id], onDelete: Cascade)
+
+  requestedById Int?
+  requestedBy   User? @relation("logRevisionBy", fields: [requestedById], references: [id], onDelete: SetNull)
+
+  @@unique([userId, weekStart])
 }
 
 // Persetujuan logbook mingguan oleh atasan langsung. Minggu yang sudah

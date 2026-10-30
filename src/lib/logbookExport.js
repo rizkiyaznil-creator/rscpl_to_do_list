@@ -17,6 +17,14 @@ function slug(s) {
     .replace(/^-|-$/g, "");
 }
 
+// Status logbook seorang anggota tim pada satu minggu (rekap bawahan).
+export function memberStatusLabel(m) {
+  if (m.approval) return "Disetujui";
+  if (m.revision === "OPEN") return "Dikembalikan";
+  if (m.revision === "FIXED") return "Sudah diperbaiki";
+  return m.entries ? "Belum disetujui" : "Belum mengisi";
+}
+
 function categorySummary(entries) {
   const map = new Map();
   for (const e of entries) {
@@ -26,6 +34,11 @@ function categorySummary(entries) {
     map.set(e.category, c);
   }
   return [...map.values()].sort((a, b) => b.minutes - a.minutes);
+}
+
+// Komentar pada kegiatan, ditampilkan di bawah uraian.
+function commentLine(c) {
+  return `> ${c.author?.name || "-"}: ${c.body}`;
 }
 
 function weeksInRange(from, to) {
@@ -104,7 +117,18 @@ function sectionTitle(doc, text, y) {
 }
 
 // Dokumen PDF logbook seorang personel (dapat diuji terpisah).
-export async function buildLogbookDoc({ owner, from, to, entries, approvals, approverNames, hospital, logoDataUrl }) {
+export async function buildLogbookDoc({
+  owner,
+  from,
+  to,
+  entries,
+  approvals,
+  comments = [],
+  revisions = [],
+  approverNames,
+  hospital,
+  logoDataUrl,
+}) {
   const { jsPDF } = await import("jspdf");
   const autoTable = (await import("jspdf-autotable")).default;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
@@ -144,6 +168,7 @@ export async function buildLogbookDoc({ owner, from, to, entries, approvals, app
 
   // Status persetujuan per minggu
   const apprBy = new Map(approvals.map((a) => [a.weekStart, a]));
+  const revBy = new Map(revisions.map((r) => [r.weekStart, r]));
   y = sectionTitle(doc, "Status Persetujuan Atasan", y);
   autoTable(doc, {
     startY: y + 1,
@@ -152,7 +177,13 @@ export async function buildLogbookDoc({ owner, from, to, entries, approvals, app
       const a = apprBy.get(w);
       return [
         formatWeekRange(w),
-        a ? "Disetujui" : "Belum disetujui",
+        a
+          ? "Disetujui"
+          : revBy.get(w)
+            ? revBy.get(w).resolvedAt
+              ? "Sudah diperbaiki, menunggu persetujuan"
+              : "Dikembalikan untuk perbaikan"
+            : "Belum disetujui",
         a?.approvedBy?.name || "-",
         a ? formatDayKey(String(a.approvedAt).slice(0, 10), false) : "-",
       ];
@@ -180,7 +211,13 @@ export async function buildLogbookDoc({ owner, from, to, entries, approvals, app
         formatDayKey(e.date),
         `${e.startTime}-${e.endTime}\n(${formatMinutes(e.minutes)})`,
         e.category,
-        e.task ? `${e.description}\n[Tugas: ${e.task.title}]` : e.description,
+        [
+          e.description,
+          e.task ? `[Tugas: ${e.task.title}]` : null,
+          ...comments.filter((c) => c.entryId === e.id).map(commentLine),
+        ]
+          .filter(Boolean)
+          .join("\n"),
         e.output || "-",
         e.evidenceUrl || "-",
       ]),
@@ -193,6 +230,27 @@ export async function buildLogbookDoc({ owner, from, to, entries, approvals, app
         2: { cellWidth: 24 },
         5: { cellWidth: 30, textColor: [14, 116, 144] },
       },
+      margin: { left: margin, right: margin },
+    });
+    y = doc.lastAutoTable.finalY + 10;
+  }
+
+  // Catatan / komentar per minggu (masukan atasan & balasan)
+  const weekNotes = comments.filter((c) => c.entryId == null);
+  if (weekNotes.length > 0) {
+    y = sectionTitle(doc, "Catatan Atasan & Tanggapan", y - 2);
+    autoTable(doc, {
+      startY: y + 1,
+      head: [["Minggu", "Dari", "Catatan"]],
+      body: weekNotes.map((c) => [
+        formatWeekRange(c.weekStart),
+        `${c.author?.name || "-"}\n${formatDayKey(String(c.createdAt).slice(0, 10), false)}`,
+        c.kind === "REVISION" ? `[Dikembalikan untuk perbaikan] ${c.body}` : c.body,
+      ]),
+      theme: "striped",
+      headStyles: { fillColor: TEAL, fontSize: 8 },
+      bodyStyles: { fontSize: 8, valign: "top" },
+      columnStyles: { 0: { cellWidth: 34 }, 1: { cellWidth: 40 } },
       margin: { left: margin, right: margin },
     });
     y = doc.lastAutoTable.finalY + 10;
@@ -243,13 +301,13 @@ function downloadCsv(filename, rows) {
   URL.revokeObjectURL(url);
 }
 
-export function downloadLogbookCsv({ owner, from, to, entries }) {
+export function downloadLogbookCsv({ owner, from, to, entries, comments = [] }) {
   downloadCsv(`logbook-${slug(owner.name)}-${from}_${to}.csv`, [
     [`Logbook Kegiatan - ${owner.name}`],
     [`Jabatan: ${owner.position?.name || "-"}`, `Bidang: ${owner.position?.bidang || "-"}`],
     [`Periode: ${from} s.d. ${to}`],
     [],
-    ["Tanggal", "Jam mulai", "Jam selesai", "Durasi (menit)", "Kategori", "Uraian", "Hasil/output", "Tugas terkait", "Link bukti"],
+    ["Tanggal", "Jam mulai", "Jam selesai", "Durasi (menit)", "Kategori", "Uraian", "Hasil/output", "Tugas terkait", "Link bukti", "Komentar"],
     ...entries.map((e) => [
       e.date,
       e.startTime,
@@ -260,7 +318,26 @@ export function downloadLogbookCsv({ owner, from, to, entries }) {
       e.output || "",
       e.task?.title || "",
       e.evidenceUrl || "",
+      comments
+        .filter((c) => c.entryId === e.id)
+        .map((c) => `${c.author?.name || "-"}: ${c.body}`)
+        .join(" | "),
     ]),
+    ...(comments.some((c) => c.entryId == null)
+      ? [
+          [],
+          ["Catatan per minggu"],
+          ["Minggu", "Dari", "Tanggal", "Catatan"],
+          ...comments
+            .filter((c) => c.entryId == null)
+            .map((c) => [
+              c.weekStart,
+              c.author?.name || "-",
+              String(c.createdAt).slice(0, 10),
+              c.kind === "REVISION" ? `[Dikembalikan untuk perbaikan] ${c.body}` : c.body,
+            ]),
+        ]
+      : []),
   ]);
 }
 
@@ -276,7 +353,7 @@ export function downloadTeamCsv({ weekStart, weekEnd, members, byCategory }) {
       m.position?.bidang || "",
       m.entries,
       m.minutes,
-      m.approval ? "Disetujui" : m.entries ? "Belum disetujui" : "Belum mengisi",
+      memberStatusLabel(m),
       m.approval?.approvedBy || "",
     ]),
     [],
@@ -312,7 +389,7 @@ export async function buildTeamDoc({ weekStart, weekEnd, members, byCategory, ho
       m.position?.name || "-",
       m.entries,
       formatMinutes(m.minutes),
-      m.approval ? `Disetujui (${m.approval.approvedBy || "-"})` : m.entries ? "Belum disetujui" : "Belum mengisi",
+      m.approval ? `Disetujui (${m.approval.approvedBy || "-"})` : memberStatusLabel(m),
     ]),
     theme: "striped",
     headStyles: { fillColor: TEAL, fontSize: 8.5 },

@@ -97,11 +97,16 @@ export default function NotificationBell() {
       router.push("/admin");
       return;
     }
-    if (n.type === "LOGBOOK_APPROVED") {
+    // Notifikasi logbook (disetujui, komentar, dikembalikan, diperbaiki).
+    if (n.link || n.type === "LOGBOOK_APPROVED") {
       await markRead(n.id);
       setOpen(false);
       load();
-      router.push("/logbook");
+      const target = n.link || "/logbook";
+      // Halaman Logbook membaca ?user=&week= saat dimuat, jadi muat ulang
+      // bila sedang berada di halaman Logbook.
+      if (window.location.pathname === "/logbook") window.location.assign(target);
+      else router.push(target);
       return;
     }
     openTask(n.taskId, n.id);
@@ -195,7 +200,11 @@ export default function NotificationBell() {
                             ? "🔑"
                             : n.type === "LOGBOOK_APPROVED"
                               ? "✅"
-                              : "💬"}
+                              : n.type === "LOGBOOK_REVISION"
+                                ? "↩️"
+                                : n.type === "LOGBOOK_FIXED"
+                                  ? "🛠"
+                                  : "💬"}
                     </span>
                     <span className="notif-text">
                       <span>{n.message}</span>

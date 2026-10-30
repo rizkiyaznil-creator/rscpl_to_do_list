@@ -125,6 +125,24 @@ export default function Dashboard({ currentUser }) {
                     color={data.logbook.approval ? "var(--done)" : "var(--text-muted)"}
                   />
                 </div>
+                {data.logbook.revisions?.length > 0 && (
+                  <div className="alert alert-warn" style={{ marginBottom: 10 }}>
+                    ↩️ <b>Logbook dikembalikan untuk diperbaiki</b>
+                    <ul className="dash-list" style={{ marginTop: 6 }}>
+                      {data.logbook.revisions.map((r) => (
+                        <li key={r.week}>
+                          <Link href={`/logbook?week=${r.week}`}>
+                            <span className="dash-list-title">Minggu {formatWeekRange(r.week)}</span>
+                            <span className="dash-due">
+                              {r.requestedBy ? `${r.requestedBy}: ` : ""}
+                              {r.reason}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 {data.logbook.hasPosition && data.logbook.missingDays.length > 0 ? (
                   <>
                     <div className="dash-sub">Hari kerja yang belum diisi</div>
@@ -193,6 +211,8 @@ export default function Dashboard({ currentUser }) {
                                 <span className="dash-list-title">{p.name}</span>
                                 <span className="dash-due">
                                   {formatWeekRange(p.week)} · {p.entries} kegiatan
+                                  {p.revision === "OPEN" && " · ↩️ dikembalikan, menunggu perbaikan"}
+                                  {p.revision === "FIXED" && " · 🛠 sudah diperbaiki"}
                                 </span>
                               </Link>
                             </li>

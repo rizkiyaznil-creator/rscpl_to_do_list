@@ -30,7 +30,7 @@ export async function GET(request) {
   });
 
   const range = { gte: keyToDate(weekStart), lte: keyToDate(weekEnd) };
-  const [users, sums, approvals, cats] = await Promise.all([
+  const [users, sums, approvals, cats, revisions, commentCounts] = await Promise.all([
     prisma.user.findMany({
       where: { id: { in: ids } },
       select: {
@@ -58,10 +58,21 @@ export async function GET(request) {
       _count: { _all: true },
       _sum: { minutes: true },
     }),
+    prisma.logRevision.findMany({
+      where: { userId: { in: ids }, weekStart: keyToDate(weekStart) },
+      select: { userId: true, resolvedAt: true },
+    }),
+    prisma.logComment.groupBy({
+      by: ["ownerId"],
+      where: { ownerId: { in: ids }, weekStart: keyToDate(weekStart) },
+      _count: { _all: true },
+    }),
   ]);
 
   const sumBy = new Map(sums.map((s) => [s.userId, s]));
   const apprBy = new Map(approvals.map((a) => [a.userId, a]));
+  const revBy = new Map(revisions.map((r) => [r.userId, r]));
+  const commentsBy = new Map(commentCounts.map((c) => [c.ownerId, c._count._all]));
   const members = users
     .map((u) => ({
       id: u.id,
@@ -76,6 +87,9 @@ export async function GET(request) {
             approvedBy: apprBy.get(u.id).approvedBy?.name || null,
           }
         : null,
+      // "OPEN" = dikembalikan, belum diperbaiki; "FIXED" = sudah diperbaiki, menunggu persetujuan.
+      revision: revBy.has(u.id) ? (revBy.get(u.id).resolvedAt ? "FIXED" : "OPEN") : null,
+      comments: commentsBy.get(u.id) ?? 0,
       canApprove: approverIds(org, u.id).includes(session.id),
     }))
     .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))

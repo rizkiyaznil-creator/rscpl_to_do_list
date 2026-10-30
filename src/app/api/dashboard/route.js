@@ -54,7 +54,7 @@ export async function GET() {
 
   // ---------- Logbook saya minggu ini ----------
   async function loadLogbook() {
-    const [myEntries, myApproval] = await Promise.all([
+    const [myEntries, myApproval, myRevisions] = await Promise.all([
       prisma.logEntry.findMany({
         where: { userId: me, date: thisWeek },
         select: { date: true, minutes: true },
@@ -62,6 +62,12 @@ export async function GET() {
       prisma.logApproval.findUnique({
         where: { userId_weekStart: { userId: me, weekStart: keyToDate(weekStart) } },
         include: { approvedBy: { select: { name: true } } },
+      }),
+      // Minggu yang dikembalikan atasan dan belum ditandai diperbaiki.
+      prisma.logRevision.findMany({
+        where: { userId: me, resolvedAt: null },
+        orderBy: { weekStart: "desc" },
+        include: { requestedBy: { select: { name: true } } },
       }),
     ]);
     const filled = new Set(myEntries.map((e) => toKey(e.date)));
@@ -82,6 +88,11 @@ export async function GET() {
         : null,
       approverNames: approverIds(org, me).map((id) => org.userById.get(id)?.name).filter(Boolean),
       hasPosition: Boolean(myPos),
+      revisions: myRevisions.map((r) => ({
+        week: toKey(r.weekStart),
+        reason: r.reason,
+        requestedBy: r.requestedBy?.name || null,
+      })),
     };
   }
 
@@ -90,7 +101,7 @@ export async function GET() {
     if (teamIds.length === 0) return null;
     const fromWeek = addDays(weekStart, -21); // 4 minggu terakhir
     const approvees = teamIds.filter((id) => approverIds(org, id).includes(me));
-    const [recentEntries, approvals, weekSums, lateTasks] = await Promise.all([
+    const [recentEntries, approvals, weekSums, lateTasks, revisions] = await Promise.all([
       prisma.logEntry.findMany({
         where: { userId: { in: approvees }, date: { gte: keyToDate(fromWeek), lte: keyToDate(weekEnd) } },
         select: { userId: true, date: true },
@@ -109,7 +120,14 @@ export async function GET() {
         select: { id: true, title: true, dueDate: true, ownerId: true },
         orderBy: { dueDate: "asc" },
       }),
+      prisma.logRevision.findMany({
+        where: { userId: { in: approvees }, weekStart: { gte: keyToDate(fromWeek) } },
+        select: { userId: true, weekStart: true, resolvedAt: true },
+      }),
     ]);
+    const revBy = new Map(
+      revisions.map((r) => [`${r.userId}|${toKey(r.weekStart)}`, r.resolvedAt ? "FIXED" : "OPEN"]),
+    );
 
     // Minggu berisi kegiatan yang belum disetujui (dan saya atasan langsungnya).
     const approved = new Set(approvals.map((a) => `${a.userId}|${toKey(a.weekStart)}`));
@@ -121,7 +139,13 @@ export async function GET() {
     const pending = [...pendingMap.entries()]
       .map(([key, entries]) => {
         const [userId, week] = key.split("|");
-        return { userId: Number(userId), name: org.userById.get(Number(userId))?.name, week, entries };
+        return {
+          userId: Number(userId),
+          name: org.userById.get(Number(userId))?.name,
+          week,
+          entries,
+          revision: revBy.get(key) || null,
+        };
       })
       .sort((a, b) => b.week.localeCompare(a.week) || a.name.localeCompare(b.name));
 

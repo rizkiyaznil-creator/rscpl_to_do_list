@@ -19,11 +19,12 @@ export async function getLogbookReminder(userId) {
 // Buat notifikasi tersimpan untuk seorang user. Best-effort: jangan sampai
 // kegagalan notifikasi menggagalkan operasi utama. Tidak memberi notifikasi
 // kepada diri sendiri (mis. menugaskan tugas ke diri sendiri).
-export async function notify({ userId, actorId = null, type, message, taskId = null }) {
+// `link`: halaman tujuan saat notifikasi diklik (mis. logbook minggu tertentu).
+export async function notify({ userId, actorId = null, type, message, taskId = null, link = null }) {
   try {
     if (!userId || userId === actorId) return;
     await prisma.notification.create({
-      data: { userId, type, message, taskId },
+      data: { userId, type, message, taskId, link },
     });
   } catch (e) {
     console.error("Gagal membuat notifikasi:", e?.message || e);

@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { POSITION_SELECT } from "@/lib/constants";
+import { POSITION_SELECT, ROLES } from "@/lib/constants";
 import { loadOrg, visibleUserIds, approverIds, canOverride } from "@/lib/logbook";
 import { isValidKey, todayKey, weekStartKey, addDays, keyToDate, toKey } from "@/lib/logdate";
 import { parseLogEntryInput, isWeekLocked } from "@/lib/logEntryInput";
+import { COMMENT_SELECT, serializeComment, serializeRevision } from "@/lib/logComments";
 
 const MAX_RANGE_DAYS = 92;
 
@@ -37,7 +38,8 @@ export async function GET(request) {
     return Response.json({ error: "Anda tidak berhak melihat logbook ini." }, { status: 403 });
   }
 
-  const [owner, entries, approvals] = await Promise.all([
+  const weekRange = { gte: keyToDate(weekStartKey(from)), lte: keyToDate(to) };
+  const [owner, entries, approvals, comments, revisions] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, name: true, position: POSITION_SELECT },
@@ -48,11 +50,17 @@ export async function GET(request) {
       include: { task: { select: { id: true, title: true } } },
     }),
     prisma.logApproval.findMany({
-      where: {
-        userId,
-        weekStart: { gte: keyToDate(weekStartKey(from)), lte: keyToDate(to) },
-      },
+      where: { userId, weekStart: weekRange },
       include: { approvedBy: { select: { id: true, name: true } } },
+    }),
+    prisma.logComment.findMany({
+      where: { ownerId: userId, weekStart: weekRange },
+      orderBy: { createdAt: "asc" },
+      select: COMMENT_SELECT,
+    }),
+    prisma.logRevision.findMany({
+      where: { userId, weekStart: weekRange },
+      include: { requestedBy: { select: { name: true } } },
     }),
   ]);
   if (!owner) {
@@ -66,7 +74,11 @@ export async function GET(request) {
     to,
     entries: entries.map(serializeEntry),
     approvals: approvals.map((a) => ({ ...a, weekStart: toKey(a.weekStart) })),
+    comments: comments.map(serializeComment),
+    revisions: revisions.map(serializeRevision),
     perms: {
+      viewerId: session.id,
+      isAdmin: session.role === ROLES.ADMIN,
       isOwner: userId === session.id,
       canApprove: approvers.includes(session.id),
       canOverride: canOverride(org, session.id, userId),
