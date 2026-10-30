@@ -129,3 +129,10 @@ export async function visibleScope(session) {
 export function inScope(scope, userId) {
   return scope.ids === null || scope.ids.includes(userId);
 }
+
+// Tautan ke logbook minggu tertentu, dari sudut pandang penerima notifikasi.
+export function logbookLink(ownerId, recipientId, weekStart) {
+  return ownerId === recipientId
+    ? `/logbook?week=${weekStart}`
+    : `/logbook?tab=team&user=${ownerId}&week=${weekStart}`;
+}

@@ -62,7 +62,11 @@ Akses dilindungi **login** (autentikasi).
   kategori, uraian, hasil, link bukti Google Drive, tautan tugas); rekap mingguan
   otomatis. Hak lihat berjenjang sesuai jabatan (Admin, Direktur & Kepala SPI
   melihat semua). Atasan langsung menyetujui per minggu → minggu terkunci dan hanya
-  bisa diubah Direktur/Wadir terkait. Pengingat Senin–Jumat bila belum mengisi.
+  bisa diubah Direktur/Wadir terkait. Atasan dapat **mengembalikan untuk
+  perbaikan** (alasan wajib) → bawahan memperbaiki & menandai "Sudah diperbaiki".
+  **Komentar** per kegiatan & per minggu oleh atasan berjenjang / Kepala SPI /
+  Admin, dan pemilik dapat membalas (notifikasi lonceng; komentar ikut tercetak
+  di PDF). Pengingat Senin–Jumat bila belum mengisi.
   Ekspor PDF/CSV per personel & rekap bawahan.
 - 📈 **Laporan & statistik** (`/laporan`) — ringkasan status, tugas lewat tenggat,
   tingkat penyelesaian, beban kerja per personel & per bidang.

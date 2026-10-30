@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { loadOrg, approverIds, canOverride } from "@/lib/logbook";
+import { loadOrg, approverIds, canOverride, logbookLink } from "@/lib/logbook";
 import { isValidKey, weekStartKey, addDays, keyToDate, formatWeekRange } from "@/lib/logdate";
 import { notify } from "@/lib/notifications";
 
@@ -49,21 +49,29 @@ export async function POST(request) {
     );
   }
 
-  const approval = await prisma.logApproval.upsert({
-    where: { userId_weekStart: { userId: t.userId, weekStart: keyToDate(t.weekStart) } },
-    update: {},
-    create: {
-      userId: t.userId,
-      weekStart: keyToDate(t.weekStart),
-      approvedById: session.id,
-    },
-  });
+  const key = { userId_weekStart: { userId: t.userId, weekStart: keyToDate(t.weekStart) } };
+  // Disetujui -> permintaan perbaikan (bila ada) selesai.
+  const [approval] = await prisma.$transaction([
+    prisma.logApproval.upsert({
+      where: key,
+      update: {},
+      create: {
+        userId: t.userId,
+        weekStart: keyToDate(t.weekStart),
+        approvedById: session.id,
+      },
+    }),
+    prisma.logRevision.deleteMany({
+      where: { userId: t.userId, weekStart: keyToDate(t.weekStart) },
+    }),
+  ]);
 
   await notify({
     userId: t.userId,
     actorId: session.id,
     type: "LOGBOOK_APPROVED",
     message: `${session.name} menyetujui logbook Anda minggu ${formatWeekRange(t.weekStart)}`,
+    link: logbookLink(t.userId, t.userId, t.weekStart),
   });
 
   return Response.json({ ok: true, approval });

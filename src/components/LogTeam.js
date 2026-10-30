@@ -173,10 +173,21 @@ export default function LogTeam({ week, setWeek, onOpen }) {
                         <span className="badge status-DONE" title={`oleh ${m.approval.approvedBy || "-"}`}>
                           Disetujui
                         </span>
+                      ) : m.revision === "OPEN" ? (
+                        <span className="badge status-revise" title="Menunggu perbaikan oleh personel">
+                          ↩️ Dikembalikan
+                        </span>
+                      ) : m.revision === "FIXED" ? (
+                        <span className="badge status-IN_PROGRESS">🛠 Sudah diperbaiki</span>
                       ) : m.entries > 0 ? (
                         <span className="badge status-IN_PROGRESS">Belum disetujui</span>
                       ) : (
                         <span className="badge status-TODO">Belum mengisi</span>
+                      )}
+                      {m.comments > 0 && (
+                        <span className="muted-sm" title="Jumlah komentar minggu ini" style={{ marginLeft: 6 }}>
+                          💬 {m.comments}
+                        </span>
                       )}
                     </td>
                     <td style={{ textAlign: "right" }}>
