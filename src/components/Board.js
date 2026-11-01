@@ -11,6 +11,7 @@ import { STATUS, STATUS_LABELS, STATUS_ORDER, PRIORITY_ORDER } from "@/lib/const
 export default function Board({ currentUser }) {
   const [tasks, setTasks] = useState([]);
   const [users, setUsers] = useState([]);
+  const [assignableIds, setAssignableIds] = useState([]); // diri sendiri + bawahan
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -52,7 +53,10 @@ export default function Board({ currentUser }) {
         if (!active) return;
         if (tRes.ok) setTasks(tData.tasks || []);
         else setError(tData.error || "Gagal memuat tugas.");
-        if (uRes.ok) setUsers(uData.users || []);
+        if (uRes.ok) {
+          setUsers(uData.users || []);
+          setAssignableIds(uData.assignableIds || []);
+        }
       } catch {
         if (active) setError("Tidak dapat terhubung ke server.");
       } finally {
@@ -340,6 +344,7 @@ export default function Board({ currentUser }) {
         <TaskFormModal
           currentUser={currentUser}
           users={users}
+          assignableIds={assignableIds}
           task={editingTask}
           onClose={() => {
             setShowForm(false);

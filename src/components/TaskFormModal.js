@@ -1,12 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { ROLES, PRIORITY, PRIORITY_LABELS } from "@/lib/constants";
+import { ROLES, PRIORITY, PRIORITY_LABELS, POSITION_LEVELS, POSITION_LEVEL_LABELS } from "@/lib/constants";
 import { toDateInput } from "@/lib/format";
 
-export default function TaskFormModal({ currentUser, users, task, onClose, onSaved }) {
+// Kelompokkan calon penanggung jawab per level jabatan (Wadir, Manajer, ...).
+function groupByLevel(list) {
+  const groups = [];
+  for (const level of [...POSITION_LEVELS, null]) {
+    const members = list.filter((u) => (u.position?.level ?? null) === level);
+    if (members.length) {
+      groups.push({ label: level ? POSITION_LEVEL_LABELS[level] : "Tanpa jabatan", members });
+    }
+  }
+  return groups;
+}
+
+export default function TaskFormModal({ currentUser, users, assignableIds = [], task, onClose, onSaved }) {
   const isEdit = Boolean(task);
   const isAdmin = currentUser.role === ROLES.ADMIN;
+  // Tugas baru: boleh ditugaskan ke bawahan berjenjang (Admin: siapa saja).
+  // Mengubah penanggung jawab tugas yang sudah ada: hanya Admin.
+  const others = users
+    .filter((u) => u.id !== currentUser.id && assignableIds.includes(u.id))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const canAssign = isEdit ? isAdmin : others.length > 0;
 
   const [title, setTitle] = useState(task?.title || "");
   const [description, setDescription] = useState(task?.description || "");
@@ -33,8 +51,7 @@ export default function TaskFormModal({ currentUser, users, task, onClose, onSav
       priority,
       dueDate: dueDate || null,
     };
-    // Hanya admin yang boleh menetapkan pemilik tugas.
-    if (isAdmin) payload.ownerId = Number(ownerId);
+    if (canAssign) payload.ownerId = Number(ownerId);
 
     try {
       const res = await fetch(isEdit ? `/api/tasks/${task.id}` : "/api/tasks", {
@@ -84,7 +101,7 @@ export default function TaskFormModal({ currentUser, users, task, onClose, onSav
             />
           </div>
 
-          {isAdmin && (
+          {canAssign && (
             <div className="field">
               <label htmlFor="t-owner">Ditugaskan kepada</label>
               <select
@@ -92,13 +109,23 @@ export default function TaskFormModal({ currentUser, users, task, onClose, onSav
                 value={ownerId}
                 onChange={(e) => setOwnerId(e.target.value)}
               >
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {u.name}
-                    {u.position ? ` — ${u.position.name}` : ""}
-                  </option>
+                <option value={currentUser.id}>Saya sendiri</option>
+                {groupByLevel(isEdit && isAdmin ? users.filter((u) => u.id !== currentUser.id) : others).map((g) => (
+                  <optgroup key={g.label} label={g.label}>
+                    {g.members.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name}
+                        {u.position ? ` — ${u.position.name}` : ""}
+                      </option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
+              {!isAdmin && (
+                <small className="muted-sm">
+                  Hanya bawahan Anda yang dapat dipilih. Mereka akan menerima notifikasi & email.
+                </small>
+              )}
             </div>
           )}
 

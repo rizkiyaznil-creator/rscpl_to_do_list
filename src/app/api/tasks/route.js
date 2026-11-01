@@ -11,7 +11,7 @@ import {
 import { syncStatusProgress } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
-import { visibleScope } from "@/lib/logbook";
+import { visibleScope, loadOrg, assignableUserIds } from "@/lib/logbook";
 import { sendEmail, taskReminderEmail } from "@/lib/email";
 
 const ownerSelect = {
@@ -93,10 +93,17 @@ export async function POST(request) {
     return Response.json({ error: "Judul tugas wajib diisi." }, { status: 400 });
   }
 
-  // Tentukan pemilik tugas.
+  // Tentukan pemilik tugas: diri sendiri, atau bawahan berjenjang (Admin: siapa saja).
   let ownerId = session.id;
-  if (session.role === ROLES.ADMIN && body?.ownerId) {
+  if (body?.ownerId && Number(body.ownerId) !== session.id) {
     ownerId = Number(body.ownerId);
+    const org = await loadOrg();
+    if (!assignableUserIds(org, session.id, session.role).has(ownerId)) {
+      return Response.json(
+        { error: "Anda hanya dapat menugaskan kepada bawahan Anda." },
+        { status: 403 },
+      );
+    }
   }
 
   // Pastikan pemilik ada.
