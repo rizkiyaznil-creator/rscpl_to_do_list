@@ -38,6 +38,9 @@ Akses dilindungi **login** (autentikasi).
   tugas yang **lewat tenggat** mendapat **satu** email lanjutan dengan salinan (CC)
   ke **atasan langsung**. Tiap jenis hanya terkirim sekali per tenggat (bila
   tenggat diubah, pengingat berjalan lagi). Butuh `SMTP_USER`/`SMTP_PASS`.
+- 👥 **Menugaskan bawahan** — atasan dapat memberi tugas kepada bawahan berjenjang
+  sesuai SOTK (Direktur → semua; Wadir → manajer/koordinator/staf di bawahnya; dst.;
+  Admin → siapa saja). Detail tugas menampilkan "Ditugaskan oleh".
 - 🎯 Prioritas (Rendah/Sedang/Tinggi) dan tenggat (due date) dengan penanda lewat tempo.
 - ☑️ **Sub-tugas / checklist** — pecah tugas menjadi langkah-langkah; progress &
   status dihitung **otomatis** dari rasio langkah yang selesai.

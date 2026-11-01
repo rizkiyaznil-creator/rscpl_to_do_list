@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession, hashPassword } from "@/lib/auth";
 import { ROLES, USER_STATUS, isValidRole, POSITION_SELECT } from "@/lib/constants";
 import { resolvePositionAssignment } from "@/lib/positions";
-import { visibleScope } from "@/lib/logbook";
+import { visibleScope, assignableUserIds } from "@/lib/logbook";
 
 const publicSelect = {
   id: true,
@@ -18,6 +18,7 @@ const publicSelect = {
 
 // GET /api/users -> daftar personel yang boleh dilihat (diri sendiri + bawahan;
 // Admin/Direktur/Kepala SPI: semua). Dipakai filter papan tugas & panel admin.
+// assignableIds: siapa saja yang boleh diberi tugas oleh user ini.
 export async function GET() {
   const session = await getSession();
   if (!session) {
@@ -31,7 +32,9 @@ export async function GET() {
     select: publicSelect,
   });
 
-  return Response.json({ users });
+  // Personel yang boleh diberi tugas oleh user ini (diri sendiri + bawahan).
+  const assignableIds = [...assignableUserIds(scope.org, session.id, session.role)];
+  return Response.json({ users, assignableIds });
 }
 
 // POST /api/users -> buat akun personel baru (khusus ADMIN).

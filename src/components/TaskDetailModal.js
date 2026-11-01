@@ -170,7 +170,15 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
                   {overdue ? " (lewat)" : ""}
                 </span>
               )}
-              {task.creator && <span>Dibuat oleh {task.creator.name}</span>}
+              {task.creator &&
+                (task.creator.id !== task.ownerId ? (
+                  <span>
+                    👤 Ditugaskan oleh <b>{task.creator.name}</b>
+                    {task.creator.position?.name ? ` (${task.creator.position.name})` : ""}
+                  </span>
+                ) : (
+                  <span>Dibuat oleh {task.creator.name}</span>
+                ))}
             </div>
 
             <div className="progress-row" style={{ marginBottom: 4 }}>

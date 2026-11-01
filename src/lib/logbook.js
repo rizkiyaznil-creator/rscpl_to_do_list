@@ -104,6 +104,25 @@ export function approverIds(org, ownerId) {
   return [];
 }
 
+// Id user aktif yang boleh diberi tugas oleh viewer: dirinya sendiri + semua
+// bawahan berjenjang menurut SOTK. Admin: semua personel aktif. (Hak "lihat
+// semua" Direktur/Kepala SPI tidak berarti boleh menugaskan di luar bawahannya.)
+export function assignableUserIds(org, viewerId, viewerRole) {
+  const active = (u) => u.status === "ACTIVE" && u.role !== ROLES.SUBADMIN;
+  if (viewerRole === ROLES.ADMIN) {
+    return new Set(org.users.filter(active).map((u) => u.id));
+  }
+  const ids = new Set([viewerId]);
+  const p = viewerPosition(org, viewerId);
+  if (p) {
+    const below = descendants(org, p.id);
+    for (const u of org.users) {
+      if (u.positionId != null && below.has(u.positionId) && active(u)) ids.add(u.id);
+    }
+  }
+  return ids;
+}
+
 // Boleh mengubah/membatalkan minggu yang sudah disetujui: Direktur, atau
 // Wadir yang jabatannya berada di atas jabatan pemilik logbook.
 export function canOverride(org, viewerId, ownerId) {
