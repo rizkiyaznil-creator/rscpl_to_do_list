@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import LogWeekNav from "@/components/LogWeekNav";
 import { hospital } from "@/lib/hospitalProfile";
-import { formatMinutes } from "@/lib/logdate";
+import { formatMinutes, isWeekEnded, formatDayKey, addDays } from "@/lib/logdate";
 import { initials } from "@/lib/format";
 import { generateTeamPdf, downloadTeamCsv } from "@/lib/logbookExport";
 
@@ -51,6 +51,7 @@ export default function LogTeam({ week, setWeek, onOpen }) {
   }
 
   const members = data?.members || [];
+  const weekEnded = data ? isWeekEnded(data.weekStart) : false;
   const bidangList = [...new Set(members.map((m) => m.position?.bidang || "Belum ada jabatan"))];
   const term = q.trim().toLowerCase();
   const shown = members.filter(
@@ -134,6 +135,14 @@ export default function LogTeam({ week, setWeek, onOpen }) {
             </button>
           </div>
 
+          {!weekEnded && (
+            <p className="muted-sm" style={{ margin: "0 0 8px" }}>
+              ⏳ Minggu ini masih berjalan — logbook dapat disetujui mulai{" "}
+              {formatDayKey(addDays(data.weekStart, 7))}. Komentar & pengembalian untuk perbaikan
+              tetap bisa dilakukan kapan saja.
+            </p>
+          )}
+
           <div className="table-wrap">
             <table className="table">
               <thead>
@@ -180,7 +189,9 @@ export default function LogTeam({ week, setWeek, onOpen }) {
                       ) : m.revision === "FIXED" ? (
                         <span className="badge status-IN_PROGRESS">🛠 Sudah diperbaiki</span>
                       ) : m.entries > 0 ? (
-                        <span className="badge status-IN_PROGRESS">Belum disetujui</span>
+                        <span className="badge status-IN_PROGRESS">
+                          {weekEnded ? "Belum disetujui" : "Minggu berjalan"}
+                        </span>
                       ) : (
                         <span className="badge status-TODO">Belum mengisi</span>
                       )}
@@ -195,7 +206,7 @@ export default function LogTeam({ week, setWeek, onOpen }) {
                         <button className="btn btn-sm" onClick={() => onOpen({ id: m.id, name: m.name })}>
                           Lihat
                         </button>
-                        {m.canApprove && !m.approval && m.entries > 0 && (
+                        {m.canApprove && !m.approval && m.entries > 0 && weekEnded && (
                           <button
                             className="btn btn-sm btn-primary"
                             onClick={() => approve(m)}

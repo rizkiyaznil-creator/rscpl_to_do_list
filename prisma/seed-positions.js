@@ -198,13 +198,26 @@ async function seedPerfParams(prisma) {
   console.log(`Parameter performa dibuat: ${PERF_PARAMS.length}.`);
 }
 
-module.exports = { seedPositions, seedLogCategories, seedPerfParams };
+// Logbook hanya boleh disetujui setelah minggunya selesai. Persetujuan lama
+// untuk minggu yang BELUM selesai (diberikan sebelum aturan ini) dibatalkan
+// agar personel dapat melanjutkan isian. Aman dijalankan berulang.
+async function unlockOngoingWeeks(prisma) {
+  const WIB = 7 * 60 * 60 * 1000;
+  const today = new Date(Date.now() + WIB).toISOString().slice(0, 10);
+  const cutoff = new Date(`${today}T00:00:00.000Z`);
+  cutoff.setUTCDate(cutoff.getUTCDate() - 7); // weekStart > hari ini - 7 => minggu belum selesai
+  const { count } = await prisma.logApproval.deleteMany({ where: { weekStart: { gt: cutoff } } });
+  if (count) console.log(`Persetujuan logbook minggu berjalan dibatalkan: ${count}.`);
+}
+
+module.exports = { seedPositions, seedLogCategories, seedPerfParams, unlockOngoingWeeks };
 
 if (require.main === module) {
   const prisma = new PrismaClient();
   seedPositions(prisma)
     .then(() => seedLogCategories(prisma))
     .then(() => seedPerfParams(prisma))
+    .then(() => unlockOngoingWeeks(prisma))
     .catch((e) => {
       console.error(e);
       process.exit(1);

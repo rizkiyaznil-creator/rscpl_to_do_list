@@ -64,7 +64,8 @@ Akses dilindungi **login** (autentikasi).
 - 📝 **Logbook kegiatan** (`/logbook`) — personel mencatat kegiatan harian (jam,
   kategori, uraian, hasil, link bukti Google Drive, tautan tugas); rekap mingguan
   otomatis. Hak lihat berjenjang sesuai jabatan (Admin, Direktur & Kepala SPI
-  melihat semua). Atasan langsung menyetujui per minggu → minggu terkunci dan hanya
+  melihat semua). Atasan langsung menyetujui per minggu **setelah minggu selesai**
+  (mulai Senin berikutnya) → minggu terkunci dan hanya
   bisa diubah Direktur/Wadir terkait. Atasan dapat **mengembalikan untuk
   perbaikan** (alasan wajib) → bawahan memperbaiki & menandai "Sudah diperbaiki".
   **Komentar** per kegiatan & per minggu oleh atasan berjenjang / Kepala SPI /

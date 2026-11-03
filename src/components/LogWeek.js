@@ -11,6 +11,7 @@ import {
   formatDayKey,
   formatMinutes,
   DAY_NAMES,
+  isWeekEnded,
 } from "@/lib/logdate";
 import { formatDate } from "@/lib/format";
 import { generateLogbookPdf, downloadLogbookCsv } from "@/lib/logbookExport";
@@ -71,6 +72,9 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
   const perms = data?.perms || {};
   const approval = (data?.approvals || []).find((a) => a.weekStart === week) || null;
   const locked = Boolean(approval);
+  // Persetujuan baru dapat diberikan setelah minggu selesai (mulai Senin berikutnya).
+  const weekEnded = isWeekEnded(week);
+  const approvableFrom = formatDayKey(addDays(week, 7));
   const revision = (data?.revisions || []).find((r) => r.weekStart === week) || null;
   const comments = (data?.comments || []).filter((c) => c.weekStart === week);
   const weekComments = comments.filter((c) => c.entryId == null);
@@ -240,17 +244,18 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
                 </>
               ) : (
                 <>
-                  ⏳ <b>Belum disetujui</b>
+                  ⏳ <b>{weekEnded ? "Belum disetujui" : "Minggu berjalan"}</b>
                   <div className="muted-sm">
                     {perms.approverNames?.length
                       ? `Atasan langsung: ${perms.approverNames.join(", ")}`
                       : "Tidak ada atasan langsung yang perlu menyetujui."}
+                    {!weekEnded && perms.approverNames?.length > 0 && ` · dapat disetujui mulai ${approvableFrom}`}
                   </div>
                 </>
               )}
             </div>
             <div className="row-actions">
-              {!locked && perms.canApprove && (
+              {!locked && perms.canApprove && weekEnded && (
                 <button
                   className="btn btn-sm btn-primary"
                   onClick={approve}
