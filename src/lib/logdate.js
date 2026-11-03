@@ -98,3 +98,9 @@ export function isHttpUrl(value) {
     return false;
   }
 }
+
+// Minggu (Senin `weekStart`) dianggap selesai mulai Senin berikutnya (WIB).
+// Logbook hanya boleh disetujui atasan setelah minggunya selesai.
+export function isWeekEnded(weekStart, today = todayKey()) {
+  return addDays(weekStart, 7) <= today;
+}

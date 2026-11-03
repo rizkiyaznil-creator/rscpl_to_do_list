@@ -129,12 +129,14 @@ export async function GET() {
       revisions.map((r) => [`${r.userId}|${toKey(r.weekStart)}`, r.resolvedAt ? "FIXED" : "OPEN"]),
     );
 
-    // Minggu berisi kegiatan yang belum disetujui (dan saya atasan langsungnya).
+    // Minggu yang SUDAH selesai, berisi kegiatan, belum disetujui (dan saya
+    // atasan langsungnya). Minggu berjalan belum dapat disetujui.
     const approved = new Set(approvals.map((a) => `${a.userId}|${toKey(a.weekStart)}`));
     const pendingMap = new Map();
     for (const e of recentEntries) {
-      const key = `${e.userId}|${weekStartKey(toKey(e.date))}`;
-      if (!approved.has(key)) pendingMap.set(key, (pendingMap.get(key) || 0) + 1);
+      const week = weekStartKey(toKey(e.date));
+      const key = `${e.userId}|${week}`;
+      if (week < weekStart && !approved.has(key)) pendingMap.set(key, (pendingMap.get(key) || 0) + 1);
     }
     const pending = [...pendingMap.entries()]
       .map(([key, entries]) => {

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { loadOrg, approverIds, canOverride, logbookLink } from "@/lib/logbook";
-import { isValidKey, weekStartKey, addDays, keyToDate, formatWeekRange } from "@/lib/logdate";
+import { isValidKey, weekStartKey, addDays, keyToDate, formatWeekRange, formatDayKey, isWeekEnded } from "@/lib/logdate";
 import { notify } from "@/lib/notifications";
 
 async function readTarget(request) {
@@ -33,6 +33,15 @@ export async function POST(request) {
     return Response.json(
       { error: "Hanya atasan langsung yang dapat menyetujui logbook ini." },
       { status: 403 },
+    );
+  }
+
+  if (!isWeekEnded(t.weekStart)) {
+    return Response.json(
+      {
+        error: `Logbook baru dapat disetujui setelah minggunya selesai (mulai ${formatDayKey(addDays(t.weekStart, 7))}).`,
+      },
+      { status: 400 },
     );
   }
 
