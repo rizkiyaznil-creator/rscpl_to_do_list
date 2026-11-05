@@ -8,7 +8,9 @@ export default function manifest() {
     short_name: hospital.name,
     description:
       "Aplikasi manajemen tugas (to-do list) personel " + hospital.fullName,
+    id: "/",
     start_url: "/login",
+    scope: "/",
     display: "standalone",
     background_color: "#0e7490",
     theme_color: "#0e7490",
