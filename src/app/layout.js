@@ -23,9 +23,27 @@ export const viewport = {
   initialScale: 1,
 };
 
+// PWA: daftarkan service worker & tangkap event install sedini mungkin
+// (bisa muncul sebelum halaman selesai dimuat). Lihat components/InstallApp.js.
+const PWA_SCRIPT = `
+window.addEventListener("beforeinstallprompt", function (e) {
+  e.preventDefault();
+  window.__installPrompt = e;
+  window.dispatchEvent(new Event("installprompt-ready"));
+});
+window.addEventListener("appinstalled", function () { window.__installPrompt = null; });
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("/sw.js").catch(function () {});
+  });
+}`;
+
 export default function RootLayout({ children }) {
   return (
     <html lang="id">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: PWA_SCRIPT }} />
+      </head>
       <body>{children}</body>
     </html>
   );

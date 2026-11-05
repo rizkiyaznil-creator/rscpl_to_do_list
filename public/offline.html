@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0e7490" />
+    <title>Tidak ada koneksi | RS CPL USU</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #eef2f6;
+        color: #0f172a;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 28px 24px;
+        margin: 16px;
+        max-width: 380px;
+        text-align: center;
+      }
+      img {
+        width: 64px;
+        height: 64px;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 12px 0 6px;
+      }
+      p {
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0 0 18px;
+      }
+      button {
+        background: #0e7490;
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        padding: 10px 18px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <img src="/logo-rsusu.png" alt="Logo RS CPL USU" />
+      <h1>Tidak ada koneksi internet</h1>
+      <p>Aplikasi Manajemen Tugas RS CPL USU membutuhkan internet. Periksa koneksi Anda, lalu coba lagi.</p>
+      <button onclick="location.reload()">Coba lagi</button>
+    </div>
+  </body>
+</html>

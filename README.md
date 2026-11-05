@@ -27,6 +27,10 @@ Akses dilindungi **login** (autentikasi).
   verifikasi** dan **tidak bisa login** sampai **admin menyetujui** di panel
   "Kelola Personel". Admin mendapat notifikasi pendaftar baru & dapat
   memverifikasi/menolak — termasuk lewat **browser HP** (tampilan responsif).
+- 📲 **Install aplikasi (PWA)** — tombol "Install aplikasi" di halaman login, profil RS,
+  dan bilah atas (di HP: spanduk yang bisa ditutup). Android/Chrome memakai dialog
+  install bawaan; iPhone/iPad menampilkan petunjuk "Tambah ke Layar Utama". Halaman
+  offline sederhana saat koneksi terputus.
 - 🔑 **Akun saya** (`/akun`) — tiap user dapat melihat profilnya & **mengganti
   password sendiri** (wajib verifikasi password lama).
 - 🔔 **Notifikasi & pengingat tenggat** — lonceng di top bar dengan badge:

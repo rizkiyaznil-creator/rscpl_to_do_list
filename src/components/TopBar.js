@@ -6,6 +6,7 @@ import { ROLES, ROLE_LABELS } from "@/lib/constants";
 import { initials } from "@/lib/format";
 import { hospital } from "@/lib/hospitalProfile";
 import NotificationBell from "@/components/NotificationBell";
+import InstallApp from "@/components/InstallApp";
 
 // Menu utama. `match` = awalan path yang menandai menu sebagai aktif.
 // `admin`: khusus admin. `subadmin`: satu-satunya menu yang tampil untuk Subadmin.
@@ -62,6 +63,7 @@ export default function TopBar({ user }) {
             );
           })}
         </nav>
+        <InstallApp variant="icon" />
         <NotificationBell />
         <Link href="/akun" className="userchip" title="Akun saya">
           <span className="avatar">{initials(user?.name)}</span>
@@ -80,6 +82,7 @@ export default function TopBar({ user }) {
           Keluar
         </button>
       </div>
+      <InstallApp variant="banner" />
     </header>
   );
 }

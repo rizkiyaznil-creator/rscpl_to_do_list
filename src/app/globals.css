@@ -2120,3 +2120,51 @@ table.t2.clickable tbody tr:hover td { background: var(--surface-2); }
   order: 3;
   flex-basis: 100%;
 }
+
+/* ---------- Install aplikasi (PWA) ---------- */
+.install-block {
+  width: 100%;
+  margin-top: 10px;
+}
+.install-hero {
+  margin-left: 10px;
+  background: rgba(255, 255, 255, 0.92);
+}
+.install-help ol {
+  padding-left: 20px;
+  margin: 0 0 8px;
+  line-height: 1.6;
+  font-size: 14px;
+}
+.install-help li {
+  margin-bottom: 6px;
+}
+.ios-share {
+  vertical-align: -3px;
+  color: #2a78d6;
+}
+@media (max-width: 480px) {
+  .install-hero {
+    margin: 10px 0 0;
+  }
+}
+.install-banner {
+  display: none;
+}
+@media (max-width: 760px) {
+  .install-btn {
+    display: none;
+  }
+  .install-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--primary-light);
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .install-banner span {
+    flex: 1;
+  }
+}

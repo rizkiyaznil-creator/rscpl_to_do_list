@@ -1,5 +1,6 @@
 import Link from "next/link";
 import LoginForm from "@/components/LoginForm";
+import InstallApp from "@/components/InstallApp";
 import { hospital } from "@/lib/hospitalProfile";
 
 export const metadata = {
@@ -24,6 +25,7 @@ export default async function LoginPage({ searchParams }) {
         </div>
         <p className="login-sub">Manajemen tugas personel rumah sakit</p>
         <LoginForm next={next} />
+        <InstallApp variant="block" />
         {process.env.NODE_ENV !== "production" && (
           <div className="login-hint">
             <strong>Akun demo:</strong>

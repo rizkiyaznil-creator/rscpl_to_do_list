@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { hospital, MILESTONE_STATUS } from "@/lib/hospitalProfile";
+import InstallApp from "@/components/InstallApp";
 
 export const metadata = {
   title: `${hospital.fullName} | Profil & Visi Misi`,
@@ -45,6 +46,7 @@ export default async function Home() {
           >
             {session ? "Buka Dashboard →" : "Masuk ke Sistem →"}
           </Link>
+          <InstallApp variant="hero" />
         </div>
       </header>
 
