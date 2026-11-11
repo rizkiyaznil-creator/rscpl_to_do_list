@@ -6,7 +6,10 @@ import TaskCard from "@/components/TaskCard";
 import TaskRow from "@/components/TaskRow";
 import TaskFormModal from "@/components/TaskFormModal";
 import TaskDetailModal from "@/components/TaskDetailModal";
+import TaskExportModal from "@/components/TaskExportModal";
 import { STATUS, STATUS_LABELS, STATUS_ORDER, PRIORITY_ORDER } from "@/lib/constants";
+
+const SHOW_DONE_KEY = "tugas.showDone";
 
 export default function Board({ currentUser }) {
   const [tasks, setTasks] = useState([]);
@@ -28,6 +31,28 @@ export default function Board({ currentUser }) {
   // Tampilan papan: "table" (default, bisa disortir) atau "card".
   const [view, setView] = useState("table");
   const [sort, setSort] = useState({ key: "dueDate", dir: "asc" });
+  // Kelompok "Selesai" tertutup secara bawaan; pilihan diingat per perangkat.
+  const [showDone, setShowDone] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+
+  useEffect(() => {
+    try {
+      setShowDone(localStorage.getItem(SHOW_DONE_KEY) === "1");
+    } catch {
+      /* penyimpanan tidak tersedia */
+    }
+  }, []);
+
+  function toggleDone() {
+    setShowDone((v) => {
+      try {
+        localStorage.setItem(SHOW_DONE_KEY, v ? "0" : "1");
+      } catch {
+        /* abaikan */
+      }
+      return !v;
+    });
+  }
 
   // Muat ulang daftar tugas (dipakai setelah perubahan dari modal detail).
   async function reloadTasks() {
@@ -156,6 +181,25 @@ export default function Board({ currentUser }) {
     });
   }, [filtered, sort]);
 
+  // Dua kelompok: belum selesai di atas, selesai di bawah (urutan kolom tetap berlaku).
+  const openTasks = sorted.filter((t) => t.status !== STATUS.DONE);
+  const doneTasks = sorted.filter((t) => t.status === STATUS.DONE);
+  // Saring "Selesai" -> kelompok selesai selalu terbuka.
+  const doneVisible = showDone || statusFilter === STATUS.DONE;
+
+  // Keterangan filter untuk laporan ekspor.
+  const filterLabel = [
+    ownerFilter === "all"
+      ? "Semua personel"
+      : ownerFilter === "mine"
+        ? `Tugas ${currentUser.name}`
+        : users.find((u) => u.id === Number(ownerFilter))?.name || "Personel",
+    statusFilter === "all" ? "semua status" : STATUS_LABELS[statusFilter],
+    q.trim() ? `pencarian "${q.trim()}"` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   function toggleSort(key) {
     setSort((s) =>
       s.key === key
@@ -176,6 +220,45 @@ export default function Board({ currentUser }) {
       </th>
     );
   };
+
+  // Tabel atau kartu untuk satu kelompok tugas.
+  function renderList(list) {
+    const common = {
+      currentUser,
+      onUpdated: handleUpdated,
+      onDeleted: handleDeleted,
+      onEdit: openEdit,
+      onOpenDetail: (t) => setDetailTaskId(t.id),
+    };
+    return view === "table" ? (
+      <div className="table-wrap">
+        <table className="table task-table">
+          <thead>
+            <tr>
+              {renderTh("Tugas", "title")}
+              {renderTh("Penanggung jawab", "owner")}
+              {renderTh("Prioritas", "priority")}
+              {renderTh("Status", "status")}
+              {renderTh("Tenggat", "dueDate")}
+              {renderTh("Progress", "progress")}
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {list.map((task) => (
+              <TaskRow key={task.id} task={task} {...common} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <div className="task-grid">
+        {list.map((task) => (
+          <TaskCard key={task.id} task={task} {...common} />
+        ))}
+      </div>
+    );
+  }
 
   function handleUpdated(updated) {
     setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
@@ -276,6 +359,9 @@ export default function Board({ currentUser }) {
               <h2>Papan Tugas</h2>
               <span className="count">{filtered.length} tugas</span>
               <div className="spacer" />
+              <button className="btn btn-sm" onClick={() => setShowExport(true)}>
+                ⬇ Ekspor laporan
+              </button>
               <div className="view-toggle">
                 <button
                   className={`btn btn-sm ${view === "table" ? "btn-primary" : ""}`}
@@ -292,49 +378,33 @@ export default function Board({ currentUser }) {
               </div>
             </div>
 
-            {view === "table" ? (
-              <div className="table-wrap">
-                <table className="table task-table">
-                  <thead>
-                    <tr>
-                      {renderTh("Tugas", "title")}
-                      {renderTh("Penanggung jawab", "owner")}
-                      {renderTh("Prioritas", "priority")}
-                      {renderTh("Status", "status")}
-                      {renderTh("Tenggat", "dueDate")}
-                      {renderTh("Progress", "progress")}
-                      <th>Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sorted.map((task) => (
-                      <TaskRow
-                        key={task.id}
-                        task={task}
-                        currentUser={currentUser}
-                        onUpdated={handleUpdated}
-                        onDeleted={handleDeleted}
-                        onEdit={openEdit}
-                        onOpenDetail={(t) => setDetailTaskId(t.id)}
-                      />
-                    ))}
-                  </tbody>
-                </table>
+            {statusFilter !== STATUS.DONE && (
+              <div className="group-head">
+                <h3>⏳ Belum selesai</h3>
+                <span className="count">{openTasks.length}</span>
               </div>
-            ) : (
-              <div className="task-grid">
-                {sorted.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    currentUser={currentUser}
-                    onUpdated={handleUpdated}
-                    onDeleted={handleDeleted}
-                    onEdit={openEdit}
-                    onOpenDetail={(t) => setDetailTaskId(t.id)}
-                  />
-                ))}
-              </div>
+            )}
+            {statusFilter !== STATUS.DONE &&
+              (openTasks.length === 0 ? (
+                <p className="muted-sm group-empty">Semua tugas sudah selesai. 🎉</p>
+              ) : (
+                renderList(openTasks)
+              ))}
+
+            {doneTasks.length > 0 && (
+              <>
+                <div className="group-head done">
+                  <h3>✅ Selesai</h3>
+                  <span className="count">{doneTasks.length}</span>
+                  <div className="spacer" />
+                  {statusFilter !== STATUS.DONE && (
+                    <button className="btn btn-sm" onClick={toggleDone}>
+                      {doneVisible ? "Sembunyikan" : `Tampilkan ${doneTasks.length} tugas selesai`}
+                    </button>
+                  )}
+                </div>
+                {doneVisible && renderList(doneTasks)}
+              </>
             )}
           </>
         )}
@@ -351,6 +421,15 @@ export default function Board({ currentUser }) {
             setEditingTask(null);
           }}
           onSaved={handleSaved}
+        />
+      )}
+
+      {showExport && (
+        <TaskExportModal
+          tasks={filtered}
+          filterLabel={filterLabel}
+          currentUser={currentUser}
+          onClose={() => setShowExport(false)}
         />
       )}
 

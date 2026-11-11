@@ -2168,3 +2168,53 @@ table.t2.clickable tbody tr:hover td { background: var(--surface-2); }
     flex: 1;
   }
 }
+
+/* ---------- Papan Tugas: kelompok & ekspor ---------- */
+.group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 8px;
+}
+.group-head h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.group-head .count {
+  font-size: 12px;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.group-head.done {
+  margin-top: 22px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+.group-empty {
+  margin: 0 0 8px;
+}
+.export-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.export-summary span {
+  font-size: 12.5px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+.export-summary .late {
+  color: var(--danger);
+  border-color: #fecaca;
+  background: var(--danger-light);
+}
+.section-head {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}

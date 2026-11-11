@@ -210,7 +210,32 @@ async function unlockOngoingWeeks(prisma) {
   if (count) console.log(`Persetujuan logbook minggu berjalan dibatalkan: ${count}.`);
 }
 
-module.exports = { seedPositions, seedLogCategories, seedPerfParams, unlockOngoingWeeks };
+// Isi tanggal selesai (completedAt) untuk tugas Selesai yang dibuat sebelum
+// kolom ini ada: dari riwayat aktivitas terakhir yang menandai selesai, atau
+// waktu pembaruan terakhir tugas. Hanya mengisi yang masih kosong.
+async function backfillCompletedAt(prisma) {
+  const tasks = await prisma.task.findMany({
+    where: { status: "DONE", completedAt: null },
+    select: { id: true, updatedAt: true },
+  });
+  for (const t of tasks) {
+    const act = await prisma.activity.findFirst({
+      where: {
+        taskId: t.id,
+        OR: [{ detail: { contains: 'Status menjadi "Selesai"' } }, { action: "TOGGLE_CHECKLIST" }],
+      },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true },
+    });
+    await prisma.task.update({
+      where: { id: t.id },
+      data: { completedAt: act?.createdAt || t.updatedAt, updatedAt: t.updatedAt },
+    });
+  }
+  if (tasks.length) console.log(`Tanggal selesai tugas diisi: ${tasks.length}.`);
+}
+
+module.exports = { seedPositions, seedLogCategories, seedPerfParams, unlockOngoingWeeks, backfillCompletedAt };
 
 if (require.main === module) {
   const prisma = new PrismaClient();
@@ -218,6 +243,7 @@ if (require.main === module) {
     .then(() => seedLogCategories(prisma))
     .then(() => seedPerfParams(prisma))
     .then(() => unlockOngoingWeeks(prisma))
+    .then(() => backfillCompletedAt(prisma))
     .catch((e) => {
       console.error(e);
       process.exit(1);
