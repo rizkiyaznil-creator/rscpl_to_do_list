@@ -8,7 +8,7 @@ import {
   clampProgress,
   POSITION_SELECT,
 } from "@/lib/constants";
-import { syncStatusProgress, applyChecklistProgress } from "@/lib/tasks";
+import { syncStatusProgress, applyChecklistProgress, completedAtFor } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
 import { visibleScope, inScope } from "@/lib/logbook";
@@ -160,6 +160,8 @@ export async function PATCH(request, { params }) {
     const synced = syncStatusProgress(nextStatus, nextProgress);
     if (synced.status !== task.status) {
       data.status = synced.status;
+      const completedAt = completedAtFor(task.status, synced.status);
+      if (completedAt !== undefined) data.completedAt = completedAt;
       statusDetail = `Status menjadi "${STATUS_LABELS[synced.status]}"`;
     }
     if (synced.progress !== task.progress) {

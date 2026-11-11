@@ -78,6 +78,7 @@ model Task {
   progress    Int       @default(0) // 0 - 100
   priority    String    @default("MEDIUM") // "LOW" | "MEDIUM" | "HIGH"
   dueDate     DateTime?
+  completedAt DateTime? // waktu tugas ditandai Selesai (null bila belum selesai)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

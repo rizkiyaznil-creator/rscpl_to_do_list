@@ -133,6 +133,7 @@ export async function POST(request) {
       progress,
       priority,
       dueDate,
+      completedAt: status === STATUS.DONE ? new Date() : null,
       ownerId,
       creatorId: session.id,
     },

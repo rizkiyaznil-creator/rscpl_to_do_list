@@ -45,6 +45,10 @@ Akses dilindungi **login** (autentikasi).
 - 👥 **Menugaskan bawahan** — atasan dapat memberi tugas kepada bawahan berjenjang
   sesuai SOTK (Direktur → semua; Wadir → manajer/koordinator/staf di bawahnya; dst.;
   Admin → siapa saja). Detail tugas menampilkan "Ditugaskan oleh".
+- 🗂️ **Papan Tugas berkelompok** — tugas **Belum selesai** di atas (lewat tenggat paling
+  atas), tugas **Selesai** di bawah dan tertutup secara bawaan. Tombol **Ekspor laporan**
+  menghasilkan PDF (kop RS, ringkasan, tanda tangan) atau Excel sesuai filter & periode
+  tenggat, lengkap dengan keterangan "lewat X hari" / "selesai tanggal … (terlambat)".
 - 🎯 Prioritas (Rendah/Sedang/Tinggi) dan tenggat (due date) dengan penanda lewat tempo.
 - ☑️ **Sub-tugas / checklist** — pecah tugas menjadi langkah-langkah; progress &
   status dihitung **otomatis** dari rasio langkah yang selesai.

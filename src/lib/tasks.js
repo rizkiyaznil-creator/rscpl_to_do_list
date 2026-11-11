@@ -1,6 +1,15 @@
 import { STATUS } from "@/lib/constants";
 import { prisma } from "@/lib/prisma";
 
+// Nilai completedAt saat status berubah: diisi ketika menjadi Selesai,
+// dikosongkan ketika dibuka kembali; undefined = tidak berubah.
+export function completedAtFor(prevStatus, nextStatus) {
+  if (nextStatus === prevStatus) return undefined;
+  if (nextStatus === STATUS.DONE) return new Date();
+  if (prevStatus === STATUS.DONE) return null;
+  return undefined;
+}
+
 // Jaga konsistensi antara status dan progress:
 //  - status DONE        => progress 100
 //  - progress >= 100    => status DONE
@@ -37,9 +46,11 @@ export async function applyChecklistProgress(taskId) {
   const done = items.filter((i) => i.done).length;
   const progress = Math.round((done / items.length) * 100);
   const status = statusFromProgress(progress);
+  const prev = await prisma.task.findUnique({ where: { id: taskId }, select: { status: true } });
+  const completedAt = completedAtFor(prev?.status, status);
   await prisma.task.update({
     where: { id: taskId },
-    data: { progress, status },
+    data: { progress, status, ...(completedAt !== undefined && { completedAt }) },
   });
   return { hasChecklist: true, progress, status, done, total: items.length };
 }
