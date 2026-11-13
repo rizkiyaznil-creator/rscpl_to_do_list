@@ -46,7 +46,9 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
   useEffect(() => {
     if (shared && !directory.length) loadDirectory().then(setDirectory).catch(() => {});
   }, [shared, directory.length]);
-  const bidangGroups = [...new Set(directory.map((u) => u.position?.bidang || "Tanpa jabatan"))];
+  // Calon PIC: diri sendiri atau bawahan berjenjang (Direktur & Admin: semua).
+  const picChoices = directory.filter((u) => u.canPic && u.id !== currentUser.id);
+  const bidangGroups = [...new Set(picChoices.map((u) => u.position?.bidang || "Tanpa jabatan"))];
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -148,18 +150,20 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
                   <option value={currentUser.id}>Saya sendiri</option>
                   {bidangGroups.map((b) => (
                     <optgroup key={b} label={b}>
-                      {directory
-                        .filter((u) => (u.position?.bidang || "Tanpa jabatan") === b && u.id !== currentUser.id)
+                      {picChoices
+                        .filter((u) => (u.position?.bidang || "Tanpa jabatan") === b)
                         .map((u) => (
                           <option key={u.id} value={u.id}>
                             {u.name}
                             {u.position ? ` — ${u.position.name}` : ""}
-                            {u.mode === "approval" ? " (perlu persetujuan)" : ""}
                           </option>
                         ))}
                     </optgroup>
                   ))}
                 </select>
+                {!isAdmin && (
+                  <small className="muted-sm">PIC dipilih dari Anda sendiri atau bawahan Anda.</small>
+                )}
               </div>
               <div className="field">
                 <label>Anggota tim</label>
