@@ -35,7 +35,8 @@ export async function GET() {
   // ---------- Tugas saya ----------
   async function loadTasks() {
     const myTasks = await prisma.task.findMany({
-      where: { ownerId: me },
+      // Termasuk tugas bersama tempat saya menjadi anggota tim.
+      where: { OR: [{ ownerId: me }, { members: { some: { userId: me, status: "ACCEPTED" } } }] },
       select: { id: true, title: true, status: true, priority: true, dueDate: true, progress: true },
     });
     return {

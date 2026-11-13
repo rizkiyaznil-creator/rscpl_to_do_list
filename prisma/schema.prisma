@@ -44,6 +44,9 @@ model User {
   logRevised    LogRevision[]  @relation("logRevisionBy") // pengembalian logbook oleh user
   extRequested  TaskExtension[] @relation("extRequester") // pengajuan perpanjangan tenggat oleh user
   extDecided    TaskExtension[] @relation("extDecider") // keputusan perpanjangan oleh user
+  taskMembers   TaskMember[]   @relation("taskMember") // keanggotaan tugas bersama
+  taskInvites   TaskMember[]   @relation("taskInviter") // undangan tugas bersama yang dikirim user
+  checklistAssigned ChecklistItem[] @relation("checklistAssignee") // langkah checklist bagian user
   ownedTasks    Task[]         @relation("owner") // tugas yang menjadi tanggung jawab user
   createdTasks  Task[]         @relation("creator") // tugas yang dibuat oleh user
   comments      Comment[] // komentar/handover yang ditulis user
@@ -93,6 +96,7 @@ model Task {
   logEntries LogEntry[] // kegiatan logbook yang ditautkan ke tugas ini
   reminders  TaskReminder[] // jejak email pengingat yang sudah terkirim
   extensions TaskExtension[] // pengajuan perpanjangan tenggat
+  members    TaskMember[] // tim tugas bersama (selain PIC = owner)
   checklist  ChecklistItem[] // sub-tugas / langkah
   comments   Comment[] // komentar & catatan handover
   activities Activity[] // riwayat aktivitas pada tugas ini
@@ -113,7 +117,37 @@ model ChecklistItem {
   taskId Int
   task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
+  // Bagian anggota tim (tugas bersama). Null = langkah umum.
+  assigneeId Int?
+  assignee   User? @relation("checklistAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+
   @@index([taskId])
+}
+
+// Tim tugas bersama lintas bidang. PIC utama = Task.ownerId; baris di sini
+// adalah anggota (role MEMBER) atau calon PIC yang menunggu persetujuan
+// (role PIC, status PENDING — selama itu owner sementara = pembuat).
+// Atasan -> tingkat di bawahnya: langsung ACCEPTED. Sesama tingkat atau
+// lebih tinggi: PENDING sampai yang diajak menerima.
+model TaskMember {
+  id          Int       @id @default(autoincrement())
+  role        String    @default("MEMBER") // MEMBER | PIC
+  status      String    @default("ACCEPTED") // PENDING | ACCEPTED | DECLINED
+  reason      String? // alasan menolak
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  taskId Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  userId Int
+  user   User @relation("taskMember", fields: [userId], references: [id], onDelete: Cascade)
+
+  invitedById Int?
+  invitedBy   User? @relation("taskInviter", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@unique([taskId, userId])
+  @@index([userId, status])
 }
 
 // Komentar / catatan serah-terima (handover) antar personel pada sebuah tugas.

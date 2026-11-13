@@ -1,12 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
-import { ROLES } from "@/lib/constants";
 import { applyChecklistProgress } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
-
-function canModify(session, task) {
-  return session.role === ROLES.ADMIN || task.ownerId === session.id;
-}
+import { loadTaskAccess } from "@/lib/taskAccess";
+import { taskPerms } from "@/lib/taskPerms";
 
 // POST /api/tasks/:id/checklist -> tambah langkah baru.
 export async function POST(request, { params }) {
@@ -17,11 +14,10 @@ export async function POST(request, { params }) {
 
   const { id } = await params;
   const taskId = Number(id);
-  const task = await prisma.task.findUnique({ where: { id: taskId } });
-  if (!task) {
-    return Response.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
-  }
-  if (!canModify(session, task)) {
+  const acc = await loadTaskAccess(session, taskId);
+  if (acc.error) return Response.json({ error: acc.error }, { status: acc.status });
+  const { task } = acc;
+  if (!taskPerms(task, session, acc.assignable).checklist) {
     return Response.json({ error: "Anda tidak berhak mengubah tugas ini." }, { status: 403 });
   }
 
@@ -37,6 +33,16 @@ export async function POST(request, { params }) {
     return Response.json({ error: "Teks langkah wajib diisi." }, { status: 400 });
   }
 
+  // Bagian anggota (tugas bersama): PIC atau anggota tim yang sudah menerima.
+  let assigneeId = null;
+  if (body?.assigneeId) {
+    assigneeId = Number(body.assigneeId);
+    const ok =
+      assigneeId === task.ownerId ||
+      task.members.some((m) => m.userId === assigneeId && m.status === "ACCEPTED");
+    if (!ok) return Response.json({ error: "Langkah hanya dapat dibagikan ke PIC atau anggota tim." }, { status: 400 });
+  }
+
   const last = await prisma.checklistItem.findFirst({
     where: { taskId },
     orderBy: { order: "desc" },
@@ -44,7 +50,8 @@ export async function POST(request, { params }) {
   });
 
   const item = await prisma.checklistItem.create({
-    data: { taskId, text, order: (last?.order ?? 0) + 1 },
+    data: { taskId, text, order: (last?.order ?? 0) + 1, assigneeId },
+    include: { assignee: { select: { id: true, name: true } } },
   });
 
   const result = await applyChecklistProgress(taskId);

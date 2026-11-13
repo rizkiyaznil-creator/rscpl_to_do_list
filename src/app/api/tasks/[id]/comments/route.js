@@ -2,19 +2,12 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
-import { visibleScope, inScope } from "@/lib/logbook";
+import { loadTaskAccess } from "@/lib/taskAccess";
 
-// Komentar hanya untuk yang boleh melihat tugasnya (pemilik, atasan, akses semua).
+// Komentar hanya untuk yang boleh melihat tugasnya (PIC, tim, atasan, akses semua).
 async function canSeeTask(session, taskId) {
-  const [task, scope] = await Promise.all([
-    prisma.task.findUnique({ where: { id: taskId } }),
-    visibleScope(session),
-  ]);
-  if (!task) return { error: "Tugas tidak ditemukan.", status: 404 };
-  if (!inScope(scope, task.ownerId)) {
-    return { error: "Anda tidak berhak mengakses tugas ini.", status: 403 };
-  }
-  return { task };
+  const acc = await loadTaskAccess(session, taskId);
+  return acc.error ? acc : { task: acc.task };
 }
 
 const authorSelect = { id: true, name: true, role: true };
@@ -78,13 +71,17 @@ export async function POST(request, { params }) {
   });
 
   // Beri tahu pemilik tugas bila komentar berasal dari orang lain.
-  await notify({
-    userId: task.ownerId,
-    actorId: session.id,
-    type: "COMMENT",
-    message: `${session.name} berkomentar pada "${task.title}"`,
-    taskId,
-  });
+  // PIC & anggota tim yang sudah menerima (selain penulis).
+  const recipients = new Set([task.ownerId, ...task.members.filter((m) => m.status === "ACCEPTED").map((m) => m.userId)]);
+  for (const userId of recipients) {
+    await notify({
+      userId,
+      actorId: session.id,
+      type: "COMMENT",
+      message: `${session.name} berkomentar pada "${task.title}"`,
+      taskId,
+    });
+  }
 
   return Response.json({ comment }, { status: 201 });
 }

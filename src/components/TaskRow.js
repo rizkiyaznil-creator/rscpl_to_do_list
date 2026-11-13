@@ -20,6 +20,8 @@ export default function TaskRow({
   const canModify = Boolean(task.perms?.progress);
   const canEdit = Boolean(task.perms?.edit);
   const extPending = task.extensions?.[0] || null;
+  // Tugas bersama: PIC + anggota yang sudah menerima.
+  const teamSize = 1 + (task.members || []).filter((m) => m.status === "ACCEPTED").length;
   // Hanya admin yang boleh menghapus tugas.
   const canDelete = currentUser.role === ROLES.ADMIN;
 
@@ -81,6 +83,7 @@ export default function TaskRow({
             </span>
           )}
           {commentCount > 0 && <span>💬 {commentCount}</span>}
+          {(task.members || []).length > 0 && <span className="shared-badge">👥 Bersama · {teamSize} orang</span>}
         </div>
       </td>
       <td>

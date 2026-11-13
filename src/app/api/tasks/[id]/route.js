@@ -11,7 +11,8 @@ import {
 import { syncStatusProgress, applyChecklistProgress, completedAtFor } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
-import { visibleScope, inScope, loadOrg, assignableUserIds } from "@/lib/logbook";
+import { visibleScope, loadOrg, assignableUserIds } from "@/lib/logbook";
+import { canSeeTask, MEMBER_SELECT } from "@/lib/taskAccess";
 import { taskPerms, withPerms } from "@/lib/taskPerms";
 import { toKey, formatDayKey } from "@/lib/logdate";
 
@@ -29,6 +30,7 @@ const listInclude = {
   checklist: { select: { id: true, done: true } },
   _count: { select: { comments: true } },
   extensions: { where: { status: "PENDING" }, select: { id: true, requestedDue: true } },
+  members: { ...MEMBER_SELECT, where: { status: { not: "DECLINED" } } },
 };
 
 const dayLabel = (d) => (d ? formatDayKey(toKey(d), false) : "tanpa tenggat");
@@ -46,7 +48,11 @@ export async function GET(request, { params }) {
     include: {
       owner: { select: ownerSelect },
       creator: { select: ownerSelect },
-      checklist: { orderBy: [{ order: "asc" }, { id: "asc" }] },
+      checklist: {
+        orderBy: [{ order: "asc" }, { id: "asc" }],
+        include: { assignee: { select: { id: true, name: true } } },
+      },
+      members: { ...MEMBER_SELECT, orderBy: { createdAt: "asc" } },
       comments: {
         orderBy: { createdAt: "asc" },
         include: { author: { select: { id: true, name: true, role: true } } },
@@ -72,7 +78,7 @@ export async function GET(request, { params }) {
   if (!task) {
     return Response.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
   }
-  if (!inScope(scope, task.ownerId)) {
+  if (!canSeeTask(scope, task, session.id)) {
     return Response.json({ error: "Anda tidak berhak melihat tugas ini." }, { status: 403 });
   }
 
@@ -91,7 +97,7 @@ export async function PATCH(request, { params }) {
   const taskId = Number(id);
   const task = await prisma.task.findUnique({
     where: { id: taskId },
-    include: { _count: { select: { checklist: true } } },
+    include: { _count: { select: { checklist: true } }, members: { select: { userId: true, status: true, role: true } } },
   });
   if (!task) {
     return Response.json({ error: "Tugas tidak ditemukan." }, { status: 404 });

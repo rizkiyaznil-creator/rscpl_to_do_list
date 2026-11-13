@@ -42,10 +42,14 @@ export async function parseLogEntryInput(body, ownerId) {
   if (body?.taskId) {
     taskId = Number(body.taskId);
     const task = Number.isInteger(taskId)
-      ? await prisma.task.findUnique({ where: { id: taskId }, select: { ownerId: true } })
+      ? await prisma.task.findUnique({
+          where: { id: taskId },
+          select: { ownerId: true, members: { where: { userId: ownerId, status: "ACCEPTED" }, select: { id: true } } },
+        })
       : null;
-    if (!task || task.ownerId !== ownerId) {
-      return { error: "Tugas yang ditautkan harus tugas milik Anda sendiri." };
+    // Tugas sendiri (PIC) atau tugas bersama tempat ia menjadi anggota tim.
+    if (!task || (task.ownerId !== ownerId && task.members.length === 0)) {
+      return { error: "Tugas yang ditautkan harus tugas Anda sendiri atau tugas bersama Anda." };
     }
   }
 

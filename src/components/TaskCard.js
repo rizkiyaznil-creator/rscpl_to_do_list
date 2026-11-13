@@ -30,6 +30,8 @@ export default function TaskCard({
   const canModify = Boolean(task.perms?.progress);
   const canEdit = Boolean(task.perms?.edit);
   const extPending = task.extensions?.[0] || null;
+  // Tugas bersama: PIC + anggota yang sudah menerima.
+  const teamSize = 1 + (task.members || []).filter((m) => m.status === "ACCEPTED").length;
   // Hanya admin yang boleh menghapus tugas.
   const canDelete = currentUser.role === ROLES.ADMIN;
 
@@ -97,6 +99,9 @@ export default function TaskCard({
           title="Lihat detail"
         >
           {task.title}
+          {(task.members || []).length > 0 && (
+            <span className="shared-badge" style={{ display: "block" }}>👥 Bersama · {teamSize} orang</span>
+          )}
         </h3>
         <span className={`badge status-${task.status}`}>
           {STATUS_LABELS[task.status]}

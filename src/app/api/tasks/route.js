@@ -13,6 +13,8 @@ import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
 import { visibleScope, loadOrg, assignableUserIds } from "@/lib/logbook";
 import { withPerms } from "@/lib/taskPerms";
+import { visibleTaskWhere, inviteMode, isSelectable, MEMBER_SELECT } from "@/lib/taskAccess";
+import { addPerson, notifySuperiors } from "@/lib/taskTeam";
 import { sendEmail, taskReminderEmail } from "@/lib/email";
 
 const ownerSelect = {
@@ -31,6 +33,7 @@ const listInclude = {
   checklist: { select: { id: true, done: true } },
   _count: { select: { comments: true } },
   extensions: { where: { status: "PENDING" }, select: { id: true, requestedDue: true } },
+  members: { ...MEMBER_SELECT, where: { status: { not: "DECLINED" } } },
 };
 
 // GET /api/tasks  -> daftar tugas yang boleh dilihat: milik sendiri + bawahan
@@ -44,26 +47,30 @@ export async function GET(request) {
 
   const { searchParams } = new URL(request.url);
   const scope = await visibleScope(session);
-  const where = scope.ids ? { ownerId: { in: scope.ids } } : {};
+  // Cakupan lihat (termasuk tugas bersama) + filter, digabung dengan AND.
+  const and = [visibleTaskWhere(scope, session.id)];
 
   const ownerId = searchParams.get("ownerId");
   if (ownerId) {
+    // Tugas milik personel tsb sebagai PIC atau anggota tim yang sudah menerima.
     const oid = Number(ownerId);
-    // Pemilik di luar cakupan -> hasil kosong (tanpa membocorkan data).
-    where.ownerId = scope.ids && !scope.ids.includes(oid) ? -1 : oid;
+    and.push({ OR: [{ ownerId: oid }, { members: { some: { userId: oid, status: "ACCEPTED" } } }] });
   }
 
   const status = searchParams.get("status");
-  if (status && isValidStatus(status)) where.status = status;
+  if (status && isValidStatus(status)) and.push({ status });
 
   const q = (searchParams.get("q") || "").trim();
   if (q) {
     // mode "insensitive" -> pencarian tidak peka huruf besar/kecil di PostgreSQL.
-    where.OR = [
-      { title: { contains: q, mode: "insensitive" } },
-      { description: { contains: q, mode: "insensitive" } },
-    ];
+    and.push({
+      OR: [
+        { title: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+      ],
+    });
   }
+  const where = { AND: and };
 
   const tasks = await prisma.task.findMany({
     where,
@@ -96,11 +103,32 @@ export async function POST(request) {
     return Response.json({ error: "Judul tugas wajib diisi." }, { status: 400 });
   }
 
-  // Tentukan pemilik tugas: diri sendiri, atau bawahan berjenjang (Admin: siapa saja).
-  let ownerId = session.id;
   const org = await loadOrg();
   const assignable = assignableUserIds(org, session.id, session.role);
-  if (body?.ownerId && Number(body.ownerId) !== session.id) {
+
+  // Tugas bersama lintas bidang: PIC utama + anggota. PIC yang perlu
+  // persetujuan (sesama tingkat/lebih tinggi) diundang dulu; sementara itu
+  // pembuat menjadi pemilik tugas.
+  const shared = body?.shared === true;
+  let pendingPicId = null;
+  let memberIds = [];
+
+  // Tentukan pemilik tugas: diri sendiri, atau bawahan berjenjang (Admin: siapa saja).
+  let ownerId = session.id;
+  if (shared) {
+    const picId = Number(body?.picId || session.id);
+    if (!isSelectable(org, picId)) {
+      return Response.json({ error: "PIC utama tidak valid." }, { status: 400 });
+    }
+    if (inviteMode(org, session, picId, assignable) === "direct") ownerId = picId;
+    else pendingPicId = picId;
+    memberIds = [...new Set((Array.isArray(body?.memberIds) ? body.memberIds : []).map(Number))].filter(
+      (id) => Number.isInteger(id) && id !== picId && isSelectable(org, id),
+    );
+    if (memberIds.length === 0 && !pendingPicId && ownerId === session.id) {
+      return Response.json({ error: "Pilih minimal satu anggota tim untuk tugas bersama." }, { status: 400 });
+    }
+  } else if (body?.ownerId && Number(body.ownerId) !== session.id) {
     ownerId = Number(body.ownerId);
     if (!assignable.has(ownerId)) {
       return Response.json(
@@ -148,11 +176,18 @@ export async function POST(request) {
     taskId: task.id,
     actorId: session.id,
     action: "CREATE_TASK",
-    detail:
-      owner.id === session.id
+    detail: shared
+      ? `Membuat tugas bersama "${task.title}" (PIC: ${org.userById.get(pendingPicId || ownerId)?.name}${pendingPicId ? ", menunggu persetujuan" : ""})`
+      : owner.id === session.id
         ? `Membuat tugas "${task.title}"`
         : `Membuat tugas "${task.title}" untuk ${owner.name}`,
   });
+
+  if (shared) {
+    if (pendingPicId) await addPerson({ org, session, assignable, task, userId: pendingPicId, role: "PIC" });
+    else await notifySuperiors({ org, session, assignable, targetId: ownerId, task });
+    for (const id of memberIds) await addPerson({ org, session, assignable, task, userId: id });
+  }
 
   // Beri tahu pemilik bila tugas ditugaskan oleh orang lain.
   await notify({
@@ -169,5 +204,6 @@ export async function POST(request) {
     await sendEmail({ to: owner.email, subject, html, text });
   }
 
-  return Response.json({ task: withPerms(task, session, assignable) }, { status: 201 });
+  const fresh = await prisma.task.findUnique({ where: { id: task.id }, include: listInclude });
+  return Response.json({ task: withPerms(fresh, session, assignable) }, { status: 201 });
 }

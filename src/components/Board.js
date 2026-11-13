@@ -185,11 +185,15 @@ export default function Board({ currentUser }) {
   }, [filtered, sort]);
 
   // Dua kelompok: belum selesai di atas, selesai di bawah (urutan kolom tetap berlaku).
-  const openTasks = sorted.filter((t) => t.status !== STATUS.DONE);
-  // Belum selesai dibagi lagi: tugas saya dulu, lalu tugas bawahan/personel lain.
-  const myOpen = openTasks.filter((t) => t.ownerId === currentUser.id);
-  const teamOpen = openTasks.filter((t) => t.ownerId !== currentUser.id);
-  const doneTasks = sorted.filter((t) => t.status === STATUS.DONE);
+  // Undangan tugas bersama yang menunggu jawaban saya (tampil terpisah di atas).
+  const invites = sorted.filter((t) => t.perms?.invited);
+  const openTasks = sorted.filter((t) => t.status !== STATUS.DONE && !t.perms?.invited);
+  // Belum selesai dibagi lagi: tugas saya (PIC atau anggota tim) dulu, lalu
+  // tugas bawahan/personel lain.
+  const isMine = (t) => t.ownerId === currentUser.id || Boolean(t.perms?.member);
+  const myOpen = openTasks.filter(isMine);
+  const teamOpen = openTasks.filter((t) => !isMine(t));
+  const doneTasks = sorted.filter((t) => t.status === STATUS.DONE && !t.perms?.invited);
   // Saring "Selesai" -> kelompok selesai selalu terbuka.
   const doneVisible = showDone || statusFilter === STATUS.DONE;
 
@@ -383,6 +387,33 @@ export default function Board({ currentUser }) {
                 </button>
               </div>
             </div>
+
+            {invites.length > 0 && (
+              <>
+                <div className="group-head">
+                  <h3>📨 Undangan tugas bersama</h3>
+                  <span className="count">{invites.length}</span>
+                  <span className="muted-sm">menunggu jawaban Anda</span>
+                </div>
+                <div className="invites">
+                  {invites.map((t) => (
+                    <div key={t.id} className="invite-card">
+                      <span className="grow">
+                        <b>{t.title}</b>
+                        <br />
+                        <small className="muted-sm">
+                          dari {t.creator?.name || "-"}
+                          {t.dueDate ? ` · tenggat ${new Date(t.dueDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}` : ""}
+                        </small>
+                      </span>
+                      <button className="btn btn-sm btn-primary" onClick={() => setDetailTaskId(t.id)}>
+                        Lihat &amp; jawab
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
 
             {statusFilter !== STATUS.DONE && openTasks.length === 0 && (
               <>

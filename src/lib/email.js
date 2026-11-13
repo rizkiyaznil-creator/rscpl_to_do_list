@@ -74,6 +74,8 @@ const KINDS = {
   today: { heading: "⏰ Pengingat: Tenggat Hari Ini", subject: "Tenggat hari ini" },
   overdue: { heading: "⚠️ Tugas Lewat Tenggat", subject: "Lewat tenggat" },
   extension: { heading: "📅 Pengajuan Perpanjangan Tenggat", subject: "Pengajuan perpanjangan tenggat" },
+  shared: { heading: "👥 Tugas Bersama untuk Anda", subject: "Tugas bersama" },
+  invite: { heading: "📨 Undangan Tugas Bersama", subject: "Undangan tugas bersama" },
 };
 
 // Bangun subject + isi email pengingat tugas.

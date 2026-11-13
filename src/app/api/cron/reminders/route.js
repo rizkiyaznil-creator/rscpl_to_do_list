@@ -52,6 +52,8 @@ export async function GET(request) {
       include: {
         owner: { select: { id: true, name: true, email: true, status: true } },
         reminders: { select: { kind: true, dueDate: true } },
+        members: { where: { status: "ACCEPTED" }, select: { userId: true } },
+        checklist: { select: { done: true, assigneeId: true } },
       },
     }),
     loadOrg(),
@@ -85,6 +87,16 @@ export async function GET(request) {
 
     const ownerEmail = t.owner?.status === USER_STATUS.ACTIVE ? t.owner.email?.trim() : null;
     let to = ownerEmail ? [ownerEmail] : [];
+    // Tugas bersama: anggota tim yang bagiannya belum selesai ikut menerima
+    // (bila belum ada pembagian langkah, semua anggota).
+    if (t.members.length) {
+      const assigned = t.checklist.some((c) => c.assigneeId != null);
+      for (const m of t.members) {
+        const pending = !assigned || t.checklist.some((c) => c.assigneeId === m.userId && !c.done);
+        const e = emails.get(m.userId);
+        if (pending && e && !to.includes(e)) to.push(e);
+      }
+    }
     let cc = [];
     if (kind === OVERDUE) {
       cc = approverIds(org, t.ownerId)

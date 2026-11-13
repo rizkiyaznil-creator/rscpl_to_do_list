@@ -105,6 +105,8 @@ function row(t, i, today) {
     jabatan: t.owner?.position?.name || "-",
     bidang: t.owner?.position?.bidang || "-",
     creator: t.creator && t.creator.id !== t.ownerId ? t.creator.name : "-",
+    // Tugas bersama: anggota tim yang sudah menerima (PIC = penanggung jawab).
+    team: (t.members || []).filter((m) => m.status === "ACCEPTED").map((m) => m.user?.name).filter(Boolean).join(", "),
     priority: PRIORITY_LABELS[t.priority] || t.priority,
     status: STATUS_LABELS[t.status] || t.status,
     progress: t.progress ?? 0,
@@ -187,7 +189,7 @@ export async function buildTasksDoc({ tasks, filterLabel, periodText, printedBy,
       body: rows.map((r) => [
         r.no,
         r.title,
-        `${r.owner}\n${r.jabatan}`,
+        `${r.owner}\n${r.jabatan}${r.team ? `\nTim: ${r.team}` : ""}`,
         r.bidang,
         r.creator,
         r.priority,
@@ -271,6 +273,7 @@ export async function buildTasksWorkbook({ tasks, filterLabel, periodText, print
     { key: "jabatan", width: 32 },
     { key: "bidang", width: 26 },
     { key: "creator", width: 22 },
+    { key: "team", width: 30 },
     { key: "priority", width: 10 },
     { key: "status", width: 18 },
     { key: "progress", width: 10 },
@@ -287,7 +290,7 @@ export async function buildTasksWorkbook({ tasks, filterLabel, periodText, print
   sh.font = { bold: true };
   ws.addRow(["", s.total, s.todo, s.inProgress, s.done, s.overdue, s.rate / 100]).getCell(7).numFmt = "0%";
 
-  const HEAD = ["No", "Tugas", "Penanggung jawab", "Jabatan", "Bidang", "Ditugaskan oleh", "Prioritas", "Status", "Progress", "Tenggat", "Keterangan"];
+  const HEAD = ["No", "Tugas", "Penanggung jawab (PIC)", "Jabatan", "Bidang", "Ditugaskan oleh", "Tim", "Prioritas", "Status", "Progress", "Tenggat", "Keterangan"];
   const { open, done } = splitForReport(tasks);
   for (const [title, list] of [["BELUM SELESAI", open], ["SELESAI", done]]) {
     ws.addRow([]);
@@ -302,13 +305,13 @@ export async function buildTasksWorkbook({ tasks, filterLabel, periodText, print
     list.forEach((t, i) => {
       const r = row(t, i, today);
       const x = ws.addRow([
-        r.no, r.title, r.owner, r.jabatan, r.bidang, r.creator, r.priority, r.status,
+        r.no, r.title, r.owner, r.jabatan, r.bidang, r.creator, r.team || "-", r.priority, r.status,
         r.progress / 100, r.due ? keyToDate(r.due) : null, r.remark,
       ]);
       x.alignment = { vertical: "top", wrapText: true };
-      x.getCell(9).numFmt = "0%";
-      x.getCell(10).numFmt = "dd/mm/yyyy";
-      if (r.late) x.getCell(11).font = { bold: true, color: { argb: "FFB91C1C" } };
+      x.getCell(10).numFmt = "0%";
+      x.getCell(11).numFmt = "dd/mm/yyyy";
+      if (r.late) x.getCell(12).font = { bold: true, color: { argb: "FFB91C1C" } };
     });
   }
   return wb;

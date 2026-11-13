@@ -2249,3 +2249,202 @@ table.t2.clickable tbody tr:hover td { background: var(--surface-2); }
 .ext-form .field {
   margin-bottom: 8px;
 }
+
+/* ---------- Tugas bersama ---------- */
+.shared-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: var(--primary-light);
+  border: 1px solid #a5f3fc;
+  border-radius: 10px;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.shared-toggle input {
+  margin-top: 3px;
+}
+.member-picker input[type="search"] {
+  width: 100%;
+}
+.mp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.mp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px 3px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.mp-chip small {
+  color: var(--text-muted);
+}
+.mp-chip.approval {
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+.mp-chip button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.mp-list {
+  margin-top: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.mp-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 13px;
+}
+.mp-item:last-child {
+  border-bottom: none;
+}
+.mp-name {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.mp-name small {
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+.mp-mode {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--done);
+}
+.mp-mode.approval {
+  color: #c2410c;
+}
+.shared-badge {
+  display: inline-block;
+  margin-top: 3px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--primary);
+}
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.team-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+}
+.team-row .grow {
+  flex: 1;
+}
+.team-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+.team-tag.pic {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: #a5f3fc;
+}
+.team-tag.pending {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fdba74;
+}
+.invite-box {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 8px 0 10px;
+  font-size: 13.5px;
+}
+.invite-box input {
+  width: 100%;
+  margin-top: 8px;
+}
+.assignee-chip {
+  font-size: 11.5px;
+  color: var(--primary);
+  margin-left: 6px;
+  white-space: nowrap;
+}
+.invites {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.invite-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+}
+.invite-card .grow {
+  flex: 1;
+  min-width: 180px;
+}
+.shared-toggle input[type="checkbox"],
+.mp-item input[type="checkbox"] {
+  width: auto;
+  flex: none;
+  margin: 0;
+}
+.mp-item {
+  min-height: 44px;
+}
+.detail-section .inline-form select {
+  width: auto;
+  max-width: 38%;
+  flex: none;
+}
+.detail-section .inline-form input {
+  min-width: 0;
+}
+.team-row .grow small {
+  display: block;
+  margin-top: 1px;
+}
+@media (max-width: 480px) {
+  .detail-section .inline-form {
+    flex-wrap: wrap;
+  }
+  .detail-section .inline-form input {
+    flex: 1 1 100%;
+  }
+  .detail-section .inline-form select {
+    max-width: none;
+    flex: 1;
+  }
+}

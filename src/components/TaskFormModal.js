@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import MemberPicker, { loadDirectory, MODE_LABEL } from "@/components/MemberPicker";
 import { ROLES, PRIORITY, PRIORITY_LABELS, POSITION_LEVELS, POSITION_LEVEL_LABELS } from "@/lib/constants";
 import { toDateInput } from "@/lib/format";
 
@@ -37,6 +38,15 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
   const [saving, setSaving] = useState(false);
   // Tugas dari atasan: judul, prioritas & tenggat dikunci bagi penanggung jawab.
   const locked = isEdit && task.perms && !task.perms.core;
+  // Tugas bersama lintas bidang (hanya saat membuat tugas baru).
+  const [shared, setShared] = useState(false);
+  const [picId, setPicId] = useState(currentUser.id);
+  const [memberIds, setMemberIds] = useState([]);
+  const [directory, setDirectory] = useState([]);
+  useEffect(() => {
+    if (shared && !directory.length) loadDirectory().then(setDirectory).catch(() => {});
+  }, [shared, directory.length]);
+  const bidangGroups = [...new Set(directory.map((u) => u.position?.bidang || "Tanpa jabatan"))];
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -55,7 +65,16 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
           priority,
           dueDate: dueDate || null,
         };
-    if (canAssign) payload.ownerId = Number(ownerId);
+    if (shared) {
+      payload.shared = true;
+      payload.picId = Number(picId);
+      payload.memberIds = memberIds.filter((id) => id !== Number(picId));
+      if (payload.memberIds.length === 0 && Number(picId) === currentUser.id) {
+        setError("Pilih minimal satu anggota tim, atau pilih PIC lain.");
+        setSaving(false);
+        return;
+      }
+    } else if (canAssign) payload.ownerId = Number(ownerId);
 
     try {
       const res = await fetch(isEdit ? `/api/tasks/${task.id}` : "/api/tasks", {
@@ -112,7 +131,48 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
             />
           </div>
 
-          {canAssign && (
+          {!isEdit && (
+            <label className="shared-toggle">
+              <input type="checkbox" checked={shared} onChange={(e) => setShared(e.target.checked)} />
+              <span>
+                <b>👥 Tugas bersama</b> — melibatkan personel lintas manajer/bidang
+              </span>
+            </label>
+          )}
+
+          {shared && (
+            <>
+              <div className="field">
+                <label htmlFor="t-pic">PIC utama (penanggung jawab utama)</label>
+                <select id="t-pic" value={picId} onChange={(e) => setPicId(Number(e.target.value))}>
+                  <option value={currentUser.id}>Saya sendiri</option>
+                  {bidangGroups.map((b) => (
+                    <optgroup key={b} label={b}>
+                      {directory
+                        .filter((u) => (u.position?.bidang || "Tanpa jabatan") === b && u.id !== currentUser.id)
+                        .map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.name}
+                            {u.position ? ` — ${u.position.name}` : ""}
+                            {u.mode === "approval" ? " (perlu persetujuan)" : ""}
+                          </option>
+                        ))}
+                    </optgroup>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <label>Anggota tim</label>
+                <MemberPicker value={memberIds} onChange={setMemberIds} exclude={[Number(picId), currentUser.id]} />
+                <small className="muted-sm">
+                  Atasan → tingkat di bawahnya <b>{MODE_LABEL.direct}</b> masuk. Sesama tingkat atau tingkat lebih
+                  tinggi menerima undangan dan <b>{MODE_LABEL.approval}</b>.
+                </small>
+              </div>
+            </>
+          )}
+
+          {canAssign && !shared && (
             <div className="field">
               <label htmlFor="t-owner">Ditugaskan kepada</label>
               <select
