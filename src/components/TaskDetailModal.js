@@ -8,6 +8,7 @@ import {
   PRIORITY_LABELS,
 } from "@/lib/constants";
 import { initials, formatDate, timeAgo, isOverdue } from "@/lib/format";
+import MemberPicker from "@/components/MemberPicker";
 
 export default function TaskDetailModal({ taskId, currentUser, onClose, onChanged }) {
   const [task, setTask] = useState(null);
@@ -16,6 +17,7 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
   const [newItem, setNewItem] = useState("");
   const [newComment, setNewComment] = useState("");
   const [posting, setPosting] = useState(false);
+  const [newAssignee, setNewAssignee] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -41,7 +43,17 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
   }
 
   // Hak dihitung server (lib/taskPerms.js).
-  const canModify = Boolean(task?.perms?.progress);
+  const canModify = Boolean(task?.perms?.checklist);
+  const meId = currentUser.id;
+  // Langkah boleh dicentang: pengelola checklist, atau anggota untuk bagiannya.
+  const canToggle = (item) => canModify || (task?.perms?.member && item.assigneeId === meId);
+  // PIC + anggota yang sudah menerima (tujuan pembagian langkah).
+  const team = task
+    ? [
+        { id: task.ownerId, name: task.owner?.name },
+        ...(task.members || []).filter((m) => m.status === "ACCEPTED").map((m) => ({ id: m.userId, name: m.user?.name })),
+      ]
+    : [];
 
   // ----- Checklist -----
   async function addItem(e) {
@@ -53,7 +65,7 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
       const res = await fetch(`/api/tasks/${taskId}/checklist`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, assigneeId: newAssignee ? Number(newAssignee) : null }),
       });
       if (res.ok) {
         setNewItem("");
@@ -74,7 +86,7 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
       body: JSON.stringify({ done: !item.done }),
     });
     if (res.ok) await refresh();
-    else alert("Gagal memperbarui langkah.");
+    else alert((await res.json()).error || "Gagal memperbarui langkah.");
   }
 
   async function deleteItem(item) {
@@ -180,6 +192,8 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
                 ))}
             </div>
 
+            <InviteBox task={task} meId={currentUser.id} onChanged={refresh} />
+            <TeamBox task={task} onChanged={refresh} />
             <ExtensionBox task={task} onChanged={refresh} />
 
             <div className="progress-row" style={{ marginBottom: 4 }}>
@@ -211,10 +225,13 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
                       <input
                         type="checkbox"
                         checked={item.done}
-                        disabled={!canModify}
+                        disabled={!canToggle(item)}
                         onChange={() => toggleItem(item)}
                       />
-                      <span>{item.text}</span>
+                      <span>
+                        {item.text}
+                        {item.assignee && <span className="assignee-chip">👤 {item.assignee.name}</span>}
+                      </span>
                     </label>
                     {canModify && (
                       <button
@@ -235,6 +252,16 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
                     onChange={(e) => setNewItem(e.target.value)}
                     placeholder="Tambah langkah..."
                   />
+                  {team.length > 1 && (
+                    <select value={newAssignee} onChange={(e) => setNewAssignee(e.target.value)} title="Bagian siapa">
+                      <option value="">Umum</option>
+                      {team.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                   <button className="btn btn-sm btn-primary" disabled={posting}>
                     Tambah
                   </button>
@@ -442,5 +469,140 @@ function ExtensionBox({ task, onChanged }) {
         </form>
       )}
     </div>
+  );
+}
+
+// Undangan tugas bersama untuk viewer: terima / tolak (alasan wajib).
+function InviteBox({ task, meId, onChanged }) {
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  if (!task.perms?.invited) return null;
+  const mine = (task.members || []).find((m) => m.status === "PENDING" && m.userId === meId) || null;
+  async function respond(accept) {
+    if (!accept && !reason.trim()) return alert("Tuliskan alasan menolak.");
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/members/respond`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accept, reason }),
+      });
+      const d = await res.json();
+      if (!res.ok) alert(d.error || "Gagal menyimpan.");
+      else onChanged();
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="invite-box">
+      📨 <b>{task.creator?.name || "Rekan Anda"}</b> mengundang Anda ke tugas bersama ini
+      {mine?.role === "PIC" ? " sebagai PIC utama" : ""}. Terima untuk bergabung ke tim.
+      <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Alasan bila menolak" maxLength={1000} />
+      <div className="row-actions" style={{ marginTop: 8 }}>
+        <button className="btn btn-sm btn-primary" disabled={busy} onClick={() => respond(true)}>
+          ✓ Terima
+        </button>
+        <button className="btn btn-sm" disabled={busy} onClick={() => respond(false)}>
+          ✕ Tolak
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Tim tugas bersama: PIC + anggota (status undangan), tambah/keluarkan anggota.
+function TeamBox({ task, onChanged }) {
+  const [adding, setAdding] = useState(false);
+  const [ids, setIds] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const members = task.members || [];
+  const canTeam = task.perms?.team;
+  if (members.length === 0 && !canTeam) return null;
+
+  async function add() {
+    if (!ids.length) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userIds: ids }),
+      });
+      const d = await res.json();
+      if (!res.ok) alert(d.error || "Gagal menambah anggota.");
+      else {
+        setIds([]);
+        setAdding(false);
+        onChanged();
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function remove(m) {
+    if (!confirm(m.status === "PENDING" ? `Batalkan undangan untuk ${m.user?.name}?` : `Keluarkan ${m.user?.name} dari tim?`)) return;
+    const res = await fetch(`/api/tasks/${task.id}/members?userId=${m.userId}`, { method: "DELETE" });
+    if (res.ok) onChanged();
+    else alert((await res.json()).error || "Gagal.");
+  }
+
+  const tag = (m) =>
+    m.status === "PENDING"
+      ? <span className="team-tag pending">{m.role === "PIC" ? "calon PIC · menunggu" : "menunggu persetujuan"}</span>
+      : m.status === "DECLINED"
+        ? <span className="team-tag pending">menolak{m.reason ? `: ${m.reason}` : ""}</span>
+        : <span className="team-tag">anggota</span>;
+
+  return (
+    <section className="detail-section" style={{ marginTop: 6 }}>
+      <h4>
+        👥 Tim tugas{" "}
+        <span className="count">{1 + members.filter((m) => m.status === "ACCEPTED").length} orang</span>
+      </h4>
+      <div className="team-list">
+        <div className="team-row">
+          <span className="avatar sm">{initials(task.owner?.name)}</span>
+          <span className="grow">
+            <b>{task.owner?.name}</b>
+            <small className="muted-sm">{task.owner?.position?.name || "—"}</small>
+          </span>
+          <span className="team-tag pic">PIC utama</span>
+        </div>
+        {members.map((m) => (
+          <div className="team-row" key={m.userId}>
+            <span className="avatar sm">{initials(m.user?.name)}</span>
+            <span className="grow">
+              <b>{m.user?.name}</b>
+              <small className="muted-sm">{m.user?.position?.name || "—"}</small>
+            </span>
+            {tag(m)}
+            {canTeam && (
+              <button className="icon-btn" title="Keluarkan / batalkan" onClick={() => remove(m)}>
+                ✕
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+      {canTeam && !adding && (
+        <button className="btn btn-sm" onClick={() => setAdding(true)}>
+          + Ajak anggota
+        </button>
+      )}
+      {canTeam && adding && (
+        <>
+          <MemberPicker value={ids} onChange={setIds} exclude={[task.ownerId, ...members.filter((m) => m.status !== "DECLINED").map((m) => m.userId)]} />
+          <div className="row-actions" style={{ marginTop: 8 }}>
+            <button className="btn btn-sm" onClick={() => setAdding(false)}>
+              Batal
+            </button>
+            <button className="btn btn-sm btn-primary" disabled={busy || !ids.length} onClick={add}>
+              Ajak {ids.length || ""} orang
+            </button>
+          </div>
+        </>
+      )}
+    </section>
   );
 }

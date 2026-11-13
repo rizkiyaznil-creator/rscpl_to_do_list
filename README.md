@@ -55,6 +55,12 @@ Akses dilindungi **login** (autentikasi).
   Admin (notifikasi + email). Setiap perubahan tenggat tercatat di riwayat aktivitas.
   Papan Tugas menampilkan **Tugas Saya** lalu **Tugas Bawahan**, diurutkan prioritas
   lalu tenggat terdekat.
+- 🤝 **Tugas bersama lintas bidang** — satu tugas dengan **PIC utama** + **anggota tim**
+  dari bidang mana pun; checklist dapat dibagi per anggota. Atasan → tingkat di bawahnya
+  langsung masuk (atasan langsung orang tsb diberi tahu bila lintas bidang); sesama
+  tingkat atau tingkat lebih tinggi menerima **undangan** yang harus diterima/ditolak
+  (alasan wajib bila menolak). Tugas terlihat oleh tim & atasan berjenjang masing-masing,
+  pengingat email dikirim ke anggota yang bagiannya belum selesai.
 - 🎯 Prioritas (Rendah/Sedang/Tinggi) dan tenggat (due date) dengan penanda lewat tempo.
 - ☑️ **Sub-tugas / checklist** — pecah tugas menjadi langkah-langkah; progress &
   status dihitung **otomatis** dari rasio langkah yang selesai.

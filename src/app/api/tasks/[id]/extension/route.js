@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { USER_STATUS } from "@/lib/constants";
-import { loadOrg, assignableUserIds, approverIds, visibleUserIds } from "@/lib/logbook";
+import { approverIds } from "@/lib/logbook";
+import { loadTaskAccess } from "@/lib/taskAccess";
 import { taskPerms } from "@/lib/taskPerms";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
@@ -21,15 +22,9 @@ async function readBody(request) {
 
 // Muat tugas + konteks hak akses; null bila tidak ditemukan / tak terlihat.
 async function load(session, id) {
-  const task = await prisma.task.findUnique({
-    where: { id: Number(id) },
-    select: { id: true, title: true, status: true, priority: true, progress: true, dueDate: true, ownerId: true, creatorId: true },
-  });
-  if (!task) return null;
-  const org = await loadOrg();
-  if (!visibleUserIds(org, session.id, session.role).has(task.ownerId)) return null;
-  const perms = taskPerms(task, session, assignableUserIds(org, session.id, session.role));
-  return { task, org, perms };
+  const acc = await loadTaskAccess(session, id);
+  if (acc.error) return null;
+  return { task: acc.task, org: acc.org, perms: taskPerms(acc.task, session, acc.assignable) };
 }
 
 // POST /api/tasks/:id/extension { dueDate: "YYYY-MM-DD", reason }

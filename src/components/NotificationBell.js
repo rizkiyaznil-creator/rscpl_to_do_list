@@ -16,6 +16,11 @@ const NOTIF_ICON = {
   EXTENSION_APPROVED: "✅",
   EXTENSION_REJECTED: "✖️",
   DUE_CHANGED: "🗓",
+  SHARED_INVITE: "📨",
+  SHARED_ADDED: "👥",
+  SHARED_ACCEPTED: "🤝",
+  SHARED_DECLINED: "✖️",
+  SHARED_REMOVED: "➖",
 };
 
 const LEVEL_ICON = {
