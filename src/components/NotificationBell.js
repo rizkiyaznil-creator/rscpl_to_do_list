@@ -4,6 +4,20 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { timeAgo, formatDate } from "@/lib/format";
 
+// Ikon per jenis notifikasi tersimpan (bawaan: 💬 komentar).
+const NOTIF_ICON = {
+  ASSIGNED: "📌",
+  REGISTER: "🆕",
+  RESET_REQUEST: "🔑",
+  LOGBOOK_APPROVED: "✅",
+  LOGBOOK_REVISION: "↩️",
+  LOGBOOK_FIXED: "🛠",
+  EXTENSION_REQUEST: "📅",
+  EXTENSION_APPROVED: "✅",
+  EXTENSION_REJECTED: "✖️",
+  DUE_CHANGED: "🗓",
+};
+
 const LEVEL_ICON = {
   overdue: "⚠️",
   today: "⏰",
@@ -192,19 +206,7 @@ export default function NotificationBell() {
                     onClick={() => handleNotifClick(n)}
                   >
                     <span className="notif-icon">
-                      {n.type === "ASSIGNED"
-                        ? "📌"
-                        : n.type === "REGISTER"
-                          ? "🆕"
-                          : n.type === "RESET_REQUEST"
-                            ? "🔑"
-                            : n.type === "LOGBOOK_APPROVED"
-                              ? "✅"
-                              : n.type === "LOGBOOK_REVISION"
-                                ? "↩️"
-                                : n.type === "LOGBOOK_FIXED"
-                                  ? "🛠"
-                                  : "💬"}
+                      {NOTIF_ICON[n.type] || "💬"}
                     </span>
                     <span className="notif-text">
                       <span>{n.message}</span>

@@ -35,6 +35,8 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
   );
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  // Tugas dari atasan: judul, prioritas & tenggat dikunci bagi penanggung jawab.
+  const locked = isEdit && task.perms && !task.perms.core;
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -45,12 +47,14 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
     setError("");
     setSaving(true);
 
-    const payload = {
-      title: title.trim(),
-      description: description.trim(),
-      priority,
-      dueDate: dueDate || null,
-    };
+    const payload = locked
+      ? { description: description.trim() }
+      : {
+          title: title.trim(),
+          description: description.trim(),
+          priority,
+          dueDate: dueDate || null,
+        };
     if (canAssign) payload.ownerId = Number(ownerId);
 
     try {
@@ -78,6 +82,12 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
         <h3>{isEdit ? "Ubah Tugas" : "Tambah Tugas"}</h3>
         <form onSubmit={handleSubmit}>
           {error && <div className="alert alert-error">{error}</div>}
+          {locked && (
+            <div className="alert alert-warn">
+              🔒 Tugas ini diberikan oleh <b>{task.creator?.name || "atasan"}</b>. Judul, prioritas, dan tenggat
+              hanya dapat diubah pemberi tugas. Butuh waktu lebih? Buka <b>Detail</b> → <b>Ajukan perpanjangan</b>.
+            </div>
+          )}
 
           <div className="field">
             <label htmlFor="t-title">Judul tugas *</label>
@@ -86,7 +96,8 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="mis. Visite pasien rawat inap"
-              autoFocus
+              autoFocus={!locked}
+              disabled={locked}
               required
             />
           </div>
@@ -136,6 +147,7 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
                 id="t-prio"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
+                disabled={locked}
               >
                 {Object.values(PRIORITY).map((p) => (
                   <option key={p} value={p}>
@@ -151,6 +163,7 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
+                disabled={locked}
               />
             </div>
           </div>

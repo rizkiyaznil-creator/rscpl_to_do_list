@@ -2218,3 +2218,34 @@ table.t2.clickable tbody tr:hover td { background: var(--surface-2); }
   flex-wrap: wrap;
   row-gap: 8px;
 }
+
+/* ---------- Perpanjangan tenggat ---------- */
+.ext-badge {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #c2410c;
+}
+.ext-box {
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin: 8px 0 10px;
+  font-size: 13.5px;
+}
+.ext-box input:not([type]),
+.ext-box input[type="text"] {
+  width: 100%;
+  margin-top: 8px;
+}
+.ext-reason {
+  margin: 4px 0 0;
+  color: #9a3412;
+  white-space: pre-wrap;
+}
+.ext-form {
+  margin-top: 4px;
+}
+.ext-form .field {
+  margin-bottom: 8px;
+}

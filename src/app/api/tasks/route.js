@@ -12,6 +12,7 @@ import { syncStatusProgress } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
 import { visibleScope, loadOrg, assignableUserIds } from "@/lib/logbook";
+import { withPerms } from "@/lib/taskPerms";
 import { sendEmail, taskReminderEmail } from "@/lib/email";
 
 const ownerSelect = {
@@ -29,6 +30,7 @@ const listInclude = {
   creator: { select: ownerSelect },
   checklist: { select: { id: true, done: true } },
   _count: { select: { comments: true } },
+  extensions: { where: { status: "PENDING" }, select: { id: true, requestedDue: true } },
 };
 
 // GET /api/tasks  -> daftar tugas yang boleh dilihat: milik sendiri + bawahan
@@ -69,7 +71,8 @@ export async function GET(request) {
     include: listInclude,
   });
 
-  return Response.json({ tasks });
+  const assignable = assignableUserIds(scope.org, session.id, session.role);
+  return Response.json({ tasks: tasks.map((t) => withPerms(t, session, assignable)) });
 }
 
 // POST /api/tasks  -> buat tugas baru.
@@ -95,10 +98,11 @@ export async function POST(request) {
 
   // Tentukan pemilik tugas: diri sendiri, atau bawahan berjenjang (Admin: siapa saja).
   let ownerId = session.id;
+  const org = await loadOrg();
+  const assignable = assignableUserIds(org, session.id, session.role);
   if (body?.ownerId && Number(body.ownerId) !== session.id) {
     ownerId = Number(body.ownerId);
-    const org = await loadOrg();
-    if (!assignableUserIds(org, session.id, session.role).has(ownerId)) {
+    if (!assignable.has(ownerId)) {
       return Response.json(
         { error: "Anda hanya dapat menugaskan kepada bawahan Anda." },
         { status: 403 },
@@ -165,5 +169,5 @@ export async function POST(request) {
     await sendEmail({ to: owner.email, subject, html, text });
   }
 
-  return Response.json({ task }, { status: 201 });
+  return Response.json({ task: withPerms(task, session, assignable) }, { status: 201 });
 }

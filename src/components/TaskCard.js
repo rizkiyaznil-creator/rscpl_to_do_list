@@ -25,8 +25,11 @@ export default function TaskCard({
     setProgress(task.progress);
   }, [task.progress]);
 
-  const canModify =
-    currentUser.role === ROLES.ADMIN || task.ownerId === currentUser.id;
+  // Hak dihitung server (lihat lib/taskPerms.js): status/progress oleh
+  // penanggung jawab & Admin; tombol Ubah juga untuk pemberi tugas/atasan.
+  const canModify = Boolean(task.perms?.progress);
+  const canEdit = Boolean(task.perms?.edit);
+  const extPending = task.extensions?.[0] || null;
   // Hanya admin yang boleh menghapus tugas.
   const canDelete = currentUser.role === ROLES.ADMIN;
 
@@ -120,6 +123,7 @@ export default function TaskCard({
           <span className={`due ${overdue ? "overdue" : ""}`}>
             🗓 {formatDate(task.dueDate)}
             {overdue ? " (lewat)" : ""}
+            {extPending && <span className="ext-badge" title="Pengajuan perpanjangan menunggu keputusan"> ⏳ perpanjangan diajukan</span>}
           </span>
         )}
         {hasChecklist && (
@@ -172,7 +176,7 @@ export default function TaskCard({
           Detail
         </button>
         <div className="spacer" />
-        {canModify && (
+        {canEdit && (
           <button className="btn btn-sm" onClick={() => onEdit(task)} disabled={busy}>
             Ubah
           </button>

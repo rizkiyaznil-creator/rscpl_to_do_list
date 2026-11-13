@@ -30,7 +30,8 @@ export default function Board({ currentUser }) {
 
   // Tampilan papan: "table" (default, bisa disortir) atau "card".
   const [view, setView] = useState("table");
-  const [sort, setSort] = useState({ key: "dueDate", dir: "asc" });
+  // Urutan bawaan: prioritas (Tinggi dulu), lalu tenggat terdekat.
+  const [sort, setSort] = useState({ key: "priority", dir: "asc" });
   // Kelompok "Selesai" tertutup secara bawaan; pilihan diingat per perangkat.
   const [showDone, setShowDone] = useState(false);
   const [showExport, setShowExport] = useState(false);
@@ -166,6 +167,7 @@ export default function Board({ currentUser }) {
           return 0;
       }
     };
+    const due = (t) => (t.dueDate ? new Date(t.dueDate).getTime() : Infinity);
     return [...filtered].sort((a, b) => {
       const va = val(a);
       const vb = val(b);
@@ -177,12 +179,16 @@ export default function Board({ currentUser }) {
       }
       if (va < vb) return -1 * mul;
       if (va > vb) return 1 * mul;
-      return 0;
+      // Nilai sama -> tenggat terdekat dulu.
+      return due(a) - due(b);
     });
   }, [filtered, sort]);
 
   // Dua kelompok: belum selesai di atas, selesai di bawah (urutan kolom tetap berlaku).
   const openTasks = sorted.filter((t) => t.status !== STATUS.DONE);
+  // Belum selesai dibagi lagi: tugas saya dulu, lalu tugas bawahan/personel lain.
+  const myOpen = openTasks.filter((t) => t.ownerId === currentUser.id);
+  const teamOpen = openTasks.filter((t) => t.ownerId !== currentUser.id);
   const doneTasks = sorted.filter((t) => t.status === STATUS.DONE);
   // Saring "Selesai" -> kelompok selesai selalu terbuka.
   const doneVisible = showDone || statusFilter === STATUS.DONE;
@@ -378,18 +384,35 @@ export default function Board({ currentUser }) {
               </div>
             </div>
 
-            {statusFilter !== STATUS.DONE && (
-              <div className="group-head">
-                <h3>⏳ Belum selesai</h3>
-                <span className="count">{openTasks.length}</span>
-              </div>
-            )}
-            {statusFilter !== STATUS.DONE &&
-              (openTasks.length === 0 ? (
+            {statusFilter !== STATUS.DONE && openTasks.length === 0 && (
+              <>
+                <div className="group-head">
+                  <h3>⏳ Belum selesai</h3>
+                  <span className="count">0</span>
+                </div>
                 <p className="muted-sm group-empty">Semua tugas sudah selesai. 🎉</p>
-              ) : (
-                renderList(openTasks)
-              ))}
+              </>
+            )}
+            {statusFilter !== STATUS.DONE && myOpen.length > 0 && (
+              <>
+                <div className="group-head">
+                  <h3>👤 Tugas Saya</h3>
+                  <span className="count">{myOpen.length}</span>
+                  <span className="muted-sm">belum selesai</span>
+                </div>
+                {renderList(myOpen)}
+              </>
+            )}
+            {statusFilter !== STATUS.DONE && teamOpen.length > 0 && (
+              <>
+                <div className="group-head">
+                  <h3>👥 Tugas Bawahan</h3>
+                  <span className="count">{teamOpen.length}</span>
+                  <span className="muted-sm">belum selesai</span>
+                </div>
+                {renderList(teamOpen)}
+              </>
+            )}
 
             {doneTasks.length > 0 && (
               <>
