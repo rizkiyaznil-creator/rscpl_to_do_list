@@ -40,9 +40,8 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
     onChanged?.();
   }
 
-  const canModify =
-    task &&
-    (currentUser.role === ROLES.ADMIN || task.ownerId === currentUser.id);
+  // Hak dihitung server (lib/taskPerms.js).
+  const canModify = Boolean(task?.perms?.progress);
 
   // ----- Checklist -----
   async function addItem(e) {
@@ -181,6 +180,8 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
                 ))}
             </div>
 
+            <ExtensionBox task={task} onChanged={refresh} />
+
             <div className="progress-row" style={{ marginBottom: 4 }}>
               <div className={`bar ${task.status === STATUS.DONE ? "done" : ""}`}>
                 <span style={{ width: `${task.progress}%` }} />
@@ -311,6 +312,135 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+const todayInput = () => new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
+
+// Perpanjangan tenggat: penanggung jawab mengajukan; pemberi tugas/atasan memutuskan.
+function ExtensionBox({ task, onChanged }) {
+  const perms = task.perms || {};
+  const exts = task.extensions || [];
+  const pending = exts.find((e) => e.status === "PENDING");
+  const last = exts.find((e) => e.status !== "PENDING");
+  const [open, setOpen] = useState(false);
+  const [due, setDue] = useState("");
+  const [reason, setReason] = useState("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function send(method, body) {
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/extension`, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) setError(data.error || "Gagal menyimpan.");
+      else {
+        setOpen(false);
+        setReason("");
+        setNote("");
+        onChanged();
+      }
+    } catch {
+      setError("Tidak dapat terhubung ke server.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!pending && !perms.extend && !last) return null;
+
+  return (
+    <div className="ext-box">
+      {error && <div className="alert alert-error">{error}</div>}
+
+      {pending && perms.manage && (
+        <>
+          <div>
+            📅 <b>{pending.requestedBy?.name || "Penanggung jawab"}</b> mengajukan perpanjangan tenggat{" "}
+            <b>{formatDate(pending.previousDue) || "—"}</b> → <b>{formatDate(pending.requestedDue)}</b>
+          </div>
+          <div className="ext-reason">“{pending.reason}”</div>
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Catatan untuk penanggung jawab (opsional)"
+            maxLength={1000}
+          />
+          <div className="row-actions" style={{ marginTop: 8 }}>
+            <button className="btn btn-sm btn-primary" disabled={busy} onClick={() => send("PATCH", { decision: "APPROVE", note })}>
+              ✓ Setujui
+            </button>
+            <button className="btn btn-sm" disabled={busy} onClick={() => send("PATCH", { decision: "REJECT", note })}>
+              ✕ Tolak
+            </button>
+          </div>
+        </>
+      )}
+
+      {pending && !perms.manage && (
+        <div>
+          ⏳ Pengajuan perpanjangan ke <b>{formatDate(pending.requestedDue)}</b> menunggu keputusan{" "}
+          {task.creator?.name || "atasan"}.
+        </div>
+      )}
+
+      {!pending && last && (
+        <div className="muted-sm">
+          {last.status === "APPROVED" ? "✅ Perpanjangan ke " : "✕ Perpanjangan ke "}
+          {formatDate(last.requestedDue)} {last.status === "APPROVED" ? "disetujui" : "ditolak"}
+          {last.decidedBy ? ` oleh ${last.decidedBy.name}` : ""}
+          {last.note ? ` — “${last.note}”` : ""}
+        </div>
+      )}
+
+      {!pending && perms.extend && !open && (
+        <button className="btn btn-sm" style={{ marginTop: last ? 8 : 0 }} onClick={() => setOpen(true)}>
+          📅 Ajukan perpanjangan tenggat
+        </button>
+      )}
+
+      {!pending && perms.extend && open && (
+        <form
+          className="ext-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send("POST", { dueDate: due, reason });
+          }}
+        >
+          <div className="field">
+            <label htmlFor="ext-due">Tenggat baru yang diminta</label>
+            <input id="ext-due" type="date" min={todayInput()} value={due} onChange={(e) => setDue(e.target.value)} required />
+          </div>
+          <div className="field">
+            <label htmlFor="ext-reason">Alasan</label>
+            <textarea
+              id="ext-reason"
+              rows={2}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="mis. Menunggu data dari unit terkait"
+              maxLength={1000}
+              required
+            />
+          </div>
+          <div className="row-actions">
+            <button type="button" className="btn btn-sm" onClick={() => setOpen(false)}>
+              Batal
+            </button>
+            <button className="btn btn-sm btn-primary" disabled={busy || !due || !reason.trim()}>
+              Kirim pengajuan
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

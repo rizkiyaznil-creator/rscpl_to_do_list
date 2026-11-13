@@ -49,6 +49,12 @@ Akses dilindungi **login** (autentikasi).
   atas), tugas **Selesai** di bawah dan tertutup secara bawaan. Tombol **Ekspor laporan**
   menghasilkan PDF (kop RS, ringkasan, tanda tangan) atau Excel sesuai filter & periode
   tenggat, lengkap dengan keterangan "lewat X hari" / "selesai tanggal … (terlambat)".
+- 📅 **Tenggat tugas dari atasan dikunci** — penanggung jawab tidak dapat mengubah judul,
+  prioritas, dan tenggat tugas yang diberikan atasan; ia dapat **mengajukan perpanjangan**
+  (tanggal baru + alasan) yang disetujui/ditolak pemberi tugas, atasan berjenjang, atau
+  Admin (notifikasi + email). Setiap perubahan tenggat tercatat di riwayat aktivitas.
+  Papan Tugas menampilkan **Tugas Saya** lalu **Tugas Bawahan**, diurutkan prioritas
+  lalu tenggat terdekat.
 - 🎯 Prioritas (Rendah/Sedang/Tinggi) dan tenggat (due date) dengan penanda lewat tempo.
 - ☑️ **Sub-tugas / checklist** — pecah tugas menjadi langkah-langkah; progress &
   status dihitung **otomatis** dari rasio langkah yang selesai.

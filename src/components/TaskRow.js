@@ -15,8 +15,11 @@ export default function TaskRow({
 }) {
   const [busy, setBusy] = useState(false);
 
-  const canModify =
-    currentUser.role === ROLES.ADMIN || task.ownerId === currentUser.id;
+  // Hak dihitung server (lihat lib/taskPerms.js): status/progress oleh
+  // penanggung jawab & Admin; tombol Ubah juga untuk pemberi tugas/atasan.
+  const canModify = Boolean(task.perms?.progress);
+  const canEdit = Boolean(task.perms?.edit);
+  const extPending = task.extensions?.[0] || null;
   // Hanya admin yang boleh menghapus tugas.
   const canDelete = currentUser.role === ROLES.ADMIN;
 
@@ -119,8 +122,13 @@ export default function TaskRow({
             {formatDate(task.dueDate)}
             {overdue ? " (lewat)" : ""}
           </span>
+        ) : null}
+        {extPending ? (
+          <div className="ext-badge" title="Pengajuan perpanjangan menunggu keputusan">
+            ⏳ minta {formatDate(extPending.requestedDue)}
+          </div>
         ) : (
-          <span className="muted-sm">—</span>
+          !task.dueDate && <span className="muted-sm">—</span>
         )}
       </td>
       <td>
@@ -136,7 +144,7 @@ export default function TaskRow({
           <button className="btn btn-sm" onClick={() => onOpenDetail(task)}>
             Detail
           </button>
-          {canModify && (
+          {canEdit && (
             <button
               className="btn btn-sm"
               onClick={() => onEdit(task)}

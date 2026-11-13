@@ -42,6 +42,8 @@ model User {
   logCommented  LogComment[]   @relation("logCommentAuthor") // komentar logbook yang ditulis user
   logRevisions  LogRevision[]  @relation("logRevisionOwner") // minggu logbook user yang dikembalikan
   logRevised    LogRevision[]  @relation("logRevisionBy") // pengembalian logbook oleh user
+  extRequested  TaskExtension[] @relation("extRequester") // pengajuan perpanjangan tenggat oleh user
+  extDecided    TaskExtension[] @relation("extDecider") // keputusan perpanjangan oleh user
   ownedTasks    Task[]         @relation("owner") // tugas yang menjadi tanggung jawab user
   createdTasks  Task[]         @relation("creator") // tugas yang dibuat oleh user
   comments      Comment[] // komentar/handover yang ditulis user
@@ -90,6 +92,7 @@ model Task {
 
   logEntries LogEntry[] // kegiatan logbook yang ditautkan ke tugas ini
   reminders  TaskReminder[] // jejak email pengingat yang sudah terkirim
+  extensions TaskExtension[] // pengajuan perpanjangan tenggat
   checklist  ChecklistItem[] // sub-tugas / langkah
   comments   Comment[] // komentar & catatan handover
   activities Activity[] // riwayat aktivitas pada tugas ini
@@ -298,6 +301,31 @@ model PerfValue {
 
   @@unique([paramId, periodType, periodStart])
   @@index([periodType, periodStart])
+}
+
+// Pengajuan perpanjangan tenggat oleh penanggung jawab tugas yang diberikan
+// atasan. Diputuskan (setujui/tolak) oleh pemberi tugas, atasan berjenjang,
+// atau Admin. Disetujui -> tenggat tugas berubah ke requestedDue.
+model TaskExtension {
+  id           Int       @id @default(autoincrement())
+  previousDue  DateTime? // tenggat saat diajukan
+  requestedDue DateTime // tenggat baru yang diminta
+  reason       String
+  status       String    @default("PENDING") // PENDING | APPROVED | REJECTED
+  note         String? // catatan keputusan (opsional)
+  createdAt    DateTime  @default(now())
+  decidedAt    DateTime?
+
+  taskId Int
+  task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  requestedById Int?
+  requestedBy   User? @relation("extRequester", fields: [requestedById], references: [id], onDelete: SetNull)
+
+  decidedById Int?
+  decidedBy   User? @relation("extDecider", fields: [decidedById], references: [id], onDelete: SetNull)
+
+  @@index([taskId, status])
 }
 
 // Jejak email pengingat tenggat yang sudah terkirim, agar setiap jenis

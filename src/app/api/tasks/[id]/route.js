@@ -11,7 +11,9 @@ import {
 import { syncStatusProgress, applyChecklistProgress, completedAtFor } from "@/lib/tasks";
 import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
-import { visibleScope, inScope } from "@/lib/logbook";
+import { visibleScope, inScope, loadOrg, assignableUserIds } from "@/lib/logbook";
+import { taskPerms, withPerms } from "@/lib/taskPerms";
+import { toKey, formatDayKey } from "@/lib/logdate";
 
 const ownerSelect = {
   id: true,
@@ -26,13 +28,10 @@ const listInclude = {
   creator: { select: ownerSelect },
   checklist: { select: { id: true, done: true } },
   _count: { select: { comments: true } },
+  extensions: { where: { status: "PENDING" }, select: { id: true, requestedDue: true } },
 };
 
-// Boleh mengubah bila: admin atau pemilik (penanggung jawab) tugas.
-// (Hapus tugas: hanya admin — lihat handler DELETE.)
-function canModify(session, task) {
-  return session.role === ROLES.ADMIN || task.ownerId === session.id;
-}
+const dayLabel = (d) => (d ? formatDayKey(toKey(d), false) : "tanpa tenggat");
 
 // GET /api/tasks/:id -> detail lengkap (checklist, komentar, riwayat).
 export async function GET(request, { params }) {
@@ -57,6 +56,14 @@ export async function GET(request, { params }) {
         take: 50,
         include: { actor: { select: { id: true, name: true } } },
       },
+      extensions: {
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: {
+          requestedBy: { select: { id: true, name: true } },
+          decidedBy: { select: { id: true, name: true } },
+        },
+      },
     },
   });
   // Data tugas & cakupan hak lihat diambil bersamaan (tidak saling bergantung).
@@ -69,7 +76,8 @@ export async function GET(request, { params }) {
     return Response.json({ error: "Anda tidak berhak melihat tugas ini." }, { status: 403 });
   }
 
-  return Response.json({ task });
+  const assignable = assignableUserIds(scope.org, session.id, session.role);
+  return Response.json({ task: withPerms(task, session, assignable) });
 }
 
 // PATCH /api/tasks/:id  -> ubah status, progress, atau detail lain.
@@ -88,7 +96,10 @@ export async function PATCH(request, { params }) {
   if (!task) {
     return Response.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
   }
-  if (!canModify(session, task)) {
+  const org = await loadOrg();
+  const assignable = assignableUserIds(org, session.id, session.role);
+  const perms = taskPerms(task, session, assignable);
+  if (!perms.edit) {
     return Response.json(
       { error: "Anda tidak berhak mengubah tugas ini." },
       { status: 403 },
@@ -105,7 +116,33 @@ export async function PATCH(request, { params }) {
   const data = {};
   const changes = [];
 
-  if (typeof body.title === "string" && body.title.trim() && body.title.trim() !== task.title) {
+  // Tenggat baru (bila diminta & benar-benar berbeda).
+  let nextDue;
+  if ("dueDate" in body) {
+    if (!body.dueDate) nextDue = null;
+    else {
+      const d = new Date(body.dueDate);
+      if (!Number.isNaN(d.getTime())) nextDue = d;
+    }
+  }
+  const dueChanged =
+    nextDue !== undefined && (nextDue ? toKey(nextDue) : null) !== (task.dueDate ? toKey(task.dueDate) : null);
+  const titleChanged = typeof body.title === "string" && body.title.trim() && body.title.trim() !== task.title;
+  const prioChanged = isValidPriority(body.priority) && body.priority !== task.priority;
+
+  // Tugas dari atasan: judul, prioritas & tenggat hanya boleh diubah pemberi
+  // tugas / atasan / Admin. Penanggung jawab mengajukan perpanjangan.
+  if (!perms.core && (dueChanged || titleChanged || prioChanged)) {
+    return Response.json(
+      {
+        error:
+          "Judul, prioritas, dan tenggat tugas dari atasan hanya dapat diubah oleh pemberi tugas. Gunakan “Ajukan perpanjangan” untuk meminta tenggat baru.",
+      },
+      { status: 403 },
+    );
+  }
+
+  if (titleChanged) {
     data.title = body.title.trim();
     changes.push("judul");
   }
@@ -120,14 +157,10 @@ export async function PATCH(request, { params }) {
     data.priority = body.priority;
     changes.push("prioritas");
   }
-  if ("dueDate" in body) {
-    if (!body.dueDate) {
-      data.dueDate = null;
-    } else {
-      const d = new Date(body.dueDate);
-      if (!Number.isNaN(d.getTime())) data.dueDate = d;
-    }
-    changes.push("tenggat");
+  let dueDetail = null;
+  if (dueChanged) {
+    data.dueDate = nextDue;
+    dueDetail = `Tenggat diubah dari ${dayLabel(task.dueDate)} ke ${dayLabel(nextDue)}`;
   }
 
   // Admin boleh memindahkan kepemilikan tugas.
@@ -147,7 +180,7 @@ export async function PATCH(request, { params }) {
   // Bila punya checklist, progress dikendalikan checklist (abaikan input manual).
   let statusDetail = null;
   let progressDetail = null;
-  if (!hasChecklist) {
+  if (!hasChecklist && perms.progress) {
     let nextStatus = isValidStatus(body.status) ? body.status : task.status;
     let nextProgress =
       body.progress === undefined ? task.progress : clampProgress(body.progress);
@@ -179,6 +212,18 @@ export async function PATCH(request, { params }) {
     await applyChecklistProgress(taskId);
   }
 
+  // Tenggat diubah pemberi tugas/atasan -> beri tahu penanggung jawab
+  // (dan sebaliknya: perubahan oleh penanggung jawab tugas pribadi tidak perlu).
+  if (dueDetail && task.ownerId !== session.id) {
+    await notify({
+      userId: task.ownerId,
+      actorId: session.id,
+      type: "DUE_CHANGED",
+      message: `${session.name} mengubah tenggat "${task.title}" menjadi ${dayLabel(nextDue)}`,
+      taskId,
+    });
+  }
+
   // Notifikasi ke pemilik baru bila tugas dialihkan.
   if (data.ownerId) {
     await notify({
@@ -192,6 +237,7 @@ export async function PATCH(request, { params }) {
 
   // Susun catatan aktivitas.
   const details = [];
+  if (dueDetail) details.push(dueDetail);
   if (statusDetail) details.push(statusDetail);
   if (progressDetail) details.push(progressDetail);
   if (movedToName) details.push(`Dipindahkan ke ${movedToName}`);
@@ -210,7 +256,7 @@ export async function PATCH(request, { params }) {
     include: listInclude,
   });
 
-  return Response.json({ task: updated });
+  return Response.json({ task: withPerms(updated, session, assignable) });
 }
 
 // DELETE /api/tasks/:id

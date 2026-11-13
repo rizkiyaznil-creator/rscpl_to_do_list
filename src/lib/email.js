@@ -73,11 +73,13 @@ const KINDS = {
   h1: { heading: "📅 Pengingat: Tenggat Besok (H-1)", subject: "Tenggat besok" },
   today: { heading: "⏰ Pengingat: Tenggat Hari Ini", subject: "Tenggat hari ini" },
   overdue: { heading: "⚠️ Tugas Lewat Tenggat", subject: "Lewat tenggat" },
+  extension: { heading: "📅 Pengajuan Perpanjangan Tenggat", subject: "Pengajuan perpanjangan tenggat" },
 };
 
 // Bangun subject + isi email pengingat tugas.
 //   kind: "new" | "h3" | "h1" | "today" | "overdue"
 //   opts: { ownerName, daysOverdue, cced } — untuk email lewat tenggat
+//         { message } — paragraf tambahan (teks biasa), mis. alasan perpanjangan
 export function taskReminderEmail(task, kind, opts = {}) {
   const k = KINDS[kind] || KINDS.today;
   const prio = PRIORITY_LABELS[task.priority] || task.priority;
@@ -104,6 +106,7 @@ export function taskReminderEmail(task, kind, opts = {}) {
     <div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;padding:18px 20px">
       <h3 style="margin:0 0 10px;font-size:16px">${escapeHtml(task.title)}</h3>
       ${late ? `<p style="margin:0 0 12px;color:#b91c1c">${late}</p>` : ""}
+      ${opts.message ? `<p style="margin:0 0 12px;padding:10px 12px;background:#fff7ed;border-left:4px solid #e8674c;border-radius:6px;white-space:pre-wrap">${escapeHtml(opts.message)}</p>` : ""}
       ${task.description ? `<p style="margin:0 0 14px;color:#4b5563">${escapeHtml(task.description)}</p>` : ""}
       <table style="font-size:14px;border-collapse:collapse">
         ${rows.map(([a, b]) => `<tr><td style="padding:4px 14px 4px 0;color:#6b7280">${a}</td><td style="font-weight:600">${b}</td></tr>`).join("")}
@@ -121,6 +124,7 @@ export function taskReminderEmail(task, kind, opts = {}) {
   const text =
     `${k.heading}\n\n${task.title}\n` +
     (kind === "overdue" && opts.daysOverdue ? `Telah melewati tenggat ${opts.daysOverdue} hari dan belum selesai.\n` : "") +
+    (opts.message ? `${opts.message}\n` : "") +
     (task.description ? `${task.description}\n` : "") +
     `\n${rows.map(([a, b]) => `${a}: ${String(b).replace(/<[^>]+>/g, "")}`).join("\n")}\n\nBuka tugas: ${link}\n\n— Manajemen Tugas RS CPL USU`;
 
