@@ -13,8 +13,8 @@ import { logActivity } from "@/lib/activity";
 import { notify } from "@/lib/notifications";
 import { visibleScope, loadOrg, assignableUserIds } from "@/lib/logbook";
 import { withPerms } from "@/lib/taskPerms";
-import { visibleTaskWhere, inviteMode, isSelectable, MEMBER_SELECT } from "@/lib/taskAccess";
-import { addPerson, notifySuperiors } from "@/lib/taskTeam";
+import { visibleTaskWhere, isSelectable, MEMBER_SELECT } from "@/lib/taskAccess";
+import { addPerson } from "@/lib/taskTeam";
 import { sendEmail, taskReminderEmail } from "@/lib/email";
 
 const ownerSelect = {
@@ -106,11 +106,10 @@ export async function POST(request) {
   const org = await loadOrg();
   const assignable = assignableUserIds(org, session.id, session.role);
 
-  // Tugas bersama lintas bidang: PIC utama + anggota. PIC yang perlu
-  // persetujuan (sesama tingkat/lebih tinggi) diundang dulu; sementara itu
-  // pembuat menjadi pemilik tugas.
+  // Tugas bersama lintas bidang: PIC utama + anggota. PIC hanya dapat
+  // dipilih dari diri sendiri atau bawahan berjenjang (Direktur & Admin:
+  // siapa saja); anggota boleh lintas bidang (langsung / perlu persetujuan).
   const shared = body?.shared === true;
-  let pendingPicId = null;
   let memberIds = [];
 
   // Tentukan pemilik tugas: diri sendiri, atau bawahan berjenjang (Admin: siapa saja).
@@ -120,12 +119,17 @@ export async function POST(request) {
     if (!isSelectable(org, picId)) {
       return Response.json({ error: "PIC utama tidak valid." }, { status: 400 });
     }
-    if (inviteMode(org, session, picId, assignable) === "direct") ownerId = picId;
-    else pendingPicId = picId;
+    if (!assignable.has(picId)) {
+      return Response.json(
+        { error: "PIC utama hanya dapat dipilih dari diri sendiri atau bawahan Anda." },
+        { status: 403 },
+      );
+    }
+    ownerId = picId;
     memberIds = [...new Set((Array.isArray(body?.memberIds) ? body.memberIds : []).map(Number))].filter(
       (id) => Number.isInteger(id) && id !== picId && isSelectable(org, id),
     );
-    if (memberIds.length === 0 && !pendingPicId && ownerId === session.id) {
+    if (memberIds.length === 0 && ownerId === session.id) {
       return Response.json({ error: "Pilih minimal satu anggota tim untuk tugas bersama." }, { status: 400 });
     }
   } else if (body?.ownerId && Number(body.ownerId) !== session.id) {
@@ -177,15 +181,13 @@ export async function POST(request) {
     actorId: session.id,
     action: "CREATE_TASK",
     detail: shared
-      ? `Membuat tugas bersama "${task.title}" (PIC: ${org.userById.get(pendingPicId || ownerId)?.name}${pendingPicId ? ", menunggu persetujuan" : ""})`
+      ? `Membuat tugas bersama "${task.title}" (PIC: ${org.userById.get(ownerId)?.name})`
       : owner.id === session.id
         ? `Membuat tugas "${task.title}"`
         : `Membuat tugas "${task.title}" untuk ${owner.name}`,
   });
 
   if (shared) {
-    if (pendingPicId) await addPerson({ org, session, assignable, task, userId: pendingPicId, role: "PIC" });
-    else await notifySuperiors({ org, session, assignable, targetId: ownerId, task });
     for (const id of memberIds) await addPerson({ org, session, assignable, task, userId: id });
   }
 

@@ -29,10 +29,12 @@ export function inviteMode(org, session, targetId, assignable) {
   return rankOf(org, session.id) < rankOf(org, targetId) ? "direct" : "approval";
 }
 
-// Personel yang dapat dipilih sebagai PIC/anggota (aktif, bukan Subadmin).
+// Personel yang dapat dipilih sebagai PIC/anggota: aktif, bukan Subadmin,
+// dan bukan akun Admin sistem tanpa jabatan.
 export function isSelectable(org, userId) {
   const u = org.userById.get(userId);
-  return Boolean(u && u.status === USER_STATUS.ACTIVE && u.role !== ROLES.SUBADMIN);
+  if (!u || u.status !== USER_STATUS.ACTIVE || u.role === ROLES.SUBADMIN) return false;
+  return !(u.role === ROLES.ADMIN && u.positionId == null);
 }
 
 export const MEMBER_SELECT = {

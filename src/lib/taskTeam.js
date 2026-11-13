@@ -72,6 +72,3 @@ export async function addPerson({ org, session, assignable, task, userId, role =
   }
   return mode;
 }
-
-// Beri tahu atasan PIC lintas bidang (PIC langsung ditetapkan saat membuat).
-export { notifySuperiors };

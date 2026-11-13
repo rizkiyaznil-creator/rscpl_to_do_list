@@ -20,6 +20,8 @@ export async function GET() {
         name: u.name,
         position: p ? { name: p.name, level: p.level, bidang: p.bidang } : null,
         mode: inviteMode(org, session, u.id, assignable),
+        // Boleh dijadikan PIC utama: diri sendiri / bawahan berjenjang (Direktur & Admin: semua).
+        canPic: assignable.has(u.id),
       };
     })
     .sort((a, b) => (a.position?.bidang || "~").localeCompare(b.position?.bidang || "~") || a.name.localeCompare(b.name));
