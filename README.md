@@ -143,7 +143,10 @@ npm run dev
 
 Aplikasi ini siap di-deploy **gratis** ke **Vercel** dengan database **PostgreSQL**
 dari **Neon** — **tanpa perlu mengetik perintah apa pun**. Saat deploy, Vercel
-otomatis membuat tabel database & akun admin (lewat skrip `vercel-build`).
+otomatis membuat tabel database & akun admin (lewat skrip `vercel-build` →
+`prisma/build-db.js`). Sinkron skema & seed **hanya berjalan pada build Production**;
+build Preview melewatinya agar tidak bentrok dengan build Production yang memakai
+database yang sama.
 Hasilnya: URL `https://....vercel.app` yang bisa dibuka dari **HP mana pun**,
 HTTPS otomatis, dan data tersimpan permanen.
 
