@@ -181,6 +181,14 @@ export default function PerformaDashboard({ currentUser }) {
           </div>
         )}
 
+        {/* Data Kamar Operasi berasal dari aplikasi Jadwal Operasi (bukan input
+            manual), jadi tetap tampil walau data manual belum ada. */}
+        {data && !hasAny && (
+          <div className="pf-grid">
+            <OkSection gran={gran} periodKey={data.period.key} />
+          </div>
+        )}
+
         {data && hasAny && (
           <div style={{ opacity: loading ? 0.6 : 1, transition: "opacity .15s" }}>
             {gran === "week" && (
