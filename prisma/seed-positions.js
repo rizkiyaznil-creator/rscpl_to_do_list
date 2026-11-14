@@ -252,8 +252,11 @@ const OK_PARAMS = [
   ["ok_tunggu", "Waktu tunggu operasi elektif (median)", "STOCK", "hari"],
   ["ok_util", "Utilisasi kapasitas tim kamar operasi", "RATIO", "%"],
 ];
-async function upgradeJadwalOkParams(prisma) {
-  const op = await prisma.perfParam.findUnique({ where: { code: "op_elektif" } });
+// Ubah parameter MINGGUAN menjadi BULANAN otomatis. Data mingguan lama tetap
+// tersimpan; bulan yang belum punya data bulanan diisi ringkasan mingguannya
+// (minggu dihitung ke bulan hari Kamis-nya). Idempoten.
+async function toMonthlyAuto(prisma, code, { auto, source, name }) {
+  const op = await prisma.perfParam.findUnique({ where: { code } });
   if (op && op.freq === "WEEK") {
     const weekly = await prisma.perfValue.findMany({ where: { paramId: op.id, periodType: "WEEK" } });
     const byMonth = new Map();
@@ -272,10 +275,14 @@ async function upgradeJadwalOkParams(prisma) {
     }
     await prisma.perfParam.update({
       where: { id: op.id },
-      data: { freq: "MONTH", auto: "JADWAL_OK", source: OK_SOURCE, name: "Operasi elektif (dilaksanakan)" },
+      data: { freq: "MONTH", auto, source, ...(name && { name }) },
     });
-    console.log(`Operasi elektif -> bulanan otomatis (${byMonth.size} bulan diringkas dari data mingguan).`);
+    console.log(`${code} -> bulanan otomatis (${byMonth.size} bulan diringkas dari data mingguan).`);
   }
+}
+
+async function upgradeJadwalOkParams(prisma) {
+  await toMonthlyAuto(prisma, "op_elektif", { auto: "JADWAL_OK", source: OK_SOURCE, name: "Operasi elektif (dilaksanakan)" });
   await prisma.perfParam.updateMany({
     where: { code: "inm_tunda", auto: null },
     data: { auto: "JADWAL_OK", source: OK_SOURCE },
@@ -292,7 +299,29 @@ async function upgradeJadwalOkParams(prisma) {
   }
 }
 
-module.exports = { seedPositions, seedLogCategories, seedPerfParams, unlockOngoingWeeks, backfillCompletedAt, upgradeJadwalOkParams };
+// Laporan bulanan Unit Rekam Medis menjadi sumber resmi volume pelayanan &
+// indikator rawat inap (Barber-Johnson dari laporan RM). Idempoten:
+//  - Kunjungan RJ, IGD, pasien dirawat inap, lab, radiologi -> bulanan otomatis (RM).
+//  - Sensus harian mingguan (TT, hari perawatan, lama dirawat, pasien keluar,
+//    kematian) dinonaktifkan; datanya tetap tersimpan.
+const RM_SOURCE = "Laporan Rekam Medis (otomatis)";
+async function upgradeRmParams(prisma) {
+  const map = [
+    ["rajal", "Kunjungan rawat jalan"],
+    ["igd", "Kunjungan IGD"],
+    ["ranap_masuk", "Pasien dirawat inap"],
+    ["lab", "Pemeriksaan laboratorium"],
+    ["rad", "Pemeriksaan radiologi"],
+  ];
+  for (const [code, name] of map) await toMonthlyAuto(prisma, code, { auto: "RM", source: RM_SOURCE, name });
+  const { count } = await prisma.perfParam.updateMany({
+    where: { code: { in: ["tt", "hp", "ld", "keluar_hidup", "mati_lt48", "mati_ge48"] }, active: true },
+    data: { active: false },
+  });
+  if (count) console.log(`Sensus mingguan dinonaktifkan (${count} parameter) — Barber-Johnson dari laporan RM.`);
+}
+
+module.exports = { seedPositions, seedLogCategories, seedPerfParams, unlockOngoingWeeks, backfillCompletedAt, upgradeJadwalOkParams, upgradeRmParams };
 
 if (require.main === module) {
   const prisma = new PrismaClient();
@@ -302,6 +331,7 @@ if (require.main === module) {
     .then(() => unlockOngoingWeeks(prisma))
     .then(() => backfillCompletedAt(prisma))
     .then(() => upgradeJadwalOkParams(prisma))
+    .then(() => upgradeRmParams(prisma))
     .catch((e) => {
       console.error(e);
       process.exit(1);

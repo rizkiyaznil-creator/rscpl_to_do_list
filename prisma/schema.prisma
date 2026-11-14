@@ -44,6 +44,7 @@ model User {
   logRevised    LogRevision[]  @relation("logRevisionBy") // pengembalian logbook oleh user
   extRequested  TaskExtension[] @relation("extRequester") // pengajuan perpanjangan tenggat oleh user
   extDecided    TaskExtension[] @relation("extDecider") // keputusan perpanjangan oleh user
+  rmUploads     RmReport[]     @relation("rmUploader") // laporan Rekam Medis yang diunggah user
   taskMembers   TaskMember[]   @relation("taskMember") // keanggotaan tugas bersama
   taskInvites   TaskMember[]   @relation("taskInviter") // undangan tugas bersama yang dikirim user
   checklistAssigned ChecklistItem[] @relation("checklistAssignee") // langkah checklist bagian user
@@ -318,6 +319,22 @@ model PerfParam {
   auto     String?
 
   values PerfValue[]
+}
+
+// Laporan bulanan Unit Rekam Medis (diunggah dari file Excel RM): rawat jalan,
+// IGD, rawat inap, indikator Barber-Johnson, 10 penyakit terbanyak, operasi
+// IBP, dll. (JSON hasil pembacaan file). Satu baris per bulan; revisi yang
+// tersimpan paling akhir (sourceModified) dipakai.
+model RmReport {
+  id             Int       @id @default(autoincrement())
+  month          DateTime  @unique @db.Date // tanggal 1 bulan tsb
+  data           Json
+  sourceFile     String?
+  sourceModified DateTime? // tanggal simpan workbook (penentu revisi terbaru)
+  updatedAt      DateTime  @updatedAt
+
+  uploadedById Int?
+  uploadedBy   User? @relation("rmUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
 }
 
 // Ringkasan laporan bulanan dari aplikasi Jadwal Operasi (IBP), ditarik

@@ -188,8 +188,38 @@ function barberJohnson(weekRows) {
   return out;
 }
 
+// Indikator Barber-Johnson dari laporan bulanan Rekam Medis (bila sensus
+// mingguan tidak tersedia). bjMonthly: Map "YYYY-MM" -> { bor, alos, toi,
+// btoBulan, ndr, gdr, n }. Beberapa bulan: BOR & TOI dirata-rata; ALOS, NDR,
+// GDR dirata-rata berbobot jumlah pasien; BTO dijumlah lalu disetahunkan.
+function bjFromMonthly(bjMonthly, period) {
+  const months = period.week ? [monthOfWeek(period.week)] : period.months;
+  const es = months.map((m) => bjMonthly.get(m)).filter(Boolean);
+  if (!es.length) return null;
+  const ok = (v) => typeof v === "number" && Number.isFinite(v);
+  const mean = (k) => {
+    const vs = es.map((e) => e[k]).filter(ok);
+    return vs.length ? vs.reduce((s, v) => s + v, 0) / vs.length : null;
+  };
+  const wmean = (k) => {
+    const vs = es.filter((e) => ok(e[k]));
+    const W = vs.reduce((s, e) => s + (e.n || 0), 0);
+    return !vs.length ? null : W ? vs.reduce((s, e) => s + e[k] * (e.n || 0), 0) / W : mean(k);
+  };
+  const bto = es.filter((e) => ok(e.btoBulan));
+  return {
+    bor: mean("bor"),
+    alos: wmean("alos"),
+    toi: mean("toi"),
+    bto: bto.length ? (bto.reduce((s, e) => s + e.btoBulan, 0) * 12) / bto.length : null,
+    gdr: wmean("gdr"),
+    ndr: wmean("ndr"),
+  };
+}
+
 // Nilai semua parameter + indikator Barber-Johnson untuk satu periode.
-export function aggregate(params, rows, period, index = indexRows(rows)) {
+// opts.bjMonthly: indikator rawat inap bulanan dari laporan Rekam Medis.
+export function aggregate(params, rows, period, index = indexRows(rows), opts = {}) {
   const values = {};
   const weekRows = new Map();
   for (const p of params) {
@@ -200,13 +230,14 @@ export function aggregate(params, rows, period, index = indexRows(rows)) {
     values[p.code] = combine(p.kind, rs);
     if (p.freq === "WEEK") weekRows.set(p.code, rs.filter((r) => r.type === "WEEK"));
   }
-  const bj = barberJohnson(weekRows);
-  for (const d of BJ_DEFS) values[d.code] = bj[d.code] === null ? null : { v: bj[d.code] };
+  let bj = barberJohnson(weekRows);
+  if (opts.bjMonthly && BJ_DEFS.every((d) => bj[d.code] === null)) bj = bjFromMonthly(opts.bjMonthly, period) || bj;
+  for (const d of BJ_DEFS) values[d.code] = bj[d.code] == null ? null : { v: bj[d.code] };
   return values;
 }
 
 // Seri tren: nilai tiap kode untuk `count` periode terakhir s.d. `key`.
-export function trend(params, rows, gran, key, count = TREND_LENGTH[gran]) {
+export function trend(params, rows, gran, key, count = TREND_LENGTH[gran], opts = {}) {
   const index = indexRows(rows);
   const keys = periodSeries(gran === "multi" ? "year" : gran, key, count);
   const periods = keys.map((k) => makePeriod(gran === "multi" ? "year" : gran, k));
@@ -214,14 +245,14 @@ export function trend(params, rows, gran, key, count = TREND_LENGTH[gran]) {
   const codes = [...params.map((p) => p.code), ...BJ_DEFS.map((d) => d.code)];
   for (const c of codes) series[c] = [];
   for (const per of periods) {
-    const agg = aggregate(params, rows, per, index);
+    const agg = aggregate(params, rows, per, index, opts);
     for (const c of codes) series[c].push(agg[c]?.v ?? null);
   }
   return { periods: periods.map(({ key: k, label, short }) => ({ key: k, label, short })), series };
 }
 
 // Perbandingan multi-tahun: nilai bulanan (12 titik) per tahun untuk tiap kode.
-export function monthlyByYear(params, rows, years) {
+export function monthlyByYear(params, rows, years, opts = {}) {
   const index = indexRows(rows);
   const out = {};
   const codes = [...params.map((p) => p.code), ...BJ_DEFS.map((d) => d.code)];
@@ -229,7 +260,7 @@ export function monthlyByYear(params, rows, years) {
   for (const y of years) {
     for (const c of codes) out[c][y] = [];
     for (let m = 0; m < 12; m++) {
-      const agg = aggregate(params, rows, makePeriod("month", ymKey(y, m)), index);
+      const agg = aggregate(params, rows, makePeriod("month", ymKey(y, m)), index, opts);
       for (const c of codes) out[c][y].push(agg[c]?.v ?? null);
     }
   }
