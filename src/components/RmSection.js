@@ -251,7 +251,7 @@ export default function RmSection({ gran, periodKey }) {
               </div>
               <p className="muted-sm" style={{ marginTop: 4 }}>
                 KSM dipetakan dari &quot;Sub Spesialis Bedah&quot; laporan RM (nama KSM sama dengan aplikasi Jadwal Operasi). KSM Bedah =
-                bedah umum, digestif, onkologi, vaskular &amp; endovaskular. Laporan RM tidak memuat data per DPJP.
+                bedah umum, anak, digestif, onkologi, vaskular &amp; endovaskular; bedah paru masuk KSM Paru. Laporan RM tidak memuat data per DPJP.
               </p>
             </>
           )}
