@@ -24,6 +24,7 @@ import {
   BJ_STATUS_TEXT,
 } from "@/lib/perfcalc";
 import { downloadPerformaCsv, generatePerformaPdf } from "@/lib/performaExport";
+import OkSection from "@/components/OkSection";
 
 const BJ = Object.fromEntries(BJ_DEFS.map((d) => [d.code, d]));
 const INSIDEN = ["ktd", "knc", "ktc", "kpc", "sentinel"];
@@ -369,14 +370,16 @@ export default function PerformaDashboard({ currentUser }) {
                 </table>
               </section>
 
-              {params.some((p) => !["A", "B", "C", "D"].includes(p.group)) && (
+              <OkSection gran={gran} periodKey={key} />
+
+              {params.some((p) => !["A", "B", "C", "D", "G"].includes(p.group)) && (
                 <section className="pf-card">
                   <h3 className="ct">Parameter lainnya</h3>
                   <p className="cs">{data.period.label}</p>
                   <table className="t2 clickable">
                     <thead><tr><th>Parameter</th><th className="n">Nilai</th><th>Target</th><th>Status</th></tr></thead>
                     <tbody>
-                      {params.filter((p) => !["A", "B", "C", "D"].includes(p.group)).map((p) => {
+                      {params.filter((p) => !["A", "B", "C", "D", "G"].includes(p.group)).map((p) => {
                         const s = targetStatus(p, v(p.code));
                         return (
                           <tr key={p.code} onClick={() => setDetail(p.code)}>

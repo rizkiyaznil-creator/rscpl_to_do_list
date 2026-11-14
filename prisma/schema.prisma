@@ -313,8 +313,23 @@ model PerfParam {
   order    Int     @default(0)
   active   Boolean @default(true)
   builtin  Boolean @default(false)
+  // Sumber otomatis (null = diinput manual). "JADWAL_OK" = aplikasi Jadwal
+  // Operasi; parameter otomatis tidak muncul di form input & template Excel.
+  auto     String?
 
   values PerfValue[]
+}
+
+// Ringkasan laporan bulanan dari aplikasi Jadwal Operasi (IBP), ditarik
+// otomatis: jumlah operasi, indikator mutu, dan rekap per KSM (data JSON
+// apa adanya dari GET /api/integrasi/laporan-bulanan). Bulan berjalan =
+// data sementara (final = false).
+model OkReport {
+  id        Int      @id @default(autoincrement())
+  month     DateTime @unique @db.Date // tanggal 1 bulan tsb
+  final     Boolean  @default(false)
+  data      Json
+  fetchedAt DateTime @updatedAt
 }
 
 // Nilai satu parameter untuk satu periode (minggu: Senin; bulan: tanggal 1).

@@ -12,7 +12,7 @@ export async function GET() {
   if (!canInputPerforma(session.role)) {
     return Response.json({ error: "Hanya Admin/Subadmin." }, { status: 403 });
   }
-  const buf = await buildTemplate(await loadParams());
+  const buf = await buildTemplate(await loadParams({ manualOnly: true }));
   return new Response(buf, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

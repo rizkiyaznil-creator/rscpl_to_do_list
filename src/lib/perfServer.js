@@ -9,12 +9,14 @@ export { parseNumberLoose };
 
 export const PARAM_FIELDS = {
   id: true, code: true, name: true, group: true, freq: true, kind: true, unit: true,
-  source: true, targetOp: true, target: true, order: true, active: true, builtin: true,
+  source: true, targetOp: true, target: true, order: true, active: true, builtin: true, auto: true,
 };
 
-export async function loadParams({ activeOnly = true } = {}) {
+// manualOnly: hanya parameter yang diinput manual (untuk form input, template
+// & impor Excel); parameter otomatis (mis. dari Jadwal Operasi) dikecualikan.
+export async function loadParams({ activeOnly = true, manualOnly = false } = {}) {
   return prisma.perfParam.findMany({
-    where: activeOnly ? { active: true } : {},
+    where: { ...(activeOnly && { active: true }), ...(manualOnly && { auto: null }) },
     orderBy: [{ group: "asc" }, { order: "asc" }, { id: "asc" }],
     select: PARAM_FIELDS,
   });

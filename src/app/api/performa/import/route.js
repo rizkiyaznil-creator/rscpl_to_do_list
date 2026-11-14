@@ -31,7 +31,7 @@ export async function POST(request) {
     return Response.json({ error: "Ukuran file maksimal 4 MB." }, { status: 400 });
   }
 
-  const params = await loadParams();
+  const params = await loadParams({ manualOnly: true });
   const { periods, errors } = await parseWorkbook(await file.arrayBuffer(), params);
 
   // Validasi isian tiap periode dengan aturan yang sama seperti form input.
