@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import Reports from "@/components/Reports";
 
 export const metadata = {
-  title: "Laporan | RSCPL To-Do",
+  title: "Laporan | RSP CPL USU",
 };
 
 export default async function LaporanPage() {

@@ -38,13 +38,13 @@ function styleHeader(row) {
 
 export async function buildTemplate(params) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = "RS CPL USU";
+  wb.creator = "RSP CPL USU";
 
   // ---- Petunjuk ----
   const info = wb.addWorksheet("Petunjuk");
   info.columns = [{ width: 24 }, { width: 46 }, { width: 10 }, { width: 12 }, { width: 18 }, { width: 38 }, { width: 12 }];
   const lines = [
-    ["Template Impor Data Performa RS — RS CPL USU"],
+    ["Template Impor Data Performa RS — RSP CPL USU"],
     [],
     ["Cara mengisi:"],
     ["1.", "Sheet \"Mingguan\": satu baris = satu minggu. Kolom pertama diisi tanggal SENIN minggu tsb (format 2025-01-06). Tanggal lain dalam minggu yang sama otomatis disesuaikan ke Senin."],

@@ -38,7 +38,7 @@ const HELP = {
       <>Buka aplikasi ini di <b>Safari</b>.</>,
       <>Ketuk tombol <b>Bagikan</b> <ShareIcon /> (kotak dengan panah ke atas) di bagian bawah layar.</>,
       <>Gulir lalu pilih <b>Tambah ke Layar Utama</b> (Add to Home Screen).</>,
-      <>Ketuk <b>Tambah</b>. Ikon RS CPL USU akan muncul di layar utama.</>,
+      <>Ketuk <b>Tambah</b>. Ikon RSP CPL USU akan muncul di layar utama.</>,
     ],
   },
   android: {
@@ -46,7 +46,7 @@ const HELP = {
     steps: [
       <>Ketuk menu <b>⋮</b> di kanan atas Chrome.</>,
       <>Pilih <b>Instal aplikasi</b> atau <b>Tambahkan ke layar utama</b>.</>,
-      <>Ketuk <b>Instal</b>. Ikon RS CPL USU akan muncul di layar utama.</>,
+      <>Ketuk <b>Instal</b>. Ikon RSP CPL USU akan muncul di layar utama.</>,
     ],
   },
   samsung: {
@@ -202,7 +202,7 @@ export default function InstallApp({ variant = "block" }) {
               ))}
             </ol>
             <p className="muted-sm" style={{ margin: "0 0 8px" }}>
-              Sudah pernah di-install? Buka aplikasi <b>RS CPL USU</b> dari layar utama / daftar
+              Sudah pernah di-install? Buka aplikasi <b>RSP CPL USU</b> dari layar utama / daftar
               aplikasi.
             </p>
             <div className="modal-actions">

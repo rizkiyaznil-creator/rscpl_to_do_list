@@ -1,5 +1,5 @@
 // =============================================================================
-//  PROFIL RUMAH SAKIT  —  RS CPL USU
+//  PROFIL RUMAH SAKIT  —  RSP CPL USU
 // =============================================================================
 //  File ini berisi seluruh konten yang tampil di halaman awal (landing):
 //  nama, visi, misi, falsafah, nilai/pilar, dan timeline/milestone.
@@ -12,7 +12,7 @@
 // =============================================================================
 
 export const hospital = {
-  name: "RS CPL USU",
+  name: "RSP CPL USU",
   fullName: "Rumah Sakit Pendidikan CPL USU",
   tagline:
     "Smart Academic Health Centre yang mengintegrasikan pelayanan, " +
@@ -36,7 +36,7 @@ export const hospital = {
   // `labelId` = padanan Indonesia; `desc` = penjelasan resmi.
   moto: {
     name: "CAREST",
-    subtitle: "Moto & Nilai Utama RS CPL USU",
+    subtitle: "Moto & Nilai Utama RSP CPL USU",
     values: [
       {
         letter: "C",

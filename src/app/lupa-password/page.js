@@ -11,7 +11,7 @@ export default function LupaPasswordPage() {
     <div className="login-wrap">
       <div className="login-card">
         <div className="login-logo">
-          <img className="mark" src="/logo-rsusu.png" alt="Logo RS CPL USU" />
+          <img className="mark" src="/logo-rsusu.png" alt="Logo RSP CPL USU" />
           <div>
             <h1>{hospital.name}</h1>
           </div>

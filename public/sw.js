@@ -2,7 +2,7 @@
 // Tidak menyimpan data aplikasi di cache: semua permintaan tetap ke server
 // (data selalu terbaru). Bila koneksi terputus saat membuka halaman,
 // tampilkan halaman "offline" sederhana.
-const CACHE = "rscpl-offline-v1";
+const CACHE = "rscpl-offline-v2";
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [OFFLINE_URL, "/icon-192.png", "/logo-rsusu.png"];
 
