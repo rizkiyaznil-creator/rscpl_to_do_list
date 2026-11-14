@@ -66,6 +66,8 @@ function table(rows, headRe, { icd = false } = {}) {
       break;
     }
     if (!anyNum && /^[A-Z0-9 .,()/&-]{8,}$/.test(label) && items.length) break; // judul bagian berikutnya
+    // header tabel berikutnya (mis. "No. | List Tindakan Operasi | Jumlah") tanpa baris total di antaranya
+    if (!anyNum && items.length && Object.values(x.cells).some((v) => /^jumlah$/i.test(String(v).trim()))) break;
     if (!label || !anyNum) continue;
     const jumlah = jumlahCol > 0 && isNum(x.cells[jumlahCol]) ? x.cells[jumlahCol] : lastNum(x);
     const it = { nama: label, jumlah };
@@ -236,6 +238,8 @@ export function rmChecks(r) {
   if (r.rj && r.rj.perPoli.length && r.rj.total != null && sum(r.rj.perPoli) !== r.rj.total) notes.push("Jumlah per poli ≠ total RJ");
   if (r.igd && r.igd.perSpesialis.length && r.igd.total != null && sum(r.igd.perSpesialis) !== r.igd.total) notes.push("Jumlah per spesialisasi ≠ total IGD");
   if (r.ri && r.ri.perRuang.length && r.ri.total != null && sum(r.ri.perRuang) !== r.ri.total) notes.push("Jumlah per ruangan ≠ total RI");
+  const ibp = r.rj?.ibp;
+  if (ibp?.perSub.length && ibp.total != null && sum(ibp.perSub) !== ibp.total) notes.push("Jumlah operasi per sub-spesialis ≠ total pasien bedah");
   if (!r.rj) notes.push("Lembar RJ tidak ada");
   if (!r.igd) notes.push("Lembar IGD tidak ada");
   if (!r.ri) notes.push("Lembar RI tidak ada");
