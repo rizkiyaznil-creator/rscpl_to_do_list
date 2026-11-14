@@ -4,7 +4,7 @@ import { ROLES } from "@/lib/constants";
 import PositionManager from "@/components/PositionManager";
 
 export const metadata = {
-  title: "Kelola Jabatan | RS CPL USU",
+  title: "Kelola Jabatan | RSP CPL USU",
 };
 
 export default async function JabatanPage() {

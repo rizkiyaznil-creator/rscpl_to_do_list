@@ -4,7 +4,7 @@ import { canInputPerforma } from "@/lib/constants";
 import PerformaInput from "@/components/PerformaInput";
 
 export const metadata = {
-  title: "Input Performa RS | RS CPL USU",
+  title: "Input Performa RS | RSP CPL USU",
 };
 
 export default async function PerformaInputPage() {

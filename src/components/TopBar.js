@@ -38,7 +38,7 @@ export default function TopBar({ user }) {
           className="brand"
           style={{ color: "inherit" }}
         >
-          <img className="mark" src="/logo-rsusu.png" alt="Logo RS CPL USU" />
+          <img className="mark" src="/logo-rsusu.png" alt="Logo RSP CPL USU" />
           <span>
             {hospital.name}
             <small>Manajemen Tugas Personel</small>

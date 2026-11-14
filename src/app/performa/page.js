@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import PerformaDashboard from "@/components/PerformaDashboard";
 
 export const metadata = {
-  title: "Performa RS | RS CPL USU",
+  title: "Performa RS | RSP CPL USU",
 };
 
 export default async function PerformaPage() {

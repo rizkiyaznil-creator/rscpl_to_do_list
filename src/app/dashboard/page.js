@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import Dashboard from "@/components/Dashboard";
 
 export const metadata = {
-  title: "Dashboard | RS CPL USU",
+  title: "Dashboard | RSP CPL USU",
 };
 
 export default async function DashboardPage() {

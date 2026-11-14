@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import LogbookPage from "@/components/LogbookPage";
 
 export const metadata = {
-  title: "Logbook | RS CPL USU",
+  title: "Logbook | RSP CPL USU",
 };
 
 export default async function Logbook() {

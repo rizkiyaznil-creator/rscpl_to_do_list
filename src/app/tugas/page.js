@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import Board from "@/components/Board";
 
 export const metadata = {
-  title: "Tugas | RS CPL USU",
+  title: "Tugas | RSP CPL USU",
 };
 
 export default async function TugasPage() {

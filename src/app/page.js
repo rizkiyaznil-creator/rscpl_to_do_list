@@ -17,7 +17,7 @@ export default async function Home() {
       <header className="lp-hero">
         <nav className="lp-nav">
           <div className="brand" style={{ color: "#fff" }}>
-            <img className="mark" src="/logo-rsusu.png" alt="Logo RS CPL USU" />
+            <img className="mark" src="/logo-rsusu.png" alt="Logo RSP CPL USU" />
             <span>
               {hospital.name}
               <small style={{ color: "rgba(255,255,255,.8)" }}>

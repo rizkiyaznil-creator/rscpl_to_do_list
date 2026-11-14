@@ -39,7 +39,7 @@ export async function sendEmail({ to, cc, subject, html, text, important = true 
     console.warn("SMTP belum dikonfigurasi (SMTP_USER/SMTP_PASS) — email dilewati.");
     return false;
   }
-  const fromName = process.env.SMTP_FROM_NAME || "RS CPL USU";
+  const fromName = process.env.SMTP_FROM_NAME || "RSP CPL USU";
   try {
     await transport.sendMail({
       from: `"${fromName}" <${process.env.SMTP_USER}>`,
@@ -102,7 +102,7 @@ export function taskReminderEmail(task, kind, opts = {}) {
   const html = `
   <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1f2937">
     <div style="background:${kind === "overdue" ? "#b91c1c" : "#0e7490"};color:#fff;padding:16px 20px;border-radius:10px 10px 0 0">
-      <div style="font-size:13px;opacity:.9">RS CPL USU · Manajemen Tugas Personel</div>
+      <div style="font-size:13px;opacity:.9">RSP CPL USU · Manajemen Tugas Personel</div>
       <h2 style="margin:4px 0 0;font-size:18px">${k.heading}</h2>
     </div>
     <div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;padding:18px 20px">
@@ -118,7 +118,7 @@ export function taskReminderEmail(task, kind, opts = {}) {
       </p>
       ${opts.cced ? `<p style="margin:14px 0 0;font-size:12px;color:#6b7280">Salinan email ini dikirim ke atasan langsung.</p>` : ""}
       <p style="margin:18px 0 0;font-size:12px;color:#9ca3af">
-        Email otomatis dari aplikasi Manajemen Tugas RS CPL USU. Mohon tidak dibalas.
+        Email otomatis dari aplikasi Manajemen Tugas RSP CPL USU. Mohon tidak dibalas.
       </p>
     </div>
   </div>`;
@@ -128,7 +128,7 @@ export function taskReminderEmail(task, kind, opts = {}) {
     (kind === "overdue" && opts.daysOverdue ? `Telah melewati tenggat ${opts.daysOverdue} hari dan belum selesai.\n` : "") +
     (opts.message ? `${opts.message}\n` : "") +
     (task.description ? `${task.description}\n` : "") +
-    `\n${rows.map(([a, b]) => `${a}: ${String(b).replace(/<[^>]+>/g, "")}`).join("\n")}\n\nBuka tugas: ${link}\n\n— Manajemen Tugas RS CPL USU`;
+    `\n${rows.map(([a, b]) => `${a}: ${String(b).replace(/<[^>]+>/g, "")}`).join("\n")}\n\nBuka tugas: ${link}\n\n— Manajemen Tugas RSP CPL USU`;
 
   return { subject, html, text };
 }

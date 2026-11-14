@@ -4,7 +4,7 @@ import { ROLES } from "@/lib/constants";
 import PerformaParams from "@/components/PerformaParams";
 
 export const metadata = {
-  title: "Parameter Performa RS | RS CPL USU",
+  title: "Parameter Performa RS | RSP CPL USU",
 };
 
 export default async function PerformaParamPage() {
