@@ -13,10 +13,9 @@ const RULES = [
   [/tht/i, "THT-KL"],
   [/mulut|maksilo/i, "Bedah Mulut & Maksilofasial"],
   [/kulit|dermato/i, "Dermatologi, Venereologi & Estetika"],
-  [/anak/i, "Bedah Anak"],
-  [/paru/i, "Paru (Bedah Paru)"],
-  // Bedah umum & subspesialisnya (digestif, onkologi, vaskular & endovaskular)
-  [/digestif|digestive|onkolog|vaskular|endovask|umum/i, "Bedah"],
+  [/paru/i, "Paru"],
+  // KSM Bedah: bedah umum, anak, digestif, onkologi, vaskular & endovaskular
+  [/anak|digestif|digestive|onkolog|vaskular|endovask|umum/i, "Bedah"],
 ];
 
 export function ksmOfSub(nama) {
