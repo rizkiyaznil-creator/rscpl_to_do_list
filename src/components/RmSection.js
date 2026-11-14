@@ -63,7 +63,8 @@ function combine(reports) {
     ruang: merge(reports.map((r) => r.data.ri?.perRuang)),
     spesialisRi: merge(reports.map((r) => r.data.ri?.perSpesialis)),
     opJenis: merge(reports.map((r) => r.data.rj?.ibp?.perJenis)),
-    opSub: merge(reports.map((r) => r.data.rj?.ibp?.perSub)),
+    // laporan lama: daftar sub-spesialis sempat ikut memuat daftar tindakan → ambil yang "Bedah ..." saja
+    opSub: merge(reports.map((r) => (r.data.rj?.ibp?.perSub || []).filter((x) => /bedah/i.test(x.nama)))),
     topRj: merge(reports.map((r) => r.data.rj?.top10), (x) => (x.icd || x.nama).toLowerCase()).slice(0, 10),
     topRi: merge(reports.map((r) => r.data.ri?.top10), (x) => (x.icd || x.nama).toLowerCase()).slice(0, 10),
   };
