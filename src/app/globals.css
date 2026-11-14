@@ -2448,3 +2448,22 @@ table.t2.clickable tbody tr:hover td { background: var(--surface-2); }
     flex: 1;
   }
 }
+
+/* ---------- Performa RS: Kamar Operasi (Jadwal Operasi) ---------- */
+.ok-prov { color: #b45309; font-weight: 600; }
+.ok-tiles { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin: 6px 0 10px; }
+.ok-tile { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--surface); display: flex; flex-direction: column; gap: 2px; }
+.ok-tile b { font-size: 22px; }
+.ok-tile span { font-size: 12px; color: var(--text-muted); }
+.ok-cols { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; align-items: start; }
+.ok-bars { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+.ok-bar { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr) 30px; align-items: center; gap: 8px; font-size: 12.5px; }
+.ok-bar-l { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ok-bar-track { height: 16px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+.ok-bar-fill { display: block; height: 100%; background: #2a78d6; border-radius: 0 4px 4px 0; min-width: 2px; }
+.ok-bar-v { text-align: right; }
+table.t2 tr.ok-total td { font-weight: 700; border-top: 2px solid var(--border); }
+@media (max-width: 760px) {
+  .ok-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ok-cols { grid-template-columns: 1fr; }
+}

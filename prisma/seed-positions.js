@@ -235,7 +235,64 @@ async function backfillCompletedAt(prisma) {
   if (tasks.length) console.log(`Tanggal selesai tugas diisi: ${tasks.length}.`);
 }
 
-module.exports = { seedPositions, seedLogCategories, seedPerfParams, unlockOngoingWeeks, backfillCompletedAt };
+// Integrasi aplikasi Jadwal Operasi (IBP). Idempoten:
+//  - "Operasi elektif" menjadi parameter BULANAN otomatis. Data mingguan lama
+//    tetap tersimpan; untuk bulan yang belum punya data bulanan, jumlahnya
+//    diringkas dari data mingguan (minggu dihitung ke bulan hari Kamis-nya)
+//    agar tren lama tidak hilang.
+//  - "Penundaan operasi elektif" (INM) diisi otomatis.
+//  - Kelompok G "Kamar Operasi (IBP)": indikator tambahan dari Jadwal Operasi.
+const OK_SOURCE = "Aplikasi Jadwal Operasi (otomatis)";
+const OK_PARAMS = [
+  // [kode, nama, jenis, satuan]
+  ["ok_terjadwal", "Operasi elektif terjadwal", "COUNT", "operasi"],
+  ["ok_batal", "Angka pembatalan operasi elektif", "RATIO", "%"],
+  ["ok_ubah", "Angka perubahan jadwal operasi elektif", "RATIO", "%"],
+  ["ok_mulai", "Ketepatan mulai operasi pertama", "RATIO", "%"],
+  ["ok_tunggu", "Waktu tunggu operasi elektif (median)", "STOCK", "hari"],
+  ["ok_util", "Utilisasi kapasitas tim kamar operasi", "RATIO", "%"],
+];
+async function upgradeJadwalOkParams(prisma) {
+  const op = await prisma.perfParam.findUnique({ where: { code: "op_elektif" } });
+  if (op && op.freq === "WEEK") {
+    const weekly = await prisma.perfValue.findMany({ where: { paramId: op.id, periodType: "WEEK" } });
+    const byMonth = new Map();
+    for (const v of weekly) {
+      if (!Number.isFinite(v.value)) continue;
+      const thu = new Date(v.periodStart.getTime() + 3 * 86400000);
+      const key = `${thu.getUTCFullYear()}-${String(thu.getUTCMonth() + 1).padStart(2, "0")}-01`;
+      byMonth.set(key, (byMonth.get(key) || 0) + v.value);
+    }
+    for (const [key, value] of byMonth) {
+      const periodStart = new Date(`${key}T00:00:00.000Z`);
+      const exists = await prisma.perfValue.findUnique({
+        where: { paramId_periodType_periodStart: { paramId: op.id, periodType: "MONTH", periodStart } },
+      });
+      if (!exists) await prisma.perfValue.create({ data: { paramId: op.id, periodType: "MONTH", periodStart, value } });
+    }
+    await prisma.perfParam.update({
+      where: { id: op.id },
+      data: { freq: "MONTH", auto: "JADWAL_OK", source: OK_SOURCE, name: "Operasi elektif (dilaksanakan)" },
+    });
+    console.log(`Operasi elektif -> bulanan otomatis (${byMonth.size} bulan diringkas dari data mingguan).`);
+  }
+  await prisma.perfParam.updateMany({
+    where: { code: "inm_tunda", auto: null },
+    data: { auto: "JADWAL_OK", source: OK_SOURCE },
+  });
+  const last = await prisma.perfParam.aggregate({ _max: { order: true } });
+  let order = (last._max.order ?? 0) + 1;
+  for (const [code, name, kind, unit] of OK_PARAMS) {
+    const found = await prisma.perfParam.findUnique({ where: { code } });
+    if (found) continue;
+    await prisma.perfParam.create({
+      data: { code, name, group: "G", freq: "MONTH", kind, unit, source: OK_SOURCE, auto: "JADWAL_OK", order: order++ },
+    });
+    console.log(`Parameter Jadwal Operasi dibuat: ${code}.`);
+  }
+}
+
+module.exports = { seedPositions, seedLogCategories, seedPerfParams, unlockOngoingWeeks, backfillCompletedAt, upgradeJadwalOkParams };
 
 if (require.main === module) {
   const prisma = new PrismaClient();
@@ -244,6 +301,7 @@ if (require.main === module) {
     .then(() => seedPerfParams(prisma))
     .then(() => unlockOngoingWeeks(prisma))
     .then(() => backfillCompletedAt(prisma))
+    .then(() => upgradeJadwalOkParams(prisma))
     .catch((e) => {
       console.error(e);
       process.exit(1);

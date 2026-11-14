@@ -119,7 +119,11 @@ export const PERF_GROUPS = {
   D: "Insiden keselamatan pasien",
   E: "Keuangan",
   F: "SDM & Pendidikan",
+  G: "Kamar Operasi (IBP)",
 };
+
+// Sumber data otomatis parameter Performa RS.
+export const PERF_AUTO_LABELS = { JADWAL_OK: "Otomatis dari aplikasi Jadwal Operasi" };
 
 export const PERF_FREQ_LABELS = { WEEK: "Mingguan", MONTH: "Bulanan" };
 

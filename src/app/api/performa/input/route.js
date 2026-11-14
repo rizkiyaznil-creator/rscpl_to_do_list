@@ -54,7 +54,9 @@ export async function GET(request) {
   return Response.json({
     type,
     start: p.start,
-    params: params.filter((x) => x.freq === type),
+    // Parameter otomatis (mis. dari Jadwal Operasi) tidak diisi lewat form.
+    params: params.filter((x) => x.freq === type && !x.auto),
+    autoParams: params.filter((x) => x.freq === type && x.auto).map((x) => ({ code: x.code, name: x.name, auto: x.auto })),
     values,
     lastSaved: last ? { at: last.updatedAt, by: last.updatedBy?.name || null } : null,
   });
@@ -78,7 +80,7 @@ export async function PUT(request) {
     return Response.json({ error: "Periode belum berjalan — tidak bisa diisi." }, { status: 400 });
   }
 
-  const params = await loadParams();
+  const params = await loadParams({ manualOnly: true });
   const { rows, errors } = validatePeriod(params, body.type, body.values || {});
   if (errors.length) return Response.json({ error: errors[0], errors }, { status: 400 });
 

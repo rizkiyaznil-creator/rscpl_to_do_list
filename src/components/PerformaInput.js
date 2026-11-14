@@ -161,6 +161,12 @@ export default function PerformaInput({ currentUser }) {
           <div className="empty">Memuat formulir...</div>
         ) : (
           <>
+            {data.autoParams?.length > 0 && (
+              <div className="alert alert-warn">
+                🔒 Diisi <b>otomatis dari aplikasi Jadwal Operasi</b> (tidak perlu diinput):{" "}
+                {data.autoParams.map((p) => p.name).join(", ")}.
+              </div>
+            )}
             {groups.map((g) => {
               const ps = params.filter((p) => p.group === g);
               const sources = [...new Set(ps.map((p) => p.source).filter(Boolean))].join(" · ");

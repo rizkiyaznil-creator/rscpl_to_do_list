@@ -9,7 +9,7 @@ import { addDays, formatWeekRange, weekStartKey, keyToDate } from "@/lib/logdate
 
 export const GRANS = ["week", "month", "quarter", "semester", "year", "multi"];
 // Urutan kelompok parameter (lihat PERF_GROUPS di constants).
-export const PERF_GROUP_ORDER = ["A", "B", "C", "D", "E", "F"];
+export const PERF_GROUP_ORDER = ["A", "B", "C", "D", "E", "F", "G"];
 export const GRAN_LABELS = {
   week: "Mingguan",
   month: "Bulanan",
@@ -193,7 +193,10 @@ export function aggregate(params, rows, period, index = indexRows(rows)) {
   const values = {};
   const weekRows = new Map();
   for (const p of params) {
-    const rs = (index.get(p.code) || []).filter((r) => rowInPeriod(r, period));
+    // Hanya baris sesuai frekuensi parameter (data mingguan lama dari parameter
+    // yang kini bulanan tidak ikut dihitung ganda).
+    const type = p.freq === "WEEK" ? "WEEK" : "MONTH";
+    const rs = (index.get(p.code) || []).filter((r) => r.type === type && rowInPeriod(r, period));
     values[p.code] = combine(p.kind, rs);
     if (p.freq === "WEEK") weekRows.set(p.code, rs.filter((r) => r.type === "WEEK"));
   }
