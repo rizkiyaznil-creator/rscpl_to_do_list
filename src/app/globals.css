@@ -2476,4 +2476,7 @@ table.t2 tr.ok-total td { font-weight: 700; border-top: 2px solid var(--border);
 .rm-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--text-muted); }
 .rm-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
 .rm-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 8px; }
+.rm-ksm .rm-total td { border-top: 2px solid var(--border); }
+.rm-ksm td:first-child, .rm-ksm th:first-child { white-space: nowrap; position: sticky; left: 0; background: var(--surface); z-index: 1; }
+.rm-ksm td:last-child { min-width: 260px; }
 @media (max-width: 760px) { .rm-cols { grid-template-columns: 1fr; } }
