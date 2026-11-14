@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { todayKey } from "@/lib/logdate";
 import { makePeriod, monthOfWeek, fmt, MONTHS } from "@/lib/perfcalc";
+import { opsPerKsm } from "@/lib/rmKsm";
 
 // Bagian "H. Rekam Medis" di Performa RS: ringkasan laporan bulanan Unit Rekam
 // Medis untuk periode terpilih (beberapa bulan dijumlahkan).
@@ -63,8 +64,6 @@ function combine(reports) {
     ruang: merge(reports.map((r) => r.data.ri?.perRuang)),
     spesialisRi: merge(reports.map((r) => r.data.ri?.perSpesialis)),
     opJenis: merge(reports.map((r) => r.data.rj?.ibp?.perJenis)),
-    // laporan lama: daftar sub-spesialis sempat ikut memuat daftar tindakan → ambil yang "Bedah ..." saja
-    opSub: merge(reports.map((r) => (r.data.rj?.ibp?.perSub || []).filter((x) => /bedah/i.test(x.nama)))),
     topRj: merge(reports.map((r) => r.data.rj?.top10), (x) => (x.icd || x.nama).toLowerCase()).slice(0, 10),
     topRi: merge(reports.map((r) => r.data.ri?.top10), (x) => (x.icd || x.nama).toLowerCase()).slice(0, 10),
   };
@@ -127,6 +126,9 @@ export default function RmSection({ gran, periodKey }) {
   const c = combine(reports);
   const pjTotal = Object.values(c.penjamin).reduce((a, b) => a + b, 0);
   const single = reports.length === 1 ? reports[0].data.ri : null;
+  const ksm = opsPerKsm(reports);
+  const multi = reports.length > 1;
+  const years = new Set(reports.map((r) => r.month.slice(0, 4))).size;
 
   return (
     <section className="pf-card wide">
@@ -201,13 +203,58 @@ export default function RmSection({ gran, periodKey }) {
               <Bars items={c.spesialisRi} />
             </div>
             <div>
-              <h4 className="pf-sub">Operasi IBP per sub-spesialis</h4>
-              <Bars items={c.opSub} max={15} />
+              <h4 className="pf-sub">Operasi IBP per KSM</h4>
+              <Bars items={ksm.rows.map((k) => ({ nama: k.ksm, jumlah: k.total }))} max={20} />
               <p className="muted-sm" style={{ marginTop: 6 }}>
                 Per jenis: {c.opJenis.filter((x) => x.jumlah > 0).map((x) => `${x.nama} ${fmt(x.jumlah, 0)}`).join(" · ") || "—"}
               </p>
             </div>
           </div>
+
+          {ksm.rows.length > 0 && (
+            <>
+              <h4 className="pf-sub">Rekap operasi IBP per KSM{multi ? " per bulan" : ""}</h4>
+              <div className="table-wrap">
+                <table className="t2 rm-ksm">
+                  <thead>
+                    <tr>
+                      <th>KSM</th>
+                      {multi && reports.map((r) => <th key={r.month} className="n">{MONTHS[Number(r.month.slice(5, 7)) - 1].slice(0, 3)}{years > 1 ? ` ${r.month.slice(2, 4)}` : ""}</th>)}
+                      <th className="n">Jumlah</th>
+                      <th className="n">%</th>
+                      <th>Rincian sub-spesialis (laporan RM)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ksm.rows.map((k) => (
+                      <tr key={k.ksm}>
+                        <td>{k.ksm}</td>
+                        {multi && reports.map((r) => <td key={r.month} className="n">{k.perMonth[r.month] ? fmt(k.perMonth[r.month], 0) : "–"}</td>)}
+                        <td className="n"><b>{fmt(k.total, 0)}</b></td>
+                        <td className="n">{fmtPct(pct(k.total, ksm.total))}</td>
+                        <td className="muted-sm">
+                          {k.subs.length > 1 ? k.subs.map((x) => `${x.nama} ${fmt(x.jumlah, 0)}`).join(" · ") : ""}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="rm-total">
+                      <td><b>Total pasien bedah</b></td>
+                      {multi && reports.map((r) => (
+                        <td key={r.month} className="n"><b>{fmt(ksm.rows.reduce((a, k) => a + (k.perMonth[r.month] || 0), 0), 0)}</b></td>
+                      ))}
+                      <td className="n"><b>{fmt(ksm.total, 0)}</b></td>
+                      <td className="n">100%</td>
+                      <td />
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p className="muted-sm" style={{ marginTop: 4 }}>
+                KSM dipetakan dari &quot;Sub Spesialis Bedah&quot; laporan RM (nama KSM sama dengan aplikasi Jadwal Operasi). KSM Bedah =
+                bedah umum, digestif, onkologi, vaskular &amp; endovaskular. Laporan RM tidak memuat data per DPJP.
+              </p>
+            </>
+          )}
 
           {single && (
             <p className="muted-sm" style={{ marginTop: 8 }}>
