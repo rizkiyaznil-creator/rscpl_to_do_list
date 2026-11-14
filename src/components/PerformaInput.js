@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import RmUploadPanel from "@/components/RmUploadPanel";
 import TopBar from "@/components/TopBar";
 import { StatusChip } from "@/components/PerfCharts";
-import { PERF_GROUPS } from "@/lib/constants";
+import { PERF_GROUPS, PERF_AUTO_LABELS } from "@/lib/constants";
 import { todayKey, weekStartKey, addDays, formatWeekRange } from "@/lib/logdate";
 import {
   PERF_GROUP_ORDER,
@@ -147,6 +148,7 @@ export default function PerformaInput({ currentUser }) {
           )}
         </div>
 
+        <RmUploadPanel onSaved={load} />
         <ImportPanel onImported={load} />
 
         {errors.length > 0 && (
@@ -163,8 +165,15 @@ export default function PerformaInput({ currentUser }) {
           <>
             {data.autoParams?.length > 0 && (
               <div className="alert alert-warn">
-                🔒 Diisi <b>otomatis dari aplikasi Jadwal Operasi</b> (tidak perlu diinput):{" "}
-                {data.autoParams.map((p) => p.name).join(", ")}.
+                🔒 Diisi otomatis (tidak perlu diinput):
+                {Object.entries(PERF_AUTO_LABELS).map(([src, label]) => {
+                  const ps = data.autoParams.filter((p) => p.auto === src);
+                  return ps.length ? (
+                    <div key={src}>
+                      • dari <b>{label}</b>: {ps.map((p) => p.name).join(", ")}.
+                    </div>
+                  ) : null;
+                })}
               </div>
             )}
             {groups.map((g) => {

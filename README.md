@@ -99,6 +99,14 @@ Akses dilindungi **login** (autentikasi).
   pertama, waktu tunggu, utilisasi) dan **rekap per KSM** (bagian "G. Kamar Operasi" di
   dashboard). Parameter otomatis tidak diinput manual. Admin/Subadmin dapat "Tarik sekarang".
   Butuh env `JADWAL_OK_URL` & `JADWAL_OK_TOKEN` (= `INTEGRASI_TOKEN` di aplikasi Jadwal Operasi).
+- 🏥 **Performa RS ← Laporan Rekam Medis** — Admin/Subadmin mengunggah file Excel laporan
+  bulanan Unit RM (boleh banyak `.xlsx` atau `.zip`) di `/performa/input`. File dibaca di
+  browser; bila ada beberapa revisi untuk satu bulan, yang terakhir disimpan dipakai
+  (pratinjau + cek konsistensi sebelum simpan). Mengisi otomatis kunjungan rawat jalan, IGD,
+  pasien dirawat inap, laboratorium, radiologi, dan BOR/ALOS/TOI/BTO/GDR/NDR (bagian B;
+  BTO RM per bulan disetahunkan). Sensus mingguan manual dinonaktifkan. Bagian
+  **"H. Rekam Medis"**: penjamin, 10 penyakit terbanyak RJ/RI, kunjungan per poli, pasien
+  per ruang & per spesialis, operasi IBP per sub-spesialis, kematian & IGD DOA/DOE.
 - 📈 **Laporan & statistik** (`/laporan`) — ringkasan status, tugas lewat tenggat,
   tingkat penyelesaian, beban kerja per personel & per bidang.
 

@@ -123,7 +123,10 @@ export const PERF_GROUPS = {
 };
 
 // Sumber data otomatis parameter Performa RS.
-export const PERF_AUTO_LABELS = { JADWAL_OK: "Otomatis dari aplikasi Jadwal Operasi" };
+export const PERF_AUTO_LABELS = {
+  JADWAL_OK: "aplikasi Jadwal Operasi",
+  RM: "Laporan Rekam Medis (unggah file Excel RM)",
+};
 
 export const PERF_FREQ_LABELS = { WEEK: "Mingguan", MONTH: "Bulanan" };
 

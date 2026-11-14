@@ -25,6 +25,7 @@ import {
 } from "@/lib/perfcalc";
 import { downloadPerformaCsv, generatePerformaPdf } from "@/lib/performaExport";
 import OkSection from "@/components/OkSection";
+import RmSection from "@/components/RmSection";
 
 const BJ = Object.fromEntries(BJ_DEFS.map((d) => [d.code, d]));
 const INSIDEN = ["ktd", "knc", "ktc", "kpc", "sentinel"];
@@ -186,6 +187,7 @@ export default function PerformaDashboard({ currentUser }) {
         {data && !hasAny && (
           <div className="pf-grid">
             <OkSection gran={gran} periodKey={data.period.key} />
+            <RmSection gran={gran} periodKey={data.period.key} />
           </div>
         )}
 
@@ -315,7 +317,10 @@ export default function PerformaDashboard({ currentUser }) {
 
               <section className="pf-card">
                 <h3 className="ct">B. Efisiensi rawat inap (Barber-Johnson)</h3>
-                <p className="cs">{data.period.label}</p>
+                <p className="cs">
+                  {data.period.label}
+                  {data.bjSource === "RM" && " · dari laporan Rekam Medis (BTO disetahunkan)"}
+                </p>
                 <table className="t2 clickable">
                   <thead><tr><th>Indikator</th><th className="n">Nilai</th><th>Ideal</th><th>Status</th></tr></thead>
                   <tbody>
@@ -379,6 +384,7 @@ export default function PerformaDashboard({ currentUser }) {
               </section>
 
               <OkSection gran={gran} periodKey={key} />
+              <RmSection gran={gran} periodKey={key} />
 
               {params.some((p) => !["A", "B", "C", "D", "G"].includes(p.group)) && (
                 <section className="pf-card">

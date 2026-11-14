@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth";
 import { canInputPerforma } from "@/lib/constants";
 import { todayKey } from "@/lib/logdate";
 import { loadParams, loadRows } from "@/lib/perfServer";
+import { loadRmMonthly } from "@/lib/rmServer";
 import {
   GRANS,
   isValidPeriodKey,
@@ -35,7 +36,13 @@ export async function GET(request) {
   const baseGran = gran === "multi" ? "year" : gran;
   const year = Number(key.slice(0, 4));
   // Muat data cukup untuk tren & perbandingan multi-tahun (maks. 5 tahun ke belakang).
-  const [params, rows] = await Promise.all([loadParams(), loadRows(`${year - 5}-01-01`)]);
+  const [params, rows, bjMonthly] = await Promise.all([
+    loadParams(),
+    loadRows(`${year - 5}-01-01`),
+    loadRmMonthly(`${year - 5}-01`),
+  ]);
+  // Barber-Johnson dari laporan Rekam Medis bila sensus mingguan tidak dipakai.
+  const opts = { bjMonthly };
 
   const period = makePeriod(baseGran, key);
   const prevKey = shiftPeriod(baseGran, key, -1);
@@ -57,8 +64,8 @@ export async function GET(request) {
     prevPeriod.label = `${span(prevPeriod.months)} (rentang yang sama)`;
   }
 
-  const current = aggregate(params, rows, period);
-  const previous = aggregate(params, rows, prevPeriod);
+  const current = aggregate(params, rows, period, undefined, opts);
+  const previous = aggregate(params, rows, prevPeriod, undefined, opts);
 
   // Tahun untuk perbandingan multi-tahun: tahun ini + hingga 2 (multi: 4) tahun sebelumnya yang berisi data.
   const back = gran === "multi" ? 4 : 2;
@@ -76,8 +83,9 @@ export async function GET(request) {
     params,
     current,
     previousValues: previous,
-    trend: trend(params, rows, gran, key),
-    multiYear: { years, values: monthlyByYear(params, rows, years) },
+    trend: trend(params, rows, gran, key, undefined, opts),
+    multiYear: { years, values: monthlyByYear(params, rows, years, opts) },
+    bjSource: params.some((p) => p.code === "hp") ? "SENSUS" : "RM",
     lastWeek: lastOf("WEEK"),
     lastMonth: lastOf("MONTH"),
     canInput: canInputPerforma(session.role),
