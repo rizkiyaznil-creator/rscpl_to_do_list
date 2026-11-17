@@ -14,6 +14,8 @@ const INM_TUNDA = { targetOp: "LTE", target: 5 };
 const monthLabel = (ym) => `${MONTHS[Number(ym.slice(5, 7)) - 1]} ${ym.slice(0, 4)}`;
 const pct = (n, d) => (d > 0 ? (n / d) * 100 : null);
 const fmtPct = (v) => (v === null ? "—" : `${fmt(v, 1)}%`);
+const OUTCOME = { DILAKSANAKAN: "Dilaksanakan", TUNDA: "Ditunda", BATAL: "Batal", BELUM: "Belum diupdate" };
+const fmtDate = (d) => (d ? new Date(`${d}T00:00:00`).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "—");
 
 function monthsOf(gran, key) {
   if (gran === "week") return [monthOfWeek(key)];
@@ -29,7 +31,11 @@ function combine(reports) {
   let waitW = 0;
   let waitN = 0;
   const ksm = new Map();
+  const unknown = [];
+  let unknownNoDetail = 0;
   for (const { data: r } of reports) {
+    if (Array.isArray(r.ksmBelumDiketahui)) unknown.push(...r.ksmBelumDiketahui);
+    else unknownNoDetail += (r.perKsm || []).filter((k) => /belum diketahui/i.test(k.ksm)).reduce((a, k) => a + (k.terjadwal || 0), 0);
     for (const k of Object.keys(sum)) sum[k] += r.jumlah?.[k] || 0;
     const add = (t, x, n = "pembilang", d = "penyebut") => {
       if (!x) return;
@@ -57,6 +63,8 @@ function combine(reports) {
     mutu,
     wait: waitN ? waitW / waitN : null,
     ksm: [...ksm.values()].sort((a, b) => b.dilaksanakan - a.dilaksanakan || b.terjadwal - a.terjadwal),
+    unknown: unknown.sort((a, b) => String(a.tanggal).localeCompare(String(b.tanggal))),
+    unknownNoDetail,
   };
 }
 
@@ -240,6 +248,46 @@ export default function OkSection({ gran, periodKey }) {
               </tbody>
             </table>
           </div>
+
+          {(c.unknown.length > 0 || c.unknownNoDetail > 0) && (
+            <div className="ok-unknown">
+              <h4 className="pf-sub">⚠ Operasi dengan KSM belum diketahui ({c.unknown.length || c.unknownNoDetail})</h4>
+              {c.unknown.length > 0 ? (
+                <>
+                  <div className="table-wrap">
+                    <table className="t2">
+                      <thead>
+                        <tr><th>Tanggal</th><th>No. permintaan</th><th>DPJP</th><th>Rencana tindakan</th><th>Unit pengirim</th><th>Status</th></tr>
+                      </thead>
+                      <tbody>
+                        {c.unknown.map((u) => (
+                          <tr key={u.nomor}>
+                            <td style={{ whiteSpace: "nowrap" }}>{fmtDate(u.tanggal)}</td>
+                            <td className="muted-sm">{u.nomor}</td>
+                            <td>
+                              {u.dpjp}
+                              {u.diDaftarDokter === false && <div className="muted-sm">belum ada di Daftar Dokter</div>}
+                            </td>
+                            <td>{u.tindakan}</td>
+                            <td>{u.unit}</td>
+                            <td>{OUTCOME[u.status] || u.status}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="muted-sm" style={{ marginTop: 6 }}>
+                    Cara melengkapi: di aplikasi Jadwal Operasi buka <b>Master → Daftar Dokter</b>, pilih KSM untuk DPJP di atas (tambahkan
+                    dokternya bila belum ada, dengan nama yang sama persis), lalu klik <b>⟳ Tarik sekarang</b> di sini.
+                  </p>
+                </>
+              ) : (
+                <p className="muted-sm">
+                  Rincian belum tersedia untuk data yang ditarik sebelumnya.{state.canSync ? " Klik “⟳ Tarik sekarang” untuk memuatnya." : ""}
+                </p>
+              )}
+            </div>
+          )}
         </>
       )}
     </section>
