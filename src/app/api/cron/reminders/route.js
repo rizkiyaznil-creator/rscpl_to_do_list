@@ -21,7 +21,7 @@ const OVERDUE = { key: "OVERDUE", mail: "overdue" };
 const OVERDUE_WINDOW_DAYS = 30;
 
 // GET /api/cron/reminders
-// Dipanggil OTOMATIS oleh Vercel Cron sekali sehari pukul 07.00 WIB (vercel.json).
+// Dipanggil OTOMATIS sekali sehari pukul 07.00 WIB lewat /api/cron/harian (vercel.json).
 // Untuk setiap tugas yang belum selesai:
 //   - H-3, H-1, hari-H  -> email ke penanggung jawab
 //   - lewat tenggat     -> SATU email lanjutan ke penanggung jawab, salinan (CC)
