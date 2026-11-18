@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { timeAgo, formatDate } from "@/lib/format";
+import { useActivePolling } from "@/lib/useActivePolling";
 
 // Ikon per jenis notifikasi tersimpan (bawaan: 💬 komentar).
 const NOTIF_ICON = {
@@ -44,12 +45,10 @@ export default function NotificationBell() {
     }
   }, []);
 
-  // Muat saat mount + polling tiap 60 detik.
-  useEffect(() => {
-    load();
-    const t = setInterval(load, 60000);
-    return () => clearInterval(t);
-  }, [load]);
+  // Muat saat mount, lalu tiap 60 detik selama tab terlihat & pengguna aktif
+  // (diam ≥ 5 menit atau tab tersembunyi = jeda, agar database Neon bisa tidur).
+  // Begitu tab dibuka lagi / pengguna kembali berinteraksi, langsung dimuat ulang.
+  useActivePolling(load, { intervalMs: 60_000, idleMs: 5 * 60_000 });
 
   // Tutup dropdown saat klik di luar.
   useEffect(() => {

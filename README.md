@@ -93,7 +93,7 @@ Akses dilindungi **login** (autentikasi).
   Admin, dan pemilik dapat membalas (notifikasi lonceng; komentar ikut tercetak
   di PDF). Pengingat Senin–Jumat bila belum mengisi.
   Ekspor PDF/CSV per personel & rekap bawahan.
-- 🏥 **Performa RS ← Jadwal Operasi (otomatis)** — tiap hari pukul 07.10 WIB laporan bulanan
+- 🏥 **Performa RS ← Jadwal Operasi (otomatis)** — tiap hari pukul 07.00 WIB (sesudah email pengingat, dalam satu cron `/api/cron/harian`) laporan bulanan
   Kamar Operasi (IBP) ditarik dari aplikasi Jadwal Operasi: jumlah operasi elektif, indikator
   mutu (INM penundaan operasi elektif, pembatalan, perubahan jadwal, ketepatan mulai operasi
   pertama, waktu tunggu, utilisasi) dan **rekap per KSM** (bagian "G. Kamar Operasi" di

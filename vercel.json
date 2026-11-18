@@ -4,12 +4,8 @@
   ],
   "crons": [
     {
-      "path": "/api/cron/reminders",
+      "path": "/api/cron/harian",
       "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/jadwal-operasi",
-      "schedule": "10 0 * * *"
     }
   ]
 }
