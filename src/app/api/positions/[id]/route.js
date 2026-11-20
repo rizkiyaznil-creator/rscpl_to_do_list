@@ -6,7 +6,7 @@ import { isSelfOrDescendant } from "@/lib/positions";
 async function requireAdmin() {
   const session = await getSession();
   if (!session) {
-    return { res: Response.json({ error: "Tidak terautentikasi." }, { status: 401 }) };
+    return { res: Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 }) };
   }
   if (session.role !== ROLES.ADMIN) {
     return { res: Response.json({ error: "Khusus admin." }, { status: 403 }) };

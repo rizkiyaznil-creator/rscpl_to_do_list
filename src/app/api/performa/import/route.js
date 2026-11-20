@@ -12,7 +12,7 @@ const MAX_BYTES = 4 * 1024 * 1024;
 export async function POST(request) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
   if (!canInputPerforma(session.role)) {
     return Response.json({ error: "Hanya Admin/Subadmin yang dapat mengimpor data." }, { status: 403 });

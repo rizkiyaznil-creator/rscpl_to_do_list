@@ -20,7 +20,7 @@ async function authorize(session, id) {
 // menerima undangan yang harus disetujui.
 export async function POST(request, { params }) {
   const session = await getSession();
-  if (!session) return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+  if (!session) return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   const { id } = await params;
   const acc = await authorize(session, id);
   if (acc.error) return Response.json({ error: acc.error }, { status: acc.status });
@@ -54,7 +54,7 @@ export async function POST(request, { params }) {
 // DELETE /api/tasks/:id/members?userId= -> keluarkan anggota / batalkan undangan.
 export async function DELETE(request, { params }) {
   const session = await getSession();
-  if (!session) return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+  if (!session) return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   const { id } = await params;
   const acc = await authorize(session, id);
   if (acc.error) return Response.json({ error: acc.error }, { status: acc.status });

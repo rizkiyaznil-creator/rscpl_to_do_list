@@ -7,7 +7,7 @@ import { buildTemplate } from "@/lib/perfExcel";
 export async function GET() {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
   if (!canInputPerforma(session.role)) {
     return Response.json({ error: "Hanya Admin/Subadmin." }, { status: 403 });

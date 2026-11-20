@@ -23,7 +23,7 @@ async function readTarget(request) {
 export async function POST(request) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
   const t = await readTarget(request);
   if (t.error) return Response.json({ error: t.error }, { status: 400 });
@@ -91,7 +91,7 @@ export async function POST(request) {
 export async function DELETE(request) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
   const t = await readTarget(request);
   if (t.error) return Response.json({ error: t.error }, { status: 400 });

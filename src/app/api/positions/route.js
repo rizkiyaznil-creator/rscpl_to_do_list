@@ -9,7 +9,7 @@ const MULTI_LEVELS = ["ANGGOTA", "STAF"];
 export async function GET() {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
 
   const positions = await prisma.position.findMany({
@@ -27,7 +27,7 @@ export async function GET() {
 export async function POST(request) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
   if (session.role !== ROLES.ADMIN) {
     return Response.json({ error: "Khusus admin." }, { status: 403 });

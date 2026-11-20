@@ -7,7 +7,7 @@ import { inviteMode, isSelectable } from "@/lib/taskAccess";
 // "direct" (langsung) atau "approval" (perlu persetujuan yang diajak).
 export async function GET() {
   const session = await getSession();
-  if (!session) return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+  if (!session) return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
 
   const org = await loadOrg();
   const assignable = assignableUserIds(org, session.id, session.role);

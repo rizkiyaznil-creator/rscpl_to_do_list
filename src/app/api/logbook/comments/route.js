@@ -12,7 +12,7 @@ import { COMMENT_SELECT, serializeComment, snippet, MAX_COMMENT } from "@/lib/lo
 export async function POST(request) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
 
   let body;

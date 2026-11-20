@@ -9,7 +9,7 @@ import { taskPerms } from "@/lib/taskPerms";
 export async function POST(request, { params }) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
 
   const { id } = await params;

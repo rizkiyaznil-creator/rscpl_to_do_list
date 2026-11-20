@@ -11,7 +11,7 @@ const isYm = (s) => typeof s === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(s);
 // Laporan Rekam Medis bulanan yang sudah diunggah (semua personel yang login).
 export async function GET(request) {
   const session = await getSession();
-  if (!session) return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+  if (!session) return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   const { searchParams } = new URL(request.url);
   const from = searchParams.get("from");
   const to = searchParams.get("to");
@@ -38,7 +38,7 @@ export async function GET(request) {
 // `reports` = hasil baca file Excel RM di browser (lib/rmParse.js).
 export async function POST(request) {
   const session = await getSession();
-  if (!session) return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+  if (!session) return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   if (!canInputPerforma(session.role)) {
     return Response.json({ error: "Hanya Admin / Subadmin Performa yang dapat mengunggah laporan RM." }, { status: 403 });
   }

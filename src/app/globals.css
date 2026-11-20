@@ -2484,3 +2484,14 @@ table.t2 tr.ok-total td { font-weight: 700; border-top: 2px solid var(--border);
 .rm-ksm td:first-child, .rm-ksm th:first-child { white-space: nowrap; position: sticky; left: 0; background: var(--surface); z-index: 1; }
 .rm-ksm td:last-child { min-width: 260px; }
 @media (max-width: 760px) { .rm-cols { grid-template-columns: 1fr; } }
+
+/* Pemberitahuan sesi login berakhir (components/SessionGuard.js) */
+.session-guard {
+  position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 2000;
+  width: min(680px, calc(100vw - 24px)); display: flex; gap: 12px; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-radius: 12px; border: 1px solid #f3c06b; background: #fff7e6; color: #7a4b00;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18); font-size: 14px; line-height: 1.4;
+}
+.session-guard .btn { white-space: nowrap; flex-shrink: 0; }
+.session-guard.ok { border-color: #9ad7b0; background: #ecfbf1; color: #14532d; justify-content: center; }
+@media (max-width: 520px) { .session-guard { flex-direction: column; align-items: stretch; text-align: left; } }

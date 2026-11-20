@@ -6,7 +6,7 @@ import { getSession, verifyPassword, hashPassword } from "@/lib/auth";
 export async function PATCH(request) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
 
   let body;

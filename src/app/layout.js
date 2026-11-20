@@ -1,5 +1,6 @@
 import "./globals.css";
 import { hospital } from "@/lib/hospitalProfile";
+import SessionGuard from "@/components/SessionGuard";
 
 export const metadata = {
   title: `${hospital.name} | Manajemen Tugas Rumah Sakit`,
@@ -44,7 +45,10 @@ export default function RootLayout({ children }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: PWA_SCRIPT }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <SessionGuard />
+        {children}
+      </body>
     </html>
   );
 }

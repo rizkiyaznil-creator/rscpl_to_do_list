@@ -16,7 +16,7 @@ const authorSelect = { id: true, name: true, role: true };
 export async function GET(request, { params }) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
 
   const { id } = await params;
@@ -37,7 +37,7 @@ export async function GET(request, { params }) {
 export async function POST(request, { params }) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
 
   const { id } = await params;

@@ -13,7 +13,7 @@ const isYm = (s) => typeof s === "string" && /^\d{4}-(0[1-9]|1[0-2])$/.test(s);
 // Operasi. Semua personel yang login boleh melihat (sama seperti Performa RS).
 export async function GET(request) {
   const session = await getSession();
-  if (!session) return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+  if (!session) return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   const { searchParams } = new URL(request.url);
   const from = searchParams.get("from");
   const to = searchParams.get("to");
@@ -35,7 +35,7 @@ export async function GET(request) {
 // Tanpa periode: bulan lalu & bulan berjalan.
 export async function POST(request) {
   const session = await getSession();
-  if (!session) return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+  if (!session) return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   if (!canInputPerforma(session.role)) {
     return Response.json({ error: "Hanya Admin / Subadmin Performa yang dapat menarik data." }, { status: 403 });
   }

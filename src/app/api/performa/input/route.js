@@ -12,7 +12,7 @@ import {
 
 async function requireInput() {
   const session = await getSession();
-  if (!session) return { res: Response.json({ error: "Tidak terautentikasi." }, { status: 401 }) };
+  if (!session) return { res: Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 }) };
   if (!canInputPerforma(session.role)) {
     return { res: Response.json({ error: "Hanya Admin/Subadmin yang dapat menginput data performa." }, { status: 403 }) };
   }

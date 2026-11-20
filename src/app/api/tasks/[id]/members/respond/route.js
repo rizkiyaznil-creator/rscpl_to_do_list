@@ -9,7 +9,7 @@ import { notify } from "@/lib/notifications";
 // pemilik (PIC utama) tugas.
 export async function POST(request, { params }) {
   const session = await getSession();
-  if (!session) return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+  if (!session) return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   const { id } = await params;
   const taskId = Number(id);
 

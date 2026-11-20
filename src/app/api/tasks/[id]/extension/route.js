@@ -31,7 +31,7 @@ async function load(session, id) {
 // Penanggung jawab tugas dari atasan mengajukan tenggat baru.
 export async function POST(request, { params }) {
   const session = await getSession();
-  if (!session) return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+  if (!session) return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   const { id } = await params;
   const ctx = await load(session, id);
   if (!ctx) return Response.json({ error: "Tugas tidak ditemukan." }, { status: 404 });
@@ -100,7 +100,7 @@ export async function POST(request, { params }) {
 // Pemberi tugas / atasan berjenjang / Admin memutuskan pengajuan yang menunggu.
 export async function PATCH(request, { params }) {
   const session = await getSession();
-  if (!session) return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+  if (!session) return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   const { id } = await params;
   const ctx = await load(session, id);
   if (!ctx) return Response.json({ error: "Tugas tidak ditemukan." }, { status: 404 });

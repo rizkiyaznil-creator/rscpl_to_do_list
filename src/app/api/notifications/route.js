@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
+import { getSession, renewSessionIfStale } from "@/lib/auth";
 import { getDueReminders, getLogbookReminder } from "@/lib/notifications";
 
 // GET /api/notifications
@@ -8,7 +8,11 @@ import { getDueReminders, getLogbookReminder } from "@/lib/notifications";
 export async function GET() {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
+  }
+  // Lonceng dimuat di setiap halaman → tempat memperpanjang sesi yang dipakai.
+  if (!(await renewSessionIfStale())) {
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
 
   const [items, unreadCount, reminders, logbook] = await Promise.all([
@@ -32,7 +36,7 @@ export async function GET() {
 export async function POST(request) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
 
   let body;

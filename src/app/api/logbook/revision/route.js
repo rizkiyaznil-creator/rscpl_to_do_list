@@ -20,7 +20,7 @@ async function readBody(request) {
 export async function POST(request) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
   const body = await readBody(request);
   const userId = Number(body?.userId);
@@ -91,7 +91,7 @@ export async function POST(request) {
 export async function PATCH(request) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
   const body = await readBody(request);
   if (!isValidKey(body?.week)) {

@@ -7,7 +7,7 @@ import { ROLES } from "@/lib/constants";
 export async function DELETE(request, { params }) {
   const session = await getSession();
   if (!session) {
-    return Response.json({ error: "Tidak terautentikasi." }, { status: 401 });
+    return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
 
   const { id, commentId } = await params;
