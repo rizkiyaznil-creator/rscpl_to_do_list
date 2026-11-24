@@ -98,7 +98,7 @@ export default function TaskFormModal({ currentUser, users, assignableIds = [], 
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>{isEdit ? "Ubah Tugas" : "Tambah Tugas"}</h3>
         <form onSubmit={handleSubmit}>

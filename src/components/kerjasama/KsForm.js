@@ -77,7 +77,7 @@ export default function KsForm({ mode, item, access, onClose, onSaved }) {
   const title = mode === "perpanjang" ? "Perpanjang Kerjasama" : isEdit ? "Ubah Kerjasama" : "Tambah Kerjasama";
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal modal-wide" onClick={(e) => e.stopPropagation()}>
         <h3>{title}</h3>
         {mode === "perpanjang" && (

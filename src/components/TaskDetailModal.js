@@ -135,7 +135,7 @@ export default function TaskDetailModal({ taskId, currentUser, onClose, onChange
   const overdue = task && isOverdue(task.dueDate, task.status);
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
         {loading ? (
           <div className="empty">Memuat detail...</div>

@@ -305,7 +305,7 @@ function UserFormModal({ positions, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>Tambah Personel</h3>
         <form onSubmit={submit}>
@@ -412,7 +412,7 @@ function EditUserModal({ user, positions, isSelf, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>Ubah Personel</h3>
         <p className="muted-sm" style={{ marginTop: 0 }}>@{user.username}</p>
@@ -497,7 +497,7 @@ function VerifyModal({ user, positions, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>Verifikasi Pendaftar</h3>
         <p className="muted-sm" style={{ marginTop: 0 }}>
@@ -555,7 +555,7 @@ function WipeModal({ onClose, onDone }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>⚠️ Hapus semua personel lama</h3>
         <div className="alert alert-error">
@@ -641,7 +641,7 @@ function ResetPasswordModal({ user, onClose }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>Reset Password</h3>
         <p style={{ marginTop: 0, color: "var(--text-muted)", fontSize: 13.5 }}>

@@ -43,7 +43,7 @@ export default function LogCategoryModal({ categories, onClose, onChanged }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>Kategori Baku Logbook</h3>
         <p className="muted-sm" style={{ marginTop: 0 }}>

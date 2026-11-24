@@ -83,7 +83,7 @@ export default function LogEntryModal({ entry, defaultDate, ownerId, categories,
     .concat(tasks.filter((t) => t.status === STATUS.DONE && t.id !== form.taskId));
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>{entry ? "Ubah Kegiatan" : "Tambah Kegiatan"}</h3>
         <form onSubmit={submit}>

@@ -205,7 +205,7 @@ function PositionFormModal({ position, positions, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>{isNew ? "Tambah Jabatan" : "Ubah Jabatan"}</h3>
         <form onSubmit={submit}>

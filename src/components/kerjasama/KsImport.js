@@ -60,7 +60,7 @@ export default function KsImport({ today, onClose, onDone }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={busy ? undefined : onClose}>
+    <div className="modal-overlay">
       <div className="modal modal-wide ks-import" onClick={(e) => e.stopPropagation()}>
         <h3>⬆ Impor Excel Tabulasi Kerjasama</h3>
         <p className="muted-sm">

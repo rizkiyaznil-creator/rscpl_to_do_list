@@ -193,7 +193,7 @@ export default function InstallApp({ variant = "block" }) {
       )}
 
       {showHelp && (
-        <div className="modal-overlay" onClick={() => setShowHelp(false)}>
+        <div className="modal-overlay">
           <div className="modal install-help" onClick={(e) => e.stopPropagation()}>
             <h3 style={{ marginTop: 0 }}>📲 {help.title}</h3>
             <ol>

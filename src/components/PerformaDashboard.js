@@ -434,7 +434,7 @@ function DetailModal({ code, data, gran, pmap, onClose }) {
   const years = data.multiYear.years;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="dash-card-head">
           <h3 style={{ margin: 0 }}>{name}</h3>

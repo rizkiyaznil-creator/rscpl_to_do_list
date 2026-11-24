@@ -437,7 +437,7 @@ export default function LogWeek({ userId, week, setWeek, categories, onBack }) {
       ) : null}
 
       {revise !== null && (
-        <div className="modal-overlay" onClick={() => setRevise(null)}>
+        <div className="modal-overlay">
           <form className="modal" onClick={(e) => e.stopPropagation()} onSubmit={requestRevision}>
             <h3 style={{ marginTop: 0 }}>↩ Kembalikan untuk perbaikan</h3>
             <p className="muted-sm" style={{ marginTop: 0 }}>

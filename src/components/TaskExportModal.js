@@ -46,7 +46,7 @@ export default function TaskExportModal({ tasks, filterLabel, currentUser, onClo
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3 style={{ marginTop: 0 }}>⬇ Ekspor laporan tugas</h3>
         <p className="muted-sm" style={{ marginTop: 0 }}>

@@ -171,7 +171,7 @@ function ParamModal({ param, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>{isNew ? "Tambah Parameter" : "Ubah Parameter"}</h3>
         <form onSubmit={submit}>

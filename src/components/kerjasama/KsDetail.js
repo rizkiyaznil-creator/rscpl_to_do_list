@@ -77,7 +77,7 @@ export default function KsDetail({ k, access, me, today, onClose, onChanged, onE
   const ended = k.berakhir && k.berakhir < today;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay">
       <div className="modal modal-wide ks-detail" onClick={(e) => e.stopPropagation()}>
         <div className="ks-detail-head">
           <div>
