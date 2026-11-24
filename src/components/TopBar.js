@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { ROLES, ROLE_LABELS } from "@/lib/constants";
@@ -15,6 +16,7 @@ const NAV = [
   { href: "/tugas", label: "Tugas", match: ["/tugas"] },
   { href: "/logbook", label: "Logbook", match: ["/logbook"] },
   { href: "/performa", label: "Performa RS", match: ["/performa"], subadmin: true },
+  { href: "/kerjasama", label: "Kerjasama", match: ["/kerjasama"], ks: true },
   { href: "/laporan", label: "Laporan", match: ["/laporan"] },
   { href: "/admin", label: "Kelola Personel", match: ["/admin"], admin: true },
   { href: "/", label: "Profil RS", match: [] },
@@ -23,6 +25,20 @@ const NAV = [
 export default function TopBar({ user }) {
   const router = useRouter();
   const pathname = usePathname() || "";
+  // Menu Kerjasama hanya untuk yang berhak (diketahui dari data lonceng);
+  // diingat per tab agar tidak berkedip saat pindah halaman.
+  const [ksMenu, setKsMenu] = useState(false);
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(`ksMenu:${user?.id}`) === "1") setKsMenu(true);
+    } catch {}
+  }, [user?.id]);
+  const onMeta = (m) => {
+    setKsMenu(Boolean(m.kerjasama));
+    try {
+      sessionStorage.setItem(`ksMenu:${user?.id}`, m.kerjasama ? "1" : "0");
+    } catch {}
+  };
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -48,7 +64,7 @@ export default function TopBar({ user }) {
         {/* Di HP, menu ini pindah ke baris kedua & bisa digeser ke samping. */}
         <nav className="topnav">
           {NAV.filter((n) =>
-            user?.role === ROLES.SUBADMIN ? n.subadmin : !n.admin || user?.role === ROLES.ADMIN,
+            user?.role === ROLES.SUBADMIN ? n.subadmin : (!n.admin || user?.role === ROLES.ADMIN) && (!n.ks || ksMenu),
           ).map((n) => {
             const active = n.match.some((m) => pathname === m || pathname.startsWith(`${m}/`));
             return (
@@ -64,7 +80,7 @@ export default function TopBar({ user }) {
           })}
         </nav>
         <InstallApp variant="icon" />
-        <NotificationBell />
+        <NotificationBell onMeta={onMeta} />
         <Link href="/akun" className="userchip" title="Akun saya">
           <span className="avatar">{initials(user?.name)}</span>
           <div>

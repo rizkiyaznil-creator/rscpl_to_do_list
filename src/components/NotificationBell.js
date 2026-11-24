@@ -22,6 +22,9 @@ const NOTIF_ICON = {
   SHARED_ACCEPTED: "🤝",
   SHARED_DECLINED: "✖️",
   SHARED_REMOVED: "➖",
+  KS_SUBMITTED: "🤝",
+  KS_VERIFIED: "✅",
+  KS_RETURNED: "↩️",
 };
 
 const LEVEL_ICON = {
@@ -30,16 +33,24 @@ const LEVEL_ICON = {
   soon: "📅",
 };
 
-export default function NotificationBell() {
+// onMeta(meta): dipanggil setiap data dimuat, mis. { kerjasama: true } untuk
+// menampilkan menu Kerjasama di TopBar.
+export default function NotificationBell({ onMeta }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [data, setData] = useState({ items: [], reminders: [], logbook: null, badge: 0, unreadCount: 0 });
+  const [data, setData] = useState({ items: [], reminders: [], logbook: null, kerjasama: null, badge: 0, unreadCount: 0 });
+  const onMetaRef = useRef(onMeta);
+  onMetaRef.current = onMeta;
   const ref = useRef(null);
 
   const load = useCallback(async () => {
     try {
       const res = await fetch("/api/notifications");
-      if (res.ok) setData(await res.json());
+      if (res.ok) {
+        const d = await res.json();
+        setData(d);
+        if (d.menu) onMetaRef.current?.(d.menu);
+      }
     } catch {
       /* abaikan error jaringan sementara */
     }
@@ -121,17 +132,23 @@ export default function NotificationBell() {
       setOpen(false);
       load();
       const target = n.link || "/logbook";
-      // Halaman Logbook membaca ?user=&week= saat dimuat, jadi muat ulang
-      // bila sedang berada di halaman Logbook.
-      if (window.location.pathname === "/logbook") window.location.assign(target);
+      // Halaman Logbook/Kerjasama membaca query (?user=&week= / ?id=) saat dimuat,
+      // jadi muat ulang bila sedang berada di halaman yang sama.
+      if (window.location.pathname === target.split("?")[0]) window.location.assign(target);
       else router.push(target);
       return;
     }
     openTask(n.taskId, n.id);
   }
 
-  const { items, reminders, logbook, badge, unreadCount } = data;
-  const hasContent = Boolean(logbook) || reminders.length > 0 || items.length > 0;
+  const { items, reminders, logbook, kerjasama, badge, unreadCount } = data;
+  const ksCount = kerjasama ? kerjasama.alarms.length + (kerjasama.pending ? 1 : 0) : 0;
+  const hasContent = Boolean(logbook) || reminders.length > 0 || items.length > 0 || ksCount > 0;
+  const goKs = (href) => {
+    setOpen(false);
+    if (window.location.pathname === "/kerjasama") window.location.assign(href);
+    else router.push(href);
+  };
 
   return (
     <div className="notif" ref={ref}>
@@ -196,6 +213,43 @@ export default function NotificationBell() {
                     </span>
                   </button>
                 ))}
+              </div>
+            )}
+
+            {/* Alarm kerjasama (unit Kerja Sama) */}
+            {ksCount > 0 && (
+              <div className="notif-group">
+                <div className="notif-group-title">Kerjasama</div>
+                {kerjasama.pending > 0 && (
+                  <button className="notif-item reminder soon" onClick={() => goKs("/kerjasama?filter=MENUNGGU")}>
+                    <span className="notif-icon">🔎</span>
+                    <span className="notif-text">
+                      <b>{kerjasama.pending} data kerjasama menunggu verifikasi</b>
+                      <small>Ketuk untuk memverifikasi</small>
+                    </span>
+                  </button>
+                )}
+                {kerjasama.alarms.slice(0, 6).map((a, i) => (
+                  <button
+                    key={`ks-${a.id}-${i}`}
+                    className={`notif-item reminder ${a.level === "danger" ? "overdue" : "soon"}`}
+                    onClick={() => goKs(`/kerjasama?id=${a.id}`)}
+                  >
+                    <span className="notif-icon">{a.level === "danger" ? "⚠️" : "🤝"}</span>
+                    <span className="notif-text">
+                      <b>{a.mitra}</b>
+                      <small>{a.label}</small>
+                    </span>
+                  </button>
+                ))}
+                {kerjasama.alarms.length > 6 && (
+                  <button className="notif-item reminder" onClick={() => goKs("/kerjasama?filter=ALARM")}>
+                    <span className="notif-icon">➕</span>
+                    <span className="notif-text">
+                      <b>{kerjasama.alarms.length - 6} alarm kerjasama lainnya</b>
+                    </span>
+                  </button>
+                )}
               </div>
             )}
 

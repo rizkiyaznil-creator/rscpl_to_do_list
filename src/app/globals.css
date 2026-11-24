@@ -2495,3 +2495,56 @@ table.t2 tr.ok-total td { font-weight: 700; border-top: 2px solid var(--border);
 .session-guard .btn { white-space: nowrap; flex-shrink: 0; }
 .session-guard.ok { border-color: #9ad7b0; background: #ecfbf1; color: #14532d; justify-content: center; }
 @media (max-width: 520px) { .session-guard { flex-direction: column; align-items: stretch; text-align: left; } }
+
+/* ───────── Kerjasama ───────── */
+.chip-danger { background: var(--danger-light); color: var(--danger); }
+.ks-tiles { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
+.ks-tiles.alarms { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-bottom: 14px; }
+.ks-tile { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: var(--surface); display: flex; flex-direction: column; gap: 2px; text-align: left; font: inherit; color: inherit; }
+button.ks-tile { cursor: pointer; }
+.ks-tile b { font-size: 22px; }
+.ks-tile span { font-size: 12px; color: var(--text-muted); }
+.ks-tile.warn { border-color: #f3c06b; background: var(--progress-bg); }
+.ks-tile.warn b { color: var(--progress); }
+.ks-tile.danger { border-color: #f5b5b5; background: var(--danger-light); }
+.ks-tile.danger b { color: var(--danger); }
+.ks-filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.ks-search { flex: 1; min-width: 220px; }
+.ks-group { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.ks-group-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.ks-group-head h3 { font-size: 16px; margin: 0; }
+.ks-group-head .count { font-size: 12px; background: var(--primary-light); color: var(--primary-dark); border-radius: 999px; padding: 1px 9px; font-weight: 700; }
+.ks-table td { vertical-align: top; }
+.ks-mitra { min-width: 200px; }
+.ks-mitra > div + div { margin-top: 4px; }
+.ks-col-text { max-width: 280px; }
+.clamp3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ks-status { min-width: 170px; }
+.ks-alarm { font-size: 12px; margin-top: 3px; line-height: 1.35; }
+.ks-alarm.danger { color: var(--danger); font-weight: 600; }
+.ks-alarm.warn { color: var(--progress); font-weight: 600; }
+.ks-alarm.info { color: var(--text-muted); }
+.ks-check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 400; margin-top: 4px; }
+.ks-check input { width: auto; }
+.ks-mitra-form { border: 1px dashed var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; background: var(--surface-2); }
+.ks-mitra-head { margin-bottom: 6px; }
+.ks-mitra-item { border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px; }
+.ks-detail-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+.ks-verif { border: 1px solid #f3c06b; background: var(--progress-bg); border-radius: 10px; padding: 10px 12px; margin: 10px 0; }
+.ks-verif textarea, .ks-verif input, .ks-verif select { margin-top: 4px; }
+.ks-note { margin-top: 6px; font-size: 13px; color: var(--danger); }
+.ks-info { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 16px; margin: 12px 0; }
+.ks-info > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ks-info > div.wide { grid-column: 1 / -1; }
+.ks-info span { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+.ks-info p { margin: 0; white-space: pre-wrap; }
+.ks-info b { word-break: break-word; }
+.ks-eval tr.late td, .ks-import-table tr.late td { background: var(--danger-light); }
+.ks-import-table { max-height: 55vh; overflow: auto; }
+.ks-import-table tr.ks-dim td { opacity: 0.6; }
+.ks-nomor { max-width: 200px; word-break: break-word; }
+@media (max-width: 760px) {
+  .ks-tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ks-tiles.alarms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ks-info { grid-template-columns: 1fr; }
+}

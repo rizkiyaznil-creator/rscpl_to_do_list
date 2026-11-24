@@ -107,6 +107,15 @@ Akses dilindungi **login** (autentikasi).
   BTO RM per bulan disetahunkan). Sensus mingguan manual dinonaktifkan. Bagian
   **"H. Rekam Medis"**: penjamin, 10 penyakit terbanyak RJ/RI, kunjungan per poli, pasien
   per ruang & per spesialis, operasi IBP per sub-spesialis, kematian & IGD DOA/DOE.
+- 🤝 **Kerjasama** (`/kerjasama`) — daftar PKS/MoU/MoA per tipe (Pendidikan, Operasional,
+  Pelayanan, Penyediaan, Penelitian, Lainnya), satu kerjasama bisa **lebih dari satu mitra**
+  (tripartit/multipihak). Data: mitra, jenis, nama pimpinan & kontak PIC mitra, bidang, masa,
+  periode evaluasi wajib (1/3/6/12 bulan), isi ringkas, nomor & link dokumen. Dilihat oleh
+  Direktur, Wadir, Kepala SPI, Admin & unit Kerja Sama. Input Staf Kerja Sama (termasuk usulan
+  perubahan & hasil evaluasi) **diverifikasi Koordinator/Manajer Kerja Sama** sebelum final.
+  Alarm evaluasi (H-14 & terlambat) dan masa akhir (H-90, H-30, berakhir) di lonceng, kartu
+  Dashboard, dan **email harian** ke Manajer & Koordinator (CC Wadir pembina; tiap alarm sekali).
+  Impor Excel tabulasi lama (semua sheet, baris ganda digabung) & ekspor Excel/PDF.
 - 📈 **Laporan & statistik** (`/laporan`) — ringkasan status, tugas lewat tenggat,
   tingkat penyelesaian, beban kerja per personel & per bidang.
 

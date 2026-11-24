@@ -1,5 +1,6 @@
 import { GET as reminders } from "../reminders/route";
 import { GET as jadwalOperasi } from "../jadwal-operasi/route";
+import { GET as kerjasama } from "../kerjasama/route";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -9,11 +10,12 @@ export const maxDuration = 60;
 // (Neon, ditagih per jam menyala) cukup bangun sekali per hari:
 //   1. email pengingat tenggat tugas   (/api/cron/reminders)
 //   2. tarik laporan Jadwal Operasi    (/api/cron/jadwal-operasi)
+//   3. email alarm kerjasama           (/api/cron/kerjasama)
 // Kegagalan satu tugas tidak menghentikan tugas lainnya. Kedua route lama tetap
 // bisa dipanggil terpisah (mis. manual). Proteksi CRON_SECRET diperiksa oleh
 // masing-masing route (header Authorization diteruskan apa adanya).
 export async function GET(request) {
-  const jobs = { reminders, jadwalOperasi };
+  const jobs = { reminders, jadwalOperasi, kerjasama };
   const result = {};
   let status = 200;
   for (const [name, run] of Object.entries(jobs)) {

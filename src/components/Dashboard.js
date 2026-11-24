@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { KS_TIPE } from "@/lib/kerjasama";
 import TopBar from "@/components/TopBar";
 import { PRIORITY_LABELS } from "@/lib/constants";
 import { formatDate } from "@/lib/format";
@@ -313,6 +314,49 @@ export default function Dashboard({ currentUser }) {
                         </tbody>
                       </table>
                     </div>
+                  )}
+                </section>
+              )}
+
+              {/* ---------- Kerjasama ---------- */}
+              {data.kerjasama && (
+                <section className="dash-card wide">
+                  <div className="dash-card-head">
+                    <h3>🤝 Kerjasama</h3>
+                    <Link href="/kerjasama" className="muted-sm">Buka menu Kerjasama →</Link>
+                  </div>
+                  <div className="dash-tiles three">
+                    <Tile value={data.kerjasama.aktif} label="Kerjasama berjalan" href="/kerjasama" />
+                    <Tile
+                      value={data.kerjasama.akanBerakhir}
+                      label="Akan/baru berakhir (≤ 90 hari)"
+                      color={data.kerjasama.akanBerakhir ? "var(--progress)" : undefined}
+                      href="/kerjasama?filter=ALARM"
+                    />
+                    <Tile
+                      value={data.kerjasama.evaluasi}
+                      label="Evaluasi jatuh tempo / terlambat"
+                      color={data.kerjasama.evaluasi ? "var(--danger)" : undefined}
+                      href="/kerjasama?filter=ALARM"
+                    />
+                  </div>
+                  <div className="ks-dash-tipe muted-sm">
+                    {KS_TIPE.map(([k, l]) => `${l.replace("Kerjasama ", "")} ${data.kerjasama.perTipe[k] || 0}`).join(" · ")}
+                    {data.kerjasama.pending ? ` · ${data.kerjasama.pending} menunggu verifikasi` : ""}
+                  </div>
+                  {data.kerjasama.alarms.length > 0 && (
+                    <ul className="dash-list" style={{ marginTop: 6 }}>
+                      {data.kerjasama.alarms.map((a, i) => (
+                        <li key={`${a.id}-${i}`}>
+                          <Link href={`/kerjasama?id=${a.id}`}>
+                            <span className="dash-list-title">{a.mitra}</span>
+                            <span className="dash-due" style={{ color: a.level === "danger" ? "var(--danger)" : "var(--progress)" }}>
+                              {a.label}
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                 </section>
               )}

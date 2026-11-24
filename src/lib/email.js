@@ -132,3 +132,43 @@ export function taskReminderEmail(task, kind, opts = {}) {
 
   return { subject, html, text };
 }
+
+// Email ringkasan alarm kerjasama harian (satu email berisi semua alarm baru).
+//   groups: [{ title, color, items: [{ id, mitra, label }] }]
+export function kerjasamaDigestEmail(groups, { cced = false } = {}) {
+  const total = groups.reduce((a, g) => a + g.items.length, 0);
+  const subject = `[PENTING] Alarm kerjasama: ${total} perlu tindak lanjut`;
+  const link = (id) => `${appUrl()}/kerjasama?id=${id}`;
+  const html = `
+  <div style="font-family:Arial,Helvetica,sans-serif;max-width:620px;margin:0 auto;color:#1f2937">
+    <div style="background:#0e7490;color:#fff;padding:16px 20px;border-radius:10px 10px 0 0">
+      <div style="font-size:13px;opacity:.9">RSP CPL USU · Menu Kerjasama</div>
+      <h2 style="margin:4px 0 0;font-size:18px">🤝 Pengingat Kerjasama</h2>
+    </div>
+    <div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 10px 10px;padding:18px 20px">
+      ${groups
+        .filter((g) => g.items.length)
+        .map(
+          (g) => `
+        <h3 style="margin:0 0 8px;font-size:15px;color:${g.color}">${g.title} (${g.items.length})</h3>
+        <ul style="margin:0 0 16px;padding-left:18px;font-size:14px">
+          ${g.items.map((it) => `<li style="margin-bottom:6px"><a href="${link(it.id)}" style="color:#0e7490;font-weight:600">${escapeHtml(it.mitra)}</a><br><span style="color:#4b5563">${escapeHtml(it.label)}</span></li>`).join("")}
+        </ul>`,
+        )
+        .join("")}
+      <p style="margin:6px 0 0">
+        <a href="${appUrl()}/kerjasama?filter=ALARM" style="display:inline-block;background:#0e7490;color:#fff;text-decoration:none;padding:9px 16px;border-radius:8px;font-weight:600">Buka menu Kerjasama</a>
+      </p>
+      ${cced ? `<p style="margin:14px 0 0;font-size:12px;color:#6b7280">Salinan email ini dikirim ke Wakil Direktur pembina.</p>` : ""}
+      <p style="margin:18px 0 0;font-size:12px;color:#9ca3af">Email otomatis dari aplikasi Manajemen Tugas RSP CPL USU. Tiap alarm hanya dikirim sekali. Mohon tidak dibalas.</p>
+    </div>
+  </div>`;
+  const text =
+    `Pengingat Kerjasama\n\n` +
+    groups
+      .filter((g) => g.items.length)
+      .map((g) => `${g.title} (${g.items.length})\n${g.items.map((it) => `- ${it.mitra}: ${it.label}\n  ${link(it.id)}`).join("\n")}`)
+      .join("\n\n") +
+    `\n\n— Manajemen Tugas RSP CPL USU`;
+  return { subject, html, text };
+}

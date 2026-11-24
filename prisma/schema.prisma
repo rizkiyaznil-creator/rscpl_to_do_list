@@ -34,25 +34,30 @@ model User {
   positionId Int?
   position   Position? @relation(fields: [positionId], references: [id], onDelete: SetNull)
 
-  perfValues    PerfValue[] // data performa RS yang terakhir diinput user
-  logEntries    LogEntry[] // logbook kegiatan harian milik user
-  logApprovals  LogApproval[]  @relation("logOwner") // minggu logbook user yang sudah disetujui
-  logApproved   LogApproval[]  @relation("logApprover") // persetujuan logbook yang diberikan user
-  logComments   LogComment[]   @relation("logCommentOwner") // komentar pada logbook milik user
-  logCommented  LogComment[]   @relation("logCommentAuthor") // komentar logbook yang ditulis user
-  logRevisions  LogRevision[]  @relation("logRevisionOwner") // minggu logbook user yang dikembalikan
-  logRevised    LogRevision[]  @relation("logRevisionBy") // pengembalian logbook oleh user
-  extRequested  TaskExtension[] @relation("extRequester") // pengajuan perpanjangan tenggat oleh user
-  extDecided    TaskExtension[] @relation("extDecider") // keputusan perpanjangan oleh user
-  rmUploads     RmReport[]     @relation("rmUploader") // laporan Rekam Medis yang diunggah user
-  taskMembers   TaskMember[]   @relation("taskMember") // keanggotaan tugas bersama
-  taskInvites   TaskMember[]   @relation("taskInviter") // undangan tugas bersama yang dikirim user
-  checklistAssigned ChecklistItem[] @relation("checklistAssignee") // langkah checklist bagian user
-  ownedTasks    Task[]         @relation("owner") // tugas yang menjadi tanggung jawab user
-  createdTasks  Task[]         @relation("creator") // tugas yang dibuat oleh user
-  comments      Comment[] // komentar/handover yang ditulis user
-  activities    Activity[] // jejak aktivitas yang dilakukan user
-  notifications Notification[] // notifikasi yang ditujukan kepada user
+  perfValues        PerfValue[] // data performa RS yang terakhir diinput user
+  logEntries        LogEntry[] // logbook kegiatan harian milik user
+  logApprovals      LogApproval[]       @relation("logOwner") // minggu logbook user yang sudah disetujui
+  logApproved       LogApproval[]       @relation("logApprover") // persetujuan logbook yang diberikan user
+  logComments       LogComment[]        @relation("logCommentOwner") // komentar pada logbook milik user
+  logCommented      LogComment[]        @relation("logCommentAuthor") // komentar logbook yang ditulis user
+  logRevisions      LogRevision[]       @relation("logRevisionOwner") // minggu logbook user yang dikembalikan
+  logRevised        LogRevision[]       @relation("logRevisionBy") // pengembalian logbook oleh user
+  extRequested      TaskExtension[]     @relation("extRequester") // pengajuan perpanjangan tenggat oleh user
+  extDecided        TaskExtension[]     @relation("extDecider") // keputusan perpanjangan oleh user
+  rmUploads         RmReport[]          @relation("rmUploader") // laporan Rekam Medis yang diunggah user
+  ksCreated         Kerjasama[]         @relation("ksCreatedBy")
+  ksVerified        Kerjasama[]         @relation("ksVerifiedBy")
+  ksProposed        Kerjasama[]         @relation("ksUsulanBy")
+  ksEvalCreated     KerjasamaEvaluasi[] @relation("ksEvalCreatedBy")
+  ksEvalVerified    KerjasamaEvaluasi[] @relation("ksEvalVerifiedBy")
+  taskMembers       TaskMember[]        @relation("taskMember") // keanggotaan tugas bersama
+  taskInvites       TaskMember[]        @relation("taskInviter") // undangan tugas bersama yang dikirim user
+  checklistAssigned ChecklistItem[]     @relation("checklistAssignee") // langkah checklist bagian user
+  ownedTasks        Task[]              @relation("owner") // tugas yang menjadi tanggung jawab user
+  createdTasks      Task[]              @relation("creator") // tugas yang dibuat oleh user
+  comments          Comment[] // komentar/handover yang ditulis user
+  activities        Activity[] // jejak aktivitas yang dilakukan user
+  notifications     Notification[] // notifikasi yang ditujukan kepada user
 }
 
 // Jabatan dalam struktur organisasi (SOTK), tersusun sebagai pohon melalui
@@ -407,4 +412,101 @@ model TaskReminder {
   task   Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@unique([taskId, kind, dueDate])
+}
+
+// ───────────────────────── Kerjasama (unit Kerja Sama & Marketing) ─────────────────────────
+// Satu kerjasama (PKS/MoU/MoA) dapat melibatkan satu atau lebih mitra (tripartit/multipihak).
+// Alur: Staf Kerja Sama input -> MENUNGGU -> Koordinator/Manajer verifikasi -> FINAL
+// (atau DIKEMBALIKAN dengan alasan). Input Koordinator/Manajer/Admin langsung FINAL.
+// Perubahan Staf atas data FINAL disimpan di `usulan` sampai diverifikasi.
+model Kerjasama {
+  id             Int       @id @default(autoincrement())
+  tipe           String // PENDIDIKAN | OPERASIONAL | PELAYANAN | PENYEDIAAN | PENELITIAN | LAINNYA
+  bidang         String
+  mulai          DateTime  @db.Date
+  berakhir       DateTime? @db.Date // null = tanpa tanggal berakhir
+  evalBulan      Int? // periode evaluasi wajib: 1 | 3 | 6 | 12 (null = belum diisi, data impor)
+  wajibEvalSejak DateTime  @db.Date // jadwal evaluasi sebelum tanggal ini tidak diwajibkan (data lama)
+  isi            String    @db.Text // isi kerjasama ringkas
+  nomorDokumen   String    @db.Text
+  linkDokumen    String?
+  unitPelaksana  String?
+  keterangan     String?   @db.Text
+  status         String    @default("MENUNGGU") // MENUNGGU | DIKEMBALIKAN | FINAL
+  catatanVerif   String?   @db.Text // alasan dikembalikan
+  sumber         String? // "IMPOR" bila dari Excel
+  jenisAsal      String? // jenis di file impor (mis. "Manajerial/Klinis")
+
+  createdById  Int?
+  createdBy    User?     @relation("ksCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  verifiedById Int?
+  verifiedBy   User?     @relation("ksVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt   DateTime?
+
+  usulan     Json? // usulan perubahan Staf atas data FINAL: { data, mitra }
+  usulanById Int?
+  usulanBy   User?     @relation("ksUsulanBy", fields: [usulanById], references: [id], onDelete: SetNull)
+  usulanAt   DateTime?
+
+  perpanjanganDariId Int?       @unique
+  perpanjanganDari   Kerjasama? @relation("ksPerpanjangan", fields: [perpanjanganDariId], references: [id], onDelete: SetNull)
+  perpanjangan       Kerjasama? @relation("ksPerpanjangan")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  mitra     KerjasamaMitra[]
+  evaluasi  KerjasamaEvaluasi[]
+  reminders KerjasamaReminder[]
+
+  @@index([status])
+  @@index([berakhir])
+}
+
+model KerjasamaMitra {
+  id          Int       @id @default(autoincrement())
+  kerjasamaId Int
+  kerjasama   Kerjasama @relation(fields: [kerjasamaId], references: [id], onDelete: Cascade)
+  urutan      Int       @default(0)
+  nama        String
+  jenis       String    @default("LAINNYA") // INSTITUSI | BADAN_USAHA | LAINNYA
+  pimpinan    String?
+  kontakPic   String? // nama PIC mitra + no. HP/email
+
+  @@index([kerjasamaId])
+}
+
+model KerjasamaEvaluasi {
+  id           Int       @id @default(autoincrement())
+  kerjasamaId  Int
+  kerjasama    Kerjasama @relation(fields: [kerjasamaId], references: [id], onDelete: Cascade)
+  ke           Int // evaluasi ke-n sejak tanggal mulai
+  jatuhTempo   DateTime  @db.Date
+  tanggal      DateTime  @db.Date // tanggal evaluasi dilaksanakan
+  hasil        String // SESUAI | PERBAIKAN | TIDAK_SESUAI
+  rekomendasi  String // LANJUT | LANJUT_PERBAIKAN | HENTIKAN
+  catatan      String    @db.Text
+  link         String
+  status       String    @default("MENUNGGU") // MENUNGGU | DIKEMBALIKAN | FINAL
+  catatanVerif String?   @db.Text
+  createdById  Int?
+  createdBy    User?     @relation("ksEvalCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  verifiedById Int?
+  verifiedBy   User?     @relation("ksEvalVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([kerjasamaId, ke])
+}
+
+// Catatan alarm yang sudah dikirim lewat email (agar tiap alarm hanya sekali).
+model KerjasamaReminder {
+  id          Int       @id @default(autoincrement())
+  kerjasamaId Int
+  kerjasama   Kerjasama @relation(fields: [kerjasamaId], references: [id], onDelete: Cascade)
+  kind        String // EVAL_H14:<ke> | EVAL_LATE:<ke> | END_H90 | END_H30 | ENDED
+  sentAt      DateTime  @default(now())
+
+  @@unique([kerjasamaId, kind])
 }

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getSession, renewSessionIfStale } from "@/lib/auth";
 import { getDueReminders, getLogbookReminder } from "@/lib/notifications";
+import { getKsAccess, ksBellData } from "@/lib/kerjasamaServer";
 
 // GET /api/notifications
 // Mengembalikan: notifikasi tersimpan (assigned/comment), pengingat tenggat
@@ -15,7 +16,7 @@ export async function GET() {
     return Response.json({ error: "Sesi login Anda telah berakhir. Silakan login ulang." }, { status: 401 });
   }
 
-  const [items, unreadCount, reminders, logbook] = await Promise.all([
+  const [items, unreadCount, reminders, logbook, ks] = await Promise.all([
     prisma.notification.findMany({
       where: { userId: session.id },
       orderBy: { createdAt: "desc" },
@@ -24,12 +25,16 @@ export async function GET() {
     prisma.notification.count({ where: { userId: session.id, read: false } }),
     getDueReminders(session.id),
     getLogbookReminder(session.id),
+    // Menu Kerjasama (siapa yang boleh melihat) + alarm untuk unit Kerja Sama.
+    getKsAccess(session).then(async ({ access }) => ({ view: access.view, ...(await ksBellData(access)) })),
   ]);
+  const kerjasama = ks.alarms ? { alarms: ks.alarms, pending: ks.pending } : null;
 
-  // Badge = notifikasi belum dibaca + pengingat tenggat + pengingat logbook.
-  const badge = unreadCount + reminders.length + (logbook ? 1 : 0);
+  // Badge = notifikasi belum dibaca + pengingat tenggat + pengingat logbook
+  // + alarm kerjasama & data kerjasama yang menunggu verifikasi.
+  const badge = unreadCount + reminders.length + (logbook ? 1 : 0) + (kerjasama ? kerjasama.alarms.length + kerjasama.pending : 0);
 
-  return Response.json({ items, reminders, logbook, unreadCount, badge });
+  return Response.json({ items, reminders, logbook, unreadCount, badge, kerjasama, menu: { kerjasama: ks.view } });
 }
 
 // POST /api/notifications  body: { id } untuk tandai satu, atau { all: true }.

@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { ROLES, STATUS, USER_STATUS } from "@/lib/constants";
 import { loadOrg, visibleUserIds, approverIds, canSeeAll, positionOf } from "@/lib/logbook";
 import { todayKey, weekStartKey, addDays, keyToDate, toKey, dayIndex } from "@/lib/logdate";
+import { ksDashboard } from "@/lib/kerjasamaServer";
 
 const pct = (n, d) => (d ? Math.round((n / d) * 100) : 0);
 
@@ -202,12 +203,13 @@ export async function GET() {
     return prisma.user.count({ where: { status: USER_STATUS.PENDING } });
   }
 
-  const [tasks, logbook, team, bidang, pendingRegistrations] = await Promise.all([
+  const [tasks, logbook, team, bidang, pendingRegistrations, kerjasama] = await Promise.all([
     loadTasks(),
     loadLogbook(),
     loadTeam(),
     loadBidang(),
     loadRegistrations(),
+    ksDashboard(session, org),
   ]);
 
   return Response.json({
@@ -218,5 +220,6 @@ export async function GET() {
     team,
     bidang,
     pendingRegistrations,
+    kerjasama,
   });
 }
