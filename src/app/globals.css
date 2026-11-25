@@ -203,7 +203,7 @@ textarea {
   z-index: 20;
 }
 .topbar-inner {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 12px 20px;
   display: flex;
@@ -216,6 +216,8 @@ textarea {
   gap: 10px;
   font-weight: 700;
   font-size: 16px;
+  flex: none;
+  white-space: nowrap; /* nama RS & logo tidak pernah terlipat */
 }
 .brand .mark {
   width: 34px;
@@ -1775,6 +1777,31 @@ input[type="range"] {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.topnav .btn { white-space: nowrap; }
+.userchip { flex: 0 1 auto; min-width: 0; }
+.userchip .avatar { flex: none; }
+.userchip .uc-text { min-width: 0; }
+.userchip .uc-name {
+  font-weight: 600;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Layar laptop yang tidak cukup lebar untuk satu baris: menu turun ke baris
+   kedua (rata kiri, dapat digeser bila tetap tidak muat). */
+@media (min-width: 761px) and (max-width: 1360px) {
+  .topbar-inner {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+  .topnav {
+    order: 10;
+    flex-basis: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
 }
 @media (max-width: 760px) {
   .topbar-inner {

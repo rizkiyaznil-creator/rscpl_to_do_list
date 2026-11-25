@@ -81,10 +81,10 @@ export default function TopBar({ user }) {
         </nav>
         <InstallApp variant="icon" />
         <NotificationBell onMeta={onMeta} />
-        <Link href="/akun" className="userchip" title="Akun saya">
+        <Link href="/akun" className="userchip" title={`Akun saya — ${user?.name || ""}`}>
           <span className="avatar">{initials(user?.name)}</span>
-          <div>
-            <div style={{ fontWeight: 600 }}>{user?.name}</div>
+          <div className="uc-text">
+            <div className="uc-name">{user?.name}</div>
             <span
               className={`badge ${
                 user?.role === ROLES.ADMIN ? "badge-role" : "badge-staff"
